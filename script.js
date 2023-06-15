@@ -1,99 +1,155 @@
-const gatesArray =
-[
-    {
-        "name": "AND",
+const gatesDict =
+{
+    "AND": {
+        "width": 60,
+        "height": 40,
         "input": 2,
         "output": 1
     },
-    {
-        "name": "OR",
+    "OR": {
+        "width": 60,
+        "height": 40,
         "input": 2,
         "output": 1
     }
-]
-
-const gatesDict = {};
-
-for (const item of gatesArray) {
-  const { name, input, output } = item;
-  gatesDict[name] = { input, output };
 }
 
 // create buttons
-gatesArray.forEach(x => {
+for(let k in gatesDict) {
     let button = document.createElement('button');
-    button.innerHTML = x['name'];
-    button.textContent = x['name'];
-    button.addEventListener("click", () => addGate(x['name']));
+    button.innerHTML = k;
+    button.textContent = k;
+    button.addEventListener("click", () => addGate(k));
     document.body.appendChild(button);
-});
+};
+
+// graph section
+class DirectedGraph {
+    constructor() {
+      this.vertices = {};
+    }
+  
+    addVertex(vertex) {
+      this.vertices[vertex] = [];
+    }
+  
+    addEdge(fromVertex, toVertex) {
+        if (!this.vertices[fromVertex] || !this.vertices[toVertex]) {
+            throw new Error('One or both vertices do not exist in the graph.');
+        }
+    
+        this.vertices[fromVertex].push(toVertex);
+    }
+  
+    getOutgoingEdges(vertex) {
+        if (!this.vertices[vertex]) {
+            throw new Error('Vertex does not exist in the graph.');
+        }
+    
+        return this.vertices[vertex];
+    }
+}
+circuit = new DirectedGraph();
+
 
 // renderer section
 var canvas = new fabric.Canvas('c');
+canvas.perPixelTargetFind = true;
 
-function createGate(name, width, height, inputs, outputs) {
+function addGate(name) {
+    console.log(name);
+    var gate = gatesDict[name];
+    console.log(gate);
+    var width = gate['width'];
+    var height = gate['height'];
+    var input = gate['input'];
+    var output = gate['output'];
+
     elements = []
+    nodesArray = []
 
-    elements.push(new fabric.Rect({
+    var body = new fabric.Rect({
         fill: '#ddd',
         width: width,
         height: height,
         originX: 'center',
-        originY: 'center'
-    }));
+        originY: 'center',
+        selectable: true,
+        evented: true,
+        id: 0
+    });
+    elements.push(body);
 
-    elements.push(new fabric.Text(name, {
+    var text = new fabric.Text(name, {
         fontFamily: 'Consolas',
         fontSize: 20,
         originX: 'center',
-        originY: 'center'
-    }));
+        originY: 'center',
+        id: 0
+    });
+    elements.push(text);
 
-    for (var i = 0; i < inputs; i++) {
+    nodes = []
+    for (var i = 0; i < input; i++) {
         var node = new fabric.Rect({
             fill: '#48f',
-            width: 20,
-            height: 20,
+            width: 10,
+            height: 10,
             originX: 'center',
             originY: 'center',
             left: -width/2,
-            top: height * (i+1)/(inputs+1) - height/2
+            top: height * (i+1)/(input+1) - height/2,
+            id: 1
         });
-        node.on('mouseover', function() {
+        node.on('mousedown', function() {
             console.log('Rectangle clicked!');
         });
-        elements.push(node);
+        nodesArray.push(node);
     }
 
-    for (var i = 0; i < outputs; i++) {
-        elements.push(new fabric.Rect({
+    for (var i = 0; i < output; i++) {
+        nodesArray.push(new fabric.Rect({
             fill: '#f80',
-            width: 20,
-            height: 20,
+            width: 10,
+            height: 10,
             originX: 'center',
             originY: 'center',
             left: width/2,
-            top: height * (i+1)/(outputs+1) - height/2
+            top: height * (i+1)/(output+1) - height/2,
+            id: 1
         }));
     }
 
-    return elements;
-}
+    var body = new fabric.Group(elements, {
+        left: 0,
+        top: 0,
+        originX: 'center',
+        originY: 'center',
+        hasControls: false,
+        lockMovementX: false,
+        lockMovementY: false
+    })
 
-function addGate(name) {
-    var newGate = createGate(
-        name,
-        80,
-        50,
-        gatesDict[name]['input'],
-        gatesDict[name]['output']);
+    var nodes = new fabric.Group(nodesArray, {
+        left: 0,
+        top: 0,
+        originX: 'center',
+        originY: 'center',
+        hasControls: false,
+        lockMovementX: true,
+        lockMovementY: true,
+        subTargetCheck: true
+    })
 
-    var group = new fabric.Group(newGate, {
+    var group = new fabric.Group([body, nodes], {
         left: 100,
         top: 100,
+        hasControls: false,
+        lockMovementX: false,
+        lockMovementY: false,
+        subTargetCheck: true
     });
 
-    
     group.setControlsVisibility({
         mt: false, 
         mb: false, 
@@ -105,30 +161,22 @@ function addGate(name) {
         tr: false,
         mtr: false, 
     });
+
+    nodes.on('mousedown', function() {
+        group.set({
+            lockMovementX: true,
+            lockMovementY: true
+        });
+    });
+      
+    nodes.on('mouseup', function() {
+        group.set({
+            lockMovementX: false,
+            lockMovementY: false
+        });
+    });
+
     canvas.add(group);
 }
-
-// var new_gate = createGate('GATE', 80, 50, 1, 1)
-
-// canvas.add(group);
-
-/*
-var rect = new fabric.Rect({ width: 100, height: 50, fill: 'green' });
-rect.on('mousedown', function() {
-  console.log('selected a rectangle');
-});
-
-canvas.add(rect);
-*/
-
-canvas.on('mouse:down', function (options)
-{
-    pos = canvas.getPointer(options.e);
-    console.log("POSITION"+pos);
-        activeObj = canvas.getActiveObject();
-        if (Math.abs(pos.x - activeObj.left) < 10 && Math.abs(pos.y - activeObj.top) < 30 && Math.abs(pos.y - activeObj.top) > 10) {
-            console.log("connector selected");            
-        }    
-});
 
 canvas.renderAll();
