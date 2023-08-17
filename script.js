@@ -1,30 +1,33 @@
+/*
 const gatesDict =
 {
     "AND": {
-        "width": 60,
-        "height": 40,
+        "width": 3,
+        "height": 2,
         "input": 2,
         "output": 1
     },
     "OR": {
-        "width": 60,
-        "height": 40,
+        "width": 6,
+        "height": 4,
         "input": 2,
         "output": 1
     }
 }
+*/
 
 // create buttons
 for(let k in gatesDict) {
     let button = document.createElement('button');
     button.innerHTML = k;
     button.textContent = k;
-    button.addEventListener("click", () => addGate(k));
-    document.body.appendChild(button);
+    button.addEventListener('click', () => addGate(k));
+    document.getElementById('gates').appendChild(button);
 };
 
 // graph section
-class DirectedGraph {
+// thank you ChatGPT
+class Graph {
     constructor() {
       this.vertices = {};
     }
@@ -49,12 +52,12 @@ class DirectedGraph {
         return this.vertices[vertex];
     }
 }
-circuit = new DirectedGraph();
-
+circuit = new Graph();
 
 // renderer section
 var canvas = new fabric.Canvas('c');
 canvas.perPixelTargetFind = true;
+canvas.preserveObjectStacking = true;
 
 function addGate(name) {
     console.log(name);
@@ -68,7 +71,10 @@ function addGate(name) {
     elements = []
     nodesArray = []
 
-    var body = new fabric.Rect({
+    // placeholder for main hitbox
+    var rect = new fabric.Rect({
+        left: 0,
+        top: 0,
         fill: '#ddd',
         width: width,
         height: height,
@@ -78,48 +84,92 @@ function addGate(name) {
         evented: true,
         id: 0
     });
-    elements.push(body);
+    elements.push(rect);
 
-    var text = new fabric.Text(name, {
-        fontFamily: 'Consolas',
-        fontSize: 20,
+    // placeholder for textures
+    var dummy = new fabric.Rect({
+        left: 0,
+        top: 0,
+        fill: '#ddd',
+        width: 0.1,
+        height: 0.1,
         originX: 'center',
         originY: 'center',
+        selectable: false,
+        evented: false,
+        id: 0
+    });
+    
+    var text = new fabric.Text(name, {
+        fontFamily: 'Consolas',
+        fontSize: .8,
+        originX: 'center',
+        originY: 'center',
+        selectable: true,
+        evented: false,
         id: 0
     });
     elements.push(text);
-
-    nodes = []
-    for (var i = 0; i < input; i++) {
-        var node = new fabric.Rect({
+    
+    // nodes = []
+    for (let n in input) {
+        var nodeIn = new fabric.Rect({
             fill: '#48f',
-            width: 10,
-            height: 10,
+            width: .5,
+            height: .5,
             originX: 'center',
             originY: 'center',
-            left: -width/2,
-            top: height * (i+1)/(input+1) - height/2,
+            left: input[n][0] - width/2,
+            top: input[n][1] - height/2,
             id: 1
         });
-        node.on('mousedown', function() {
-            console.log('Rectangle clicked!');
+        nodeIn.on('mousedown', function() {
+            console.log('Input node clicked!');
         });
-        nodesArray.push(node);
+        nodeIn.on('mousedown', function() {
+            group.set({
+                lockMovementX: true,
+                lockMovementY: true
+            });
+        });
+        nodeIn.on('mouseup', function() {
+            group.set({
+                lockMovementX: false,
+                lockMovementY: false
+            });
+        });
+        elements.push(nodeIn);
     }
-
-    for (var i = 0; i < output; i++) {
-        nodesArray.push(new fabric.Rect({
+    for (let n in output) {
+        var nodeOut = new fabric.Rect({
             fill: '#f80',
-            width: 10,
-            height: 10,
+            width: .5,
+            height: .5,
             originX: 'center',
             originY: 'center',
-            left: width/2,
-            top: height * (i+1)/(output+1) - height/2,
+            left: output[n][0] - width/2,
+            top: output[n][1] - height/2,
             id: 1
-        }));
+        });
+        nodeOut.on('mousedown', function() {
+            console.log('Output node clicked!');
+        });
+        nodeOut.on('mousedown', function() {
+            group.set({
+                lockMovementX: true,
+                lockMovementY: true
+            });
+        });
+        nodeOut.on('mouseup', function() {
+            group.set({
+                lockMovementX: false,
+                lockMovementY: false
+            });
+        });
+        elements.push(nodeOut);
     }
 
+    
     var body = new fabric.Group(elements, {
         left: 0,
         top: 0,
@@ -130,6 +180,7 @@ function addGate(name) {
         lockMovementY: false
     })
 
+    /*
     var nodes = new fabric.Group(nodesArray, {
         left: 0,
         top: 0,
@@ -140,14 +191,31 @@ function addGate(name) {
         lockMovementY: true,
         subTargetCheck: true
     })
-
+    */
+/*
     var group = new fabric.Group([body, nodes], {
-        left: 100,
-        top: 100,
+    // var group = new fabric.Group(elements, {
+        left: 0,
+        top: 0,
+        originX: 'left',
+        originY: 'top',
         hasControls: false,
         lockMovementX: false,
         lockMovementY: false,
         subTargetCheck: true
+    });
+*/
+
+    var group = new fabric.Group(elements, {
+        left: 0,
+        top: 0,
+        originX: 'center',
+        originY: 'center',
+        hasControls: false,
+        lockMovementX: false,
+        lockMovementY: false,
+        subTargetCheck: true,
+        name: name
     });
 
     group.setControlsVisibility({
@@ -162,11 +230,13 @@ function addGate(name) {
         mtr: false, 
     });
 
+    /*
     nodes.on('mousedown', function() {
         group.set({
             lockMovementX: true,
             lockMovementY: true
         });
+        // dummy.left = group.left;
     });
       
     nodes.on('mouseup', function() {
@@ -175,8 +245,25 @@ function addGate(name) {
             lockMovementY: false
         });
     });
+    */
 
+    group.on('moving', function() {
+        dummy.set({left: group.left, top: group.top});
+    });
+
+    group.on('mousedown', function(options) {
+        var selectingName = options.target.get('name');
+        // console.log(options.target.get('id'));
+        document.getElementById('selecting').innerText = selectingName;
+    });
+      
+    group.on('deselected', function(options) {
+        document.getElementById('selecting').innerText = 'None';
+    });
+
+    canvas.add(dummy);
     canvas.add(group);
+    // console.log(group['_objects'][0])
 }
 
 canvas.renderAll();
