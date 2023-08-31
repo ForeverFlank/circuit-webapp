@@ -1,21 +1,3 @@
-/*
-const gatesDict =
-{
-    "AND": {
-        "width": 3,
-        "height": 2,
-        "input": 2,
-        "output": 1
-    },
-    "OR": {
-        "width": 6,
-        "height": 4,
-        "input": 2,
-        "output": 1
-    }
-}
-*/
-
 // create buttons
 for(let k in gatesDict) {
     let button = document.createElement('button');
@@ -25,39 +7,19 @@ for(let k in gatesDict) {
     document.getElementById('gates').appendChild(button);
 };
 
-// graph section
-// thank you ChatGPT
-class Graph {
-    constructor() {
-      this.vertices = {};
-    }
-  
-    addVertex(vertex) {
-      this.vertices[vertex] = [];
-    }
-  
-    addEdge(fromVertex, toVertex) {
-        if (!this.vertices[fromVertex] || !this.vertices[toVertex]) {
-            throw new Error('One or both vertices do not exist in the graph.');
-        }
-    
-        this.vertices[fromVertex].push(toVertex);
-    }
-  
-    getOutgoingEdges(vertex) {
-        if (!this.vertices[vertex]) {
-            throw new Error('Vertex does not exist in the graph.');
-        }
-    
-        return this.vertices[vertex];
-    }
+// mouse modes
+var mode = 0;
+function changeMode(m) {
+	console.log(m);
+	mode = m;
+	canvas.selection = (mode == 2);
 }
-circuit = new Graph();
 
 // renderer section
 var canvas = new fabric.Canvas('c');
 canvas.perPixelTargetFind = true;
 canvas.preserveObjectStacking = true;
+canvas.selection = false;
 
 function addGate(name) {
     console.log(name);
@@ -169,43 +131,6 @@ function addGate(name) {
         elements.push(nodeOut);
     }
 
-    
-    var body = new fabric.Group(elements, {
-        left: 0,
-        top: 0,
-        originX: 'center',
-        originY: 'center',
-        hasControls: false,
-        lockMovementX: false,
-        lockMovementY: false
-    })
-
-    /*
-    var nodes = new fabric.Group(nodesArray, {
-        left: 0,
-        top: 0,
-        originX: 'center',
-        originY: 'center',
-        hasControls: false,
-        lockMovementX: true,
-        lockMovementY: true,
-        subTargetCheck: true
-    })
-    */
-/*
-    var group = new fabric.Group([body, nodes], {
-    // var group = new fabric.Group(elements, {
-        left: 0,
-        top: 0,
-        originX: 'left',
-        originY: 'top',
-        hasControls: false,
-        lockMovementX: false,
-        lockMovementY: false,
-        subTargetCheck: true
-    });
-*/
-
     var group = new fabric.Group(elements, {
         left: 0,
         top: 0,
@@ -229,23 +154,6 @@ function addGate(name) {
         tr: false,
         mtr: false, 
     });
-
-    /*
-    nodes.on('mousedown', function() {
-        group.set({
-            lockMovementX: true,
-            lockMovementY: true
-        });
-        // dummy.left = group.left;
-    });
-      
-    nodes.on('mouseup', function() {
-        group.set({
-            lockMovementX: false,
-            lockMovementY: false
-        });
-    });
-    */
 
     group.on('moving', function() {
         dummy.set({left: group.left, top: group.top});
