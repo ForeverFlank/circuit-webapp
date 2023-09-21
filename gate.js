@@ -7,24 +7,58 @@ for(let k in gatesDict) {
     document.getElementById('gates').appendChild(button);
 };
 
-// mouse modes
-var mode = 0;
-function changeMode(m) {
-	console.log(m);
-	mode = m;
-	canvas.selection = (mode == 2);
+// circuit structure
+class Node {
+    constructor() {
+        this.adj = []
+    }
+    addEdge(to) {
+        this.adj.push(to);
+    }
 }
+
+class Gate {
+    constructor(gate, pos) {
+        this.gate = gate;
+        this.pos = pos;
+        this.node = [];
+    }
+}
+
+class Circuit {
+    constructor(subcircuit=false) {
+        this.subcircuit = subcircuit;
+        this.nodes = [];
+        this.wires = [];
+    }
+    addNode(node) {
+        this.nodes.push(node);
+    }
+    
+}
+
+var circuit = new Circuit();
 
 // renderer section
 var canvas = new fabric.Canvas('c');
 canvas.perPixelTargetFind = true;
 canvas.preserveObjectStacking = true;
-canvas.selection = false;
+
+// mouse modes
+var mode = 0;
+function changeMode(m) {
+	console.log(m);
+	mode = m;
+    canvas.selectable = (mode != 1)
+	canvas.selection = (mode == 2);
+}
+changeMode(0);
 
 function addGate(name) {
     console.log(name);
     var gate = gatesDict[name];
     console.log(gate);
+    var displayName = gate['displayName'];
     var width = gate['width'];
     var height = gate['height'];
     var input = gate['input'];
@@ -62,9 +96,10 @@ function addGate(name) {
         id: 0
     });
     
-    var text = new fabric.Text(name, {
+    var text = new fabric.Text(displayName, {
         fontFamily: 'Consolas',
-        fontSize: .8,
+        fontSize: .5,
+        textAlign: 'center',
         originX: 'center',
         originY: 'center',
         selectable: true,

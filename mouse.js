@@ -1,18 +1,3 @@
-// canvas zoom
-
-
-// canvas panning
-/*canvas.on('mouse:wheel', function(opt) {
-    var delta = opt.e.deltaY;
-    zoom = canvas.getZoom();
-    zoom *= 0.999 ** delta;
-    if (zoom > 50) zoom = 50;
-    if (zoom < 0.01) zoom = 0.01;
-    canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-    opt.e.preventDefault();
-    opt.e.stopPropagation();
-});*/
-
 //grid
 let gridStyle = { stroke: '#ccc', strokeWidth: .05,
                   selectable: false, evented: false }
@@ -53,7 +38,7 @@ let wireStyle = { stroke: '#000', strokeWidth: .2,
 
 canvas.on('mouse:down', function(opt) {
 	console.log('Mouse down');
-	if (mode == 0) {
+	if (mode == 0/* && opt.target === null*/) {
 		let pointer = canvas.getPointer(opt.e);
 		let posX = pointer.x;
 		let posY = pointer.y;
