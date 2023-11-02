@@ -1,152 +1,174 @@
-function getPortsFromGate(gate, portType) {
-    let x = [];
-    for (let i = 0; i < gate[portType].length; i++) {
-        x.push({
-            name: gate[portType][i][0],
-            state: 0
-        });
+'use strict';
+
+const state = {
+    highZ: -1,
+    low: 0,
+    high: 1,
+    op: {
+        not: (s) => {
+            if (s == state.high) return state.low;
+            return state.high;
+        },
+        and: (s) => {
+            for (let i in s)
+                if (s[i] != state.high) return state.low;
+            return state.high;
+        },
+        or: (s) => {
+            for (let i in s)
+                if (s[i] == state.high) return state.high;
+            return state.low;
+        }
     }
-    return x;
+}
+
+class Node {
+    constructor(owner, name, value=state.highZ) {
+        this.value = null;
+        this.owner = owner;
+        this.name = name;
+        this.value = value;
+        this.connections = [];
+        // console.log(name, owner)
+    }
+    isConnected() {
+        return !(this.connections == []);
+    }
+    connect(inputs) {
+        if (Array.isArray(inputs))
+            this.connections = this.connections.concat(inputs);
+        else
+            this.connections.push(inputs);
+        // console.log('*', this.connections)
+    }
+    getValue() {
+        return this.value;
+    }
+    setValue(value, evaluated=true) {
+        this.value = value;
+        if (evaluated)
+            this.owner.evaluate();
+        // console.log('!', this.connections)
+        for (let i in this.connections) {
+            this.connections[i].setValue(value);
+        }
+    }
 }
 
 class Module {
-    constructor(name, inputs, outputs, obj, pos) {
+    constructor(name) {
         this.name = name;
-        this.inputs = inputs;
-        this.outputs = outputs;
-        this.obj = obj;
-        this.pos = pos;
-        this.modules = [];
-        this.wires = [];
+        this.inputs = [];
+        this.outputs = [];
     }
-    addModule(module) {
-        this.modules.push(module);
+}
+
+class Input extends Module {
+    constructor(name) {
+        super(name);
+        this.outputs = [new Node(this, 'out1')];
     }
-    addWire(fromModule, fromPort, toModule, toPort) {
-        this.wires.push({
-            fromModule,
-            fromPort,
-            toModule,
-            toPort
-        });
-        console.log('from out', fromModule.outputs)
-        for (let i = 0; i < fromModule.outputs.length; i++) {
-        // for (const port of fromModule.outputs) {
-            if (fromModule.outputs[i].name == fromPort)
-            {
-                let source = fromModule.outputs.find(x => x.name == fromPort);
-                let dest = toModule.inputs.find(x => x.name == toPort);
-                console.log('dest', toModule, dest)
-                dest.state = source.state;
-            }
-        }
-    }
-    getPortsByName(name) {
-        let ports = this.inputs.concat(this.outputs);
-        for (const port of ports) {
-            if (port.name == name)
-                return port;
-        }
-        throw new Error(`No port ${name} found in gate ${this.name}!`);
-    }
-    setPortStateByName(name, s) {
-        let port = this.getPortsByName(name);
-        port.state = s;
+    setInput(value) {
+        this.outputs[0].setValue(value);
     }
     evaluate() {
-        let visitedWires = new Set();
-    
-        const traverseWire = (wire) => {
-            if (!visitedWires.has(wire)) {
-                visitedWires.add(wire);
-                const sourceOutput = wire.fromModule.getPortsByName(wire.fromPort);
-                wire.toModule.setPortStateByName(wire.toPort, sourceOutput);
-            }
-        };
-    
-        for (const gate of this.modules) {
-            gate.gateEvaluate();
-        }
-    
-        for (const wire of this.wires) {
-            traverseWire(wire);
-        }
-      }
-}
-
-class Gate extends Module {
-    constructor(gateName) {
-        let gate = gates[gateName];
-        let inputs = getPortsFromGate(gate, 'inputs');
-        let outputs = getPortsFromGate(gate, 'outputs');
-        super(gateName, inputs, outputs);
-    }
-    gateEvaluate() {
-        for (let i = 0; i < this.outputs.length; i++) {
-            let input = this.inputs.map(x => x[2]);
-            console.log('input ' + input);
-            let op = gates[this.gateName].outputs[i][2];
-            this.outputs[i].state = op(input);
-        }
-        console.log('Evaluating ' + this.name + '!');
     }
 }
 
-class InputNode extends Module {
-    constructor() {
-        let gate = gates['in'];
-        super('in', [], getPortsFromGate(gate, 'outputs'));
+class NotGate extends Module {
+    constructor(name) {
+        super(name);
+        this.inputs = [new Node(this, 'in1')];
+        this.outputs = [new Node(this, 'out1')];
     }
-    setState(s) {
-        this.outputs[0].state = s;
+    evaluate() {
+        let result = state.op.not(this.inputs[0].getValue());
+        this.outputs[0].setValue(result, false);
     }
 }
 
-class OutputNode extends Module {
-    constructor() {
-        let gate = gates['out'];
-        super('out', getPortsFromGate(gate, 'inputs'), []);
+class AndGate extends Module {
+    constructor(name) {
+        super(name);
+        this.inputs = [new Node(this, 'in1'), new Node(this, 'in2')];
+        this.outputs = [new Node(this, 'out1')];
+    }
+    evaluate() {
+        let result = state.op.and([this.inputs[0].getValue(),
+                                   this.inputs[1].getValue()]);
+        this.outputs[0].setValue(result, false);
+    }
+}
+
+class OrGate extends Module {
+    constructor(name) {
+        super(name);
+        this.inputs = [new Node(this, 'in1'), new Node(this, 'in2')];
+        this.outputs = [new Node(this, 'out1')];
+    }
+    evaluate() {
+        let result = state.op.or([this.inputs[0].getValue(),
+                                  this.inputs[1].getValue()]);
+        this.outputs[0].setValue(result, false);
     }
 }
 
 /*
-class Wire {
-    constructor(from, fromPort, to, toPort) {
-        this.from = from;
-        this.fromPort = fromPort
-        this.to = to;
-        this.toPort = toPort;
-    }
-}
+let and = new AndGate('a1');
+and.inputs[0].setValue(state.high);
+and.inputs[1].setValue(state.high);
+let not = new NotGate('n1');
+and.outputs[0].connect(not.inputs[0]);
+and.inputs[1].setValue(state.low);
+console.log(and);
+console.log(not);
 */
 
-var circuit = new Module();
 
-let in1 = new InputNode('in');
-let in2 = new InputNode('in');
-let and = new Gate('and');
-let out = new OutputNode('out');
+let in1 = new Input('i1');
+let in2 = new Input('i2');
+let and1 = new AndGate('a1');
+let and2 = new AndGate('a2');
+let not1 = new NotGate('n1');
+let not2 = new NotGate('n2');
+let or1 = new OrGate('o1');
 
-// console.log('1', circuit);
+// S = A(-B) + (-A)B
 
-circuit.addModule(in1);
-circuit.addModule(in2);
-circuit.addModule(and);
-circuit.addModule(out);
+in1.outputs[0].connect(not2.inputs[0]);     // -A
+in2.outputs[0].connect(not1.inputs[0]);     // -B
 
-// console.log('2', circuit);
+console.log(in1);
+console.log(in2);
 
-circuit.addWire(in1, 'Output', and, 'Input 1');
-circuit.addWire(in2, 'Output', and, 'Input 2');
-circuit.addWire(and, 'Output', out, 'Input');
+// A(-B)
+in1.outputs[0].connect(and1.inputs[0]);
+not1.outputs[0].connect(and1.inputs[1]);
 
-// console.log('3', circuit);
+// console.log(and1);
 
-in1.setState(state.high);
-in2.setState(state.high);
+// (-A)B
+not2.outputs[0].connect(and2.inputs[0]);
+in2.outputs[0].connect(and2.inputs[1]);
 
-console.log('4', circuit);
+// +
+and1.outputs[0].connect(or1.inputs[0]);
+and2.outputs[0].connect(or1.inputs[1]);
 
-out.evaluate();
+in1.setInput(state.low);
+in2.setInput(state.low);
+console.log('0 xor 0 =', or1.outputs[0].value);
 
-// console.log('5', circuit);
+in1.setInput(state.low);
+in2.setInput(state.high);
+console.log('0 xor 1 =', or1.outputs[0].value);
+
+in1.setInput(state.high);
+in2.setInput(state.low);
+console.log('1 xor 0 =', or1.outputs[0].value);
+
+in1.setInput(state.high);
+in2.setInput(state.high);
+console.log('1 xor 1 =', or1.outputs[0].value);
+/*
+*/
