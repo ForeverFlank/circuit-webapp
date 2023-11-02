@@ -15,7 +15,7 @@ canvas.on('mouse:wheel', function(opt) {
 // panning
 canvas.on('mouse:down', function(opt) {
     var evt = opt.e;
-    if (mode == 1) {
+    if (mode == 'pan') {
         this.isDragging = true;
         this.lastPosX = evt.clientX;
         this.lastPosY = evt.clientY;

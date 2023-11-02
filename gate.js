@@ -1,27 +1,48 @@
-// create buttons
+var gateCount = {};
+
 for(let k in gatesDict) {
     let button = document.createElement('button');
     button.innerHTML = k;
     button.textContent = k;
     button.addEventListener('click', () => addGate(k));
     document.getElementById('gates').appendChild(button);
+    gateCount[k] = 0;
 };
+gateCount['wire'] = 0
+console.log(gateCount);
 
 // circuit structure
 class Node {
-    constructor() {
-        this.adj = []
-    }
-    addEdge(to) {
-        this.adj.push(to);
+    constructor(name, fo) {
+        this.gate = gatesDict[name];
+        if (name != 'wire') {
+            this.fo = fo;
+            let input = this.gate['input'];
+            let output = this.gate['output'];
+            function port(io, n) {
+                let arr = [];
+                for (let i = 0; i < n; i++)
+                    arr.push(io + i)
+                return arr;
+            }
+            this.in = port('in', input.length);
+            this.out = port('out', output.length);
+        }
+        else {
+            this.in = 'in0';
+            this.out = 'out0';
+        }
+        this.id = name + gateCount[name];
+        gateCount[name]++;
     }
 }
 
-class Gate {
-    constructor(gate, pos) {
-        this.gate = gate;
-        this.pos = pos;
-        this.node = [];
+class Edge {
+    constructor(from, fromPort, to, toPort) {
+        this.from = from;
+        this.fromPort = fromPort
+        this.to = to;
+        this.toPort = toPort;
     }
 }
 
@@ -29,12 +50,14 @@ class Circuit {
     constructor(subcircuit=false) {
         this.subcircuit = subcircuit;
         this.nodes = [];
-        this.wires = [];
+        this.edges = [];
     }
     addNode(node) {
         this.nodes.push(node);
     }
-    
+    addEdge(edge) {
+        this.edges.push(edge);
+    }
 }
 
 var circuit = new Circuit();
@@ -45,14 +68,26 @@ canvas.perPixelTargetFind = true;
 canvas.preserveObjectStacking = true;
 
 // mouse modes
-var mode = 0;
+var mode = 'select';
 function changeMode(m) {
 	console.log(m);
 	mode = m;
-    canvas.selectable = (mode != 1)
-	canvas.selection = (mode == 2);
+    canvas.selectable = (mode != 'pan')
+	canvas.selection = (mode == 'select');
 }
-changeMode(0);
+changeMode('select');
+
+const noVisibility = {
+    mt: false, 
+    mb: false, 
+    ml: false, 
+    mr: false, 
+    bl: false,
+    br: false, 
+    tl: false, 
+    tr: false,
+    mtr: false, 
+};
 
 function addGate(name) {
     console.log(name);
@@ -65,7 +100,7 @@ function addGate(name) {
     var output = gate['output'];
 
     elements = []
-    nodesArray = []
+    portsArray = []
 
     // placeholder for main hitbox
     var rect = new fabric.Rect({
@@ -103,67 +138,78 @@ function addGate(name) {
         originX: 'center',
         originY: 'center',
         selectable: true,
-        evented: false,
+        evented: true,
         id: 0
     });
     elements.push(text);
     
-    // nodes = []
     for (let n in input) {
-        var nodeIn = new fabric.Rect({
+        var portIn = new fabric.Rect({
             fill: '#48f',
-            width: .5,
-            height: .5,
+            width: 1,
+            height: 1,
             originX: 'center',
             originY: 'center',
             left: input[n][0] - width/2,
             top: input[n][1] - height/2,
-            id: 1
+            id: 'portIn',
+            selectable: false,
+            evented: true
         });
-        nodeIn.on('mousedown', function() {
-            console.log('Input node clicked!');
+        portIn.on('mousedown', function() {
+            console.log('Input port mouse down!');
         });
-        nodeIn.on('mousedown', function() {
+        portIn.on('mousedown', function() {
+            canvas.discardActiveObject().renderAll();
+
             group.set({
                 lockMovementX: true,
                 lockMovementY: true
             });
         });
-        nodeIn.on('mouseup', function() {
+        portIn.on('mouseup', function() {
+            console.log('Input port mouse up!');
+        });
+        portIn.on('mouseup', function() {
             group.set({
                 lockMovementX: false,
                 lockMovementY: false
             });
         });
-        elements.push(nodeIn);
+        elements.push(portIn);
     }
     for (let n in output) {
-        var nodeOut = new fabric.Rect({
+        var portOut = new fabric.Rect({
             fill: '#f80',
-            width: .5,
-            height: .5,
+            width: 1,
+            height: 1,
             originX: 'center',
             originY: 'center',
             left: output[n][0] - width/2,
             top: output[n][1] - height/2,
-            id: 1
+            id: 'portOut'
         });
-        nodeOut.on('mousedown', function() {
-            console.log('Output node clicked!');
+        portOut.on('mousedown', function() {
+            console.log('Output port mouse down!');
         });
-        nodeOut.on('mousedown', function() {
+        portOut.on('mousedown', function() {
+            canvas.discardActiveObject().renderAll();
+
             group.set({
                 lockMovementX: true,
                 lockMovementY: true
             });
         });
-        nodeOut.on('mouseup', function() {
+        portOut.on('mouseup', function() {
+            console.log('Output port mouse up!');
+        });
+        portOut.on('mouseup', function() {
             group.set({
                 lockMovementX: false,
                 lockMovementY: false
             });
         });
-        elements.push(nodeOut);
+        elements.push(portOut);
     }
 
     var group = new fabric.Group(elements, {
@@ -175,37 +221,31 @@ function addGate(name) {
         lockMovementX: false,
         lockMovementY: false,
         subTargetCheck: true,
-        name: name
+
+        name: name,
+        id: 'gate'
     });
 
-    group.setControlsVisibility({
-        mt: false, 
-        mb: false, 
-        ml: false, 
-        mr: false, 
-        bl: false,
-        br: false, 
-        tl: false, 
-        tr: false,
-        mtr: false, 
-    });
+    group.setControlsVisibility(noVisibility);
 
     group.on('moving', function() {
         dummy.set({left: group.left, top: group.top});
     });
 
-    group.on('mousedown', function(options) {
-        var selectingName = options.target.get('name');
-        // console.log(options.target.get('id'));
+    group.on('mousedown', function(opt) {
+        var selectingName = opt.target.get('name');
         document.getElementById('selecting').innerText = selectingName;
     });
-      
-    group.on('deselected', function(options) {
+
+    group.on('deselected', function(opt) {
         document.getElementById('selecting').innerText = 'None';
     });
 
     canvas.add(dummy);
     canvas.add(group);
+
+    circuit.addNode(new Node(name, group));
+    console.log(circuit);
     // console.log(group['_objects'][0])
 }
 
