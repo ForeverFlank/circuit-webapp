@@ -1,38 +1,65 @@
-// zooming
-let zoom = 20;
-canvas.zoomToPoint({ x: -12.5, y: -10 }, zoom);
-canvas.on('mouse:wheel', function(opt) {
-    let delta = opt.e.deltaY;
-    zoom = canvas.getZoom();
-    zoom *= 0.999 ** delta;
-    if (zoom > 50) zoom = 50;
-    if (zoom < 0.01) zoom = 0.01;
-    canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-    opt.e.preventDefault();
-    opt.e.stopPropagation();
-});
+let controls = {
+    view: {x: 0, y: 0, zoom: 1},
+    viewPos: { prevX: null,  prevY: null,  isDragging: false },
+}
 
-// panning
-canvas.on('mouse:down', function(opt) {
-    var evt = opt.e;
-    if (mode == 'pan') {
-        this.isDragging = true;
-        this.lastPosX = evt.clientX;
-        this.lastPosY = evt.clientY;
+class Controls {
+    static move(controls) {
+        function mousePressed(e) {
+            controls.viewPos.isDragging = true;
+            controls.viewPos.prevX = e.clientX;
+            controls.viewPos.prevY = e.clientY;
+        }
+
+        function mouseDragged(e) {
+            const { prevX, prevY, isDragging } = controls.viewPos;
+            if (!isDragging) return;
+
+            const pos = { x: e.clientX, y: e.clientY };
+            const dx = pos.x - prevX;
+            const dy = pos.y - prevY;
+
+            if (prevX || prevY) {
+                controls.view.x += dx;
+                controls.view.y += dy;
+                controls.viewPos.prevX = pos.x, controls.viewPos.prevY = pos.y
+            }
+        }
+
+        function mouseReleased(e) {
+            controls.viewPos.isDragging = false;
+            controls.viewPos.prevX = null;
+            controls.viewPos.prevY = null;
+        }
+
+        return {
+            mousePressed,
+            mouseDragged,
+            mouseReleased
+        }
     }
-});
-canvas.on('mouse:move', function(opt) {
-    if (this.isDragging) {
-        var e = opt.e;
-        var vpt = this.viewportTransform;
-        vpt[4] += e.clientX - this.lastPosX;
-        vpt[5] += e.clientY - this.lastPosY;
-        this.requestRenderAll();
-        this.lastPosX = e.clientX;
-        this.lastPosY = e.clientY;
+
+    static zoom(controls) {
+        // function calcPos(x, y, zoom) {
+        //   const newX = width - (width * zoom - x);
+        //   const newY = height - (height * zoom - y);
+        //   return {x: newX, y: newY}
+        // }
+
+        function worldZoom(e) {
+            const { x, y, deltaY } = e;
+            const direction = deltaY > 0 ? -1 : 1;
+            const factor = 0.06;
+            const zoom = 1 * direction * factor * controls.view.zoom;
+
+            const wx = (x - controls.view.x) / (width * controls.view.zoom);
+            const wy = (y - controls.view.y) / (height * controls.view.zoom);
+
+            controls.view.x -= wx * width * zoom;
+            controls.view.y -= wy * height * zoom;
+            controls.view.zoom += zoom;
+        }
+
+        return { worldZoom }
     }
-});
-canvas.on('mouse:up', function(opt) {
-    this.setViewportTransform(this.viewportTransform);
-    this.isDragging = false;
-});
+}

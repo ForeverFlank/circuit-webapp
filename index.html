@@ -14,23 +14,27 @@
       <button onclick="changeMode('pan')">Pan</button>
       <button onclick="changeMode('select')">Select</button>
     </div>
-    <canvas id="c" width="500" height="400" style="border: 1px solid black"></canvas>
+    <div id="canvas-container"></div>
+    <!--canvas id="c" width="500" height="400" style="border: 1px solid black"></canvas-->
     <div id="gates">
+      <button onclick="addInput()">INPUT</button>
+      <button onclick="addNotGate()">NOT</button>
     </div>
     <div>
       <h2>Currently selecting:</h2>
       <h3 id="selecting">None</h3>
     </div>
     
+    <script src="p5.min.js"></script>
     <script src="classes.js"></script>
     <script src="gate.js"></script>
-    <!--
-    <script src="lib/fabric.min.js"></script>
-    <script src="gate-data.js"></script>
-    <script src="gate.js"></script>
-    <script src="mouse.js"></script>
     <script src="camera.js"></script>
-    <script src="index.js"></script>
+    <!--
+      <script src="lib/fabric.min.js"></script>
+      <script src="gate-data.js"></script>
+      <script src="gate.js"></script>
+      <script src="mouse.js"></script>
     -->
+    <script src="index.js"></script>
   </body>
 </html>
