@@ -8,6 +8,7 @@ function setup() {
 function draw() {
     mouseCanvasX = (mouseX - controls.view.x) / controls.view.zoom;
     mouseCanvasY = (mouseY - controls.view.y) / controls.view.zoom;
+    
     // console.log(controls.view)
     translate(controls.view.x, controls.view.y);
     scale(controls.view.zoom);
@@ -25,13 +26,26 @@ function draw() {
     strokeWeight(2);
     fill(255);
 
+    let nodes = [];
+    circuit.modules.forEach((x) => {
+        nodes = nodes.concat(x.inputs).concat(x.outputs);
+    });
+    let wires = [];
+    nodes.forEach((x) => {
+        wires = wires.concat(x.connections);
+    });
+    
+    wires.forEach((x) => x.render());
     circuit.modules.forEach((x) => x.render());
+    nodes.forEach((x) => x.render());
+    // console.log(nodes)
 }
 
 function mousePressed(e) {
     let pressedOnObject = false;
+    mouseClickedButton = mouseButton;
     for (let i = circuit.modules.length - 1; i >= 0; i--) {
-        let module = circuit.modules[i]
+        let module = circuit.modules[i];
         if (module.pressed()) {
             pressedOnObject = true;
             break;
@@ -42,7 +56,16 @@ function mousePressed(e) {
                 pressedOnObject = true;
                 break;
             }
+            let wires = nodes[j].connections;
+            for (let k = wires.length - 1; k >= 0; k--) {
+                if (wires[k].pressed()) {
+                    pressedOnObject = true;
+                    break;
+                }
+            }
+            
         }
+        
     }
     if (pressedOnObject) {
 

@@ -2,6 +2,7 @@
 
 var mouseCanvasX;
 var mouseCanvasY;
+var mouseClickedButton;
 
 var isDrawingWire = false;
 var clickedNode;
@@ -33,20 +34,64 @@ const state = {
     }
 }
 
+function unique(str = '') {
+    return str + '_' + Date.now().toString(16) + Math.floor(Math.random() * 2 ** 32).toString(16);
+}
+
 class Wire {
-    constructor(source, destination, value = state.highZ) {
+    constructor(source, destination, name, value = state.highZ) {
         this.source = source;
         this.destination = destination;
+        this.id = unique(name);
         this.value = value;
+    }
+    isHovering() {
+        let sourceX = this.source.getCanvasX();
+        let sourceY = this.source.getCanvasY();
+        let destinationX = this.destination.getCanvasX();
+        let destinationY = this.destination.getCanvasY();
+        const a = createVector(sourceX, sourceY);
+        const b = createVector(destinationX, destinationY);
+        const c = createVector(mouseCanvasX, mouseCanvasY);
+
+        const l = p5.Vector.sub(a, b).mag();
+        const radius = 6;
+
+        if (a.dist(c) > l + radius / 2 || b.dist(c) > l + radius / 2)
+            return false;
+
+        const ab = p5.Vector.sub(a, b);
+        const bc = p5.Vector.sub(b, c);
+
+        return abs(sin(ab.angleBetween(bc))) * bc.mag() <= radius / 2;
     }
     render() {
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();
         let destinationX = this.destination.getCanvasX();
         let destinationY = this.destination.getCanvasY();
+
+        let length = sqrt((sourceX - destinationX) ** 2 + (sourceY - destinationY) ** 2);
+        let angle = atan2(destinationY - sourceY, destinationX - sourceX);
+        let hovering = this.isHovering();
+
+        push();
         stroke(0);
         strokeWeight(2);
-        line(sourceX, sourceY, destinationX, destinationY);
+        fill(state.color(this.source.value));
+        translate((destinationX + sourceX) / 2, (destinationY + sourceY) / 2);
+        rotate(angle);
+        let width = hovering ? 10 : 6;
+        rect(-length / 2, -width / 2, length, width);
+        // line(sourceX, sourceY, destinationX, destinationY);
+        pop();
+    }
+    pressed() {
+        if (this.isHovering()) {
+            if (mouseClickedButton == RIGHT) {
+                this.destination.disconnect(this.source);
+            }
+        }
     }
 }
 
@@ -55,6 +100,7 @@ class Node {
         this.value = null;
         this.owner = owner;
         this.name = name;
+        this.id = unique(name);
         this.value = value;
         this.connections = [];
         this.relativeX = relativeX;
@@ -63,19 +109,20 @@ class Node {
         // console.log(name, owner)
     }
     isConnected() {
-        return !(this.connections == []);
+        return this.connections.length > 0;
     }
     getValue() {
         return this.value;
     }
-    setValue(value, evaluated = true) {
+    setValue(value, evaluate = true, traversed = []) {
+        // console.log(traversed)
         this.value = value;
-        if (evaluated)
+        if (evaluate)
             this.owner.evaluate();
-        // console.log('!', this.connections)
         this.connections.forEach((x) => {
             let dest = x.destination;
-            dest.setValue(value);
+            if (!traversed.includes(x.destination.name))
+                dest.setValue(value, true, traversed.concat(this.name));
         });
     }
     getCanvasX() {
@@ -95,7 +142,7 @@ class Node {
         let netX = this.getCanvasX();
         let netY = this.getCanvasY();
         this.connections.forEach((x) => {
-            x.render();
+            // x.render();
         });
         let hovering = this.isHovering();
         if (this.dragging) {
@@ -120,11 +167,7 @@ class Node {
         return false;
     }
     released() {
-        console.log(this)
-        if (this.isHovering()) {
-            clickedNode.connectToInput(this);
-        }
-        this.owner.evaluate();
+        // this.owner.evaluate();
         this.dragging = false;
     }
 }
@@ -134,19 +177,42 @@ class InputNode extends Node {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'input';
     }
-    connectToOutput(output) {
-        output.connections.push(new Wire(output, this));
+    connectOutput(output) {
+        if (!output.connections.includes(new Wire(output, this))) {
+            output.connections.push(new Wire(output, this));
+            this.connections.push(new Wire(this, output));
+        }
+        output.setValue(output.value);
     }
-    connectToInput(input) {
-        output.connections.push(new Wire(output, this));
+    connectInput(input) {
+        input.connections.push(new Wire(input, this));
+        this.connections.push(new Wire(this, input));
+        if (input.value != state.highZ)
+            input.setValue(input.value);
+        else
+            this.setValue(this.value);
+    }
+    disconnect(node) {
+        if (node.nodeType == 'output') {
+            let wire = node.connections.find((x) => x.source.name == node.name);
+            let index = node.connections.indexOf(wire);
+            node.connections.pop(index);
+        }
+        else if (node.nodeType == 'input') {
+            let wire = node.connections.find((x) => x.source.name == node.name);
+            let index = node.connections.indexOf(wire);
+            node.connections.pop(index);
+        }
+        node.owner.evaluate();
+        this.owner.evaluate();
     }
     released() {
         if (this.isHovering()) {
-            if (clickedNode.nodeType == 'output')
-                clickedNode.connectToInput(this);
+            if (clickedNode != null) {
+                clickedNode.connectInput(this);
+            }
         }
-        this.owner.evaluate();
-        this.dragging = false;
+        super.released();
     }
 }
 
@@ -155,16 +221,31 @@ class OutputNode extends Node {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'output';
     }
-    connectToInput(input) {
+    connectInput(input) {
         this.connections.push(new Wire(this, input));
+        this.setValue(this.value);
+    }
+    disconnect(node) {
+        if (node.nodeType == 'output') {
+            let wire = node.connections.find((x) => x.source.name == node.name);
+            let index = node.connections.indexOf(wire);
+            node.connections.pop(index);
+        }
+        else if (node.nodeType == 'input') {
+            let wire = node.connections.find((x) => x.source.name == node.name);
+            let index = node.connections.indexOf(wire);
+            node.connections.pop(index);
+        }
+        node.owner.evaluate();
+        this.owner.evaluate();
     }
     released() {
         if (this.isHovering()) {
-            if (clickedNode.nodeType == 'input')
-                clickedNode.connectToOutput(this);
+            if (clickedNode != null) {
+                clickedNode.connectOutput(this);
+            }
         }
-        this.owner.evaluate();
-        this.dragging = false;
+        super.released();
     }
 }
 
@@ -215,8 +296,19 @@ class Module {
         fill(0);
         textAlign(CENTER);
         text(name, this.w * 20 / 2 + this.x, this.h * 20 / 2 + this.y + 3);
-        this.inputs.forEach((x) => x.render());
-        this.outputs.forEach((x) => x.render());
+        // this.inputs.forEach((x) => x.render());
+        // this.outputs.forEach((x) => x.render());
+    }
+    evaluate() {
+        /*
+        this.inputs.forEach((x) => {
+            console.log(x);
+            if (!x.isConnected()) {
+                console.log('bah');
+                x.value = state.highZ;
+            }
+        });
+        */
     }
     pressed() {
         if (this.isHovering()) {
@@ -264,7 +356,7 @@ class Input extends Module {
             char = '0';
         else
             char = '1';
-        super.render(char)
+        super.render(char);
     }
     evaluate() {
         // this.outputs[0].setValue(this.outputState);
@@ -279,6 +371,7 @@ class NotGate extends Module {
         this.displayName = 'NOT';
     }
     evaluate() {
+        super.evaluate();
         let result = state.op.not(this.inputs[0].getValue());
         this.outputs[0].setValue(result, false);
     }
@@ -288,14 +381,16 @@ class AndGate extends Module {
     constructor(name, x, y) {
         super(name, x, y, 3, 2);
         this.inputs = [
-        new InputNode(this, 'in1', 0, 0),
-        new InputNode(this, 'in2', 0, 2)];
+            new InputNode(this, 'in1', 0, 0),
+            new InputNode(this, 'in2', 0, 2)];
         this.outputs = [new OutputNode(this, 'out1', 3, 1)];
         this.displayName = 'AND';
     }
     evaluate() {
-        let result = state.op.and([this.inputs[0].getValue(),
-        this.inputs[1].getValue()]);
+        super.evaluate();
+        let result = state.op.and([
+            this.inputs[0].getValue(),
+            this.inputs[1].getValue()]);
         this.outputs[0].setValue(result, false);
     }
 }
@@ -304,14 +399,16 @@ class OrGate extends Module {
     constructor(name, x, y) {
         super(name, x, y, 3, 2);
         this.inputs = [
-        new InputNode(this, 'in1', 0, 0),
-        new InputNode(this, 'in2', 0, 2)];
+            new InputNode(this, 'in1', 0, 0),
+            new InputNode(this, 'in2', 0, 2)];
         this.outputs = [new OutputNode(this, 'out1', 3, 1)];
         this.displayName = 'OR';
     }
     evaluate() {
-        let result = state.op.or([this.inputs[0].getValue(),
-        this.inputs[1].getValue()]);
+        super.evaluate();
+        let result = state.op.or([
+            this.inputs[0].getValue(),
+            this.inputs[1].getValue()]);
         this.outputs[0].setValue(result, false);
     }
 }
@@ -331,27 +428,42 @@ class Circuit extends Module {
     constructor(name) {
         super(name);
         this.modules = [];
+        this.inputModules = [];
     }
-    addModule(gate) {
-        this.modules.push(gate);
-        return gate;
+    addModule(module, evaluate = true) {
+        this.modules.push(module);
+        if (evaluate) {
+            module.evaluate();
+            this.evaluateInputs();
+        }
+        return module;
     }
-    addInputModule(input) {
+    addInputModule(input, evaluate = true) {
         this.modules.push(input);
-        this.inputs.push(input.outputs[0]);
+        this.inputModules.push(input);
+        if (evaluate) {
+            input.evaluate();
+            this.evaluateInputs();
+        }
         return input;
+    }
+    evaluateInputs() {
+        this.inputModules.forEach((x) => x.evaluate());
     }
 }
 
 function addInput() {
-    let module = new Input(Symbol('input'));
+    let module = new Input('input');
     circuit.addInputModule(module);
-    module.evaluate();
 }
 function addNotGate() {
-    let module = new NotGate(Symbol('not'));
-    circuit.addModule(module);
-    module.evaluate();
+    circuit.addModule(new NotGate('not'));
+}
+function addAndGate() {
+    circuit.addModule(new AndGate('and'));
+}
+function addOrGate() {
+    circuit.addModule(new OrGate('or'));
 }
 
 var circuit = new Circuit();
