@@ -57,8 +57,9 @@ class Wire {
         const l = p5.Vector.sub(a, b).mag();
         const radius = 6;
 
-        if (a.dist(c) > l + radius / 2 || b.dist(c) > l + radius / 2)
+        if (a.dist(c) > l + radius / 2 || b.dist(c) > l + radius / 2) {
             return false;
+        }
 
         const ab = p5.Vector.sub(a, b);
         const bc = p5.Vector.sub(b, c);
@@ -117,12 +118,14 @@ class Node {
     setValue(value, evaluate = true, traversed = []) {
         // console.log(traversed)
         this.value = value;
-        if (evaluate)
+        if (evaluate) {
             this.owner.evaluate();
+        }
         this.connections.forEach((x) => {
             let dest = x.destination;
-            if (!traversed.includes(x.destination.name))
+            if (!traversed.includes(x.destination.name)) {
                 dest.setValue(value, true, traversed.concat(this.name));
+            }
         });
     }
     getCanvasX() {
@@ -177,20 +180,23 @@ class InputNode extends Node {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'input';
     }
-    connectOutput(output) {
-        if (!output.connections.includes(new Wire(output, this))) {
-            output.connections.push(new Wire(output, this));
-            this.connections.push(new Wire(this, output));
+    connect(node) {
+        if (node.nodeType == 'output') {
+            if (!node.connections.includes(new Wire(node, this))) {
+                node.connections.push(new Wire(node, this));
+                this.connections.push(new Wire(this, node));
+            }
+            node.setValue(node.value);
         }
-        output.setValue(output.value);
-    }
-    connectInput(input) {
-        input.connections.push(new Wire(input, this));
-        this.connections.push(new Wire(this, input));
-        if (input.value != state.highZ)
-            input.setValue(input.value);
-        else
-            this.setValue(this.value);
+        if (node.nodeType == 'input') {
+            node.connections.push(new Wire(node, this));
+            this.connections.push(new Wire(this, node));
+            if (node.value == state.highZ) {
+                this.setValue(this.value);
+            } else { 
+                node.setValue(node.value);
+            }
+        }
     }
     disconnect(node) {
         if (node.nodeType == 'output') {
@@ -209,7 +215,7 @@ class InputNode extends Node {
     released() {
         if (this.isHovering()) {
             if (clickedNode != null) {
-                clickedNode.connectInput(this);
+                clickedNode.connect(this);
             }
         }
         super.released();
@@ -221,9 +227,12 @@ class OutputNode extends Node {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'output';
     }
-    connectInput(input) {
-        this.connections.push(new Wire(this, input));
-        this.setValue(this.value);
+    connect(node) {
+        if (node.nodeType == 'input') {
+            this.connections.push(new Wire(this, node));
+            node.connections.push(new Wire(node, this));
+            this.setValue(this.value);
+        }
     }
     disconnect(node) {
         if (node.nodeType == 'output') {
@@ -242,7 +251,7 @@ class OutputNode extends Node {
     released() {
         if (this.isHovering()) {
             if (clickedNode != null) {
-                clickedNode.connectOutput(this);
+                clickedNode.connect(this);
             }
         }
         super.released();
@@ -274,20 +283,41 @@ class Module {
             !hoveringNode;
         return this.rollover;
     }
-    evaluate() {
-        this.inputs.forEach((x) => {
-            console.log(x)
-            let connectedToOutput = false;
-            for (let i in x.connections) {
-                if (x.connections[i].destination.nodeType == 'output') {
-                    connectedToOutput = true;
-                    break;
+
+    evaluate(checkForDisconnectedInput = true) {
+        // DFS
+        if (checkForDisconnectedInput) {
+            this.inputs.forEach((x) => {
+                let stack = [];
+                let traversed = new Set();
+                stack.push(x);
+                let connectedToOutput = false;
+                while (stack.length > 0) {
+                    let v = stack.pop();
+                    // console.log('v', v, stack, traversed)
+                    if (!traversed.has(v.id)) {
+                        traversed.add(v.id);
+                        v.connections.forEach((u) => {
+                            u = u.destination;
+                            stack.push(u);
+                            if (u.nodeType == 'output') {
+                                connectedToOutput |= true;
+                            }
+                        });
+                        if (connectedToOutput) {
+                            break;
+                        }
+                    }
                 }
-            }
-            if (!connectedToOutput) {
-                x.setValue(state.highZ, false);
-            }
-        });
+                if (!connectedToOutput) {
+                    x.value = state.highZ;
+                    x.connections.forEach((y) => {
+                        y.destination.value = state.highZ;
+                        y.destination.owner.evaluate(false);
+                    });
+                }
+            });
+        }
     }
     render(name = this.displayName) {
         let hovering = this.isHovering();
@@ -345,10 +375,11 @@ class Input extends Module {
     pressed() {
         super.pressed();
         if (this.isHovering()) {
-            if (this.outputState == state.low)
+            if (this.outputState == state.low) {
                 this.outputState = state.high;
-            else
+            } else {
                 this.outputState = state.low;
+            }
             this.setInput(this.outputState, false);
             return true;
         }
@@ -362,7 +393,7 @@ class Input extends Module {
             char = '1';
         super.render(char);
     }
-    evaluate() {
+    evaluate(checkForDisconnectedInput = true) {
         // this.outputs[0].setValue(this.outputState);
     }
 }
@@ -374,8 +405,8 @@ class NotGate extends Module {
         this.outputs = [new OutputNode(this, 'out1', 2, 1)];
         this.displayName = 'NOT';
     }
-    evaluate() {
-        super.evaluate();
+    evaluate(checkForDisconnectedInput = true) {
+        super.evaluate(checkForDisconnectedInput);
         let result = state.op.not(this.inputs[0].getValue());
         this.outputs[0].setValue(result, false);
     }
@@ -390,8 +421,8 @@ class AndGate extends Module {
         this.outputs = [new OutputNode(this, 'out1', 3, 1)];
         this.displayName = 'AND';
     }
-    evaluate() {
-        super.evaluate();
+    evaluate(checkForDisconnectedInput = true) {
+        super.evaluate(checkForDisconnectedInput);
         let result = state.op.and([
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);
@@ -408,8 +439,8 @@ class OrGate extends Module {
         this.outputs = [new OutputNode(this, 'out1', 3, 1)];
         this.displayName = 'OR';
     }
-    evaluate() {
-        super.evaluate();
+    evaluate(checkForDisconnectedInput = true) {
+        super.evaluate(checkForDisconnectedInput);
         let result = state.op.or([
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);

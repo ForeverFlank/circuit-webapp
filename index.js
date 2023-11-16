@@ -35,8 +35,8 @@ function draw() {
         wires = wires.concat(x.connections);
     });
     
-    wires.forEach((x) => x.render());
     circuit.modules.forEach((x) => x.render());
+    wires.forEach((x) => x.render());
     nodes.forEach((x) => x.render());
     // console.log(nodes)
 }
@@ -46,10 +46,6 @@ function touchStarted(e) {
     mouseClickedButton = mouseButton;
     for (let i = circuit.modules.length - 1; i >= 0; i--) {
         let module = circuit.modules[i];
-        if (module.pressed()) {
-            pressedOnObject = true;
-            break;
-        }
         let nodes = module.inputs.concat(module.outputs);
         for (let j = nodes.length - 1; j >= 0; j--) {
             if (nodes[j].pressed()) {
@@ -63,6 +59,10 @@ function touchStarted(e) {
                     break;
                 }
             }
+        }
+        if (module.pressed()) {
+            pressedOnObject = true;
+            break;
         }
     }
     if (pressedOnObject) {
