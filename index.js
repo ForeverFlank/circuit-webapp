@@ -41,7 +41,7 @@ function draw() {
     // console.log(nodes)
 }
 
-function mousePressed(e) {
+function touchStarted(e) {
     let pressedOnObject = false;
     mouseClickedButton = mouseButton;
     for (let i = circuit.modules.length - 1; i >= 0; i--) {
@@ -74,11 +74,11 @@ function mousePressed(e) {
     }    
 }
 
-function mouseDragged(e) {
+function touchMoved(e) {
     Controls.move(controls).mouseDragged(e);
 }
 
-function mouseReleased(e) {
+function touchEnded(e) {
     circuit.modules.forEach((x) => {
         x.released();
         let nodes = x.inputs.concat(x.outputs);
