@@ -274,6 +274,21 @@ class Module {
             !hoveringNode;
         return this.rollover;
     }
+    evaluate() {
+        this.inputs.forEach((x) => {
+            console.log(x)
+            let connectedToOutput = false;
+            for (let i in x.connections) {
+                if (x.connections[i].destination.nodeType == 'output') {
+                    connectedToOutput = true;
+                    break;
+                }
+            }
+            if (!connectedToOutput) {
+                x.setValue(state.highZ, false);
+            }
+        });
+    }
     render(name = this.displayName) {
         let hovering = this.isHovering();
         if (this.dragging) {
@@ -298,17 +313,6 @@ class Module {
         text(name, this.w * 20 / 2 + this.x, this.h * 20 / 2 + this.y + 3);
         // this.inputs.forEach((x) => x.render());
         // this.outputs.forEach((x) => x.render());
-    }
-    evaluate() {
-        /*
-        this.inputs.forEach((x) => {
-            console.log(x);
-            if (!x.isConnected()) {
-                console.log('bah');
-                x.value = state.highZ;
-            }
-        });
-        */
     }
     pressed() {
         if (this.isHovering()) {

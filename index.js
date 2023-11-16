@@ -63,9 +63,7 @@ function touchStarted(e) {
                     break;
                 }
             }
-            
         }
-        
     }
     if (pressedOnObject) {
 
