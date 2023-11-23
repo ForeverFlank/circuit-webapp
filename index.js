@@ -1,5 +1,5 @@
 function setup() {
-    var canvas = createCanvas(400, 400);
+    var canvas = createCanvas(400, 500);
     canvas.parent('canvas-container');
 
     canvas.mouseWheel(e => Controls.zoom(controls).worldZoom(e))
@@ -77,10 +77,20 @@ function touchMoved(e) {
 }
 
 function touchEnded(e) {
+    let releasedOnObject = false;
     circuit.modules.forEach((x) => {
         x.released();
         let nodes = x.inputs.concat(x.outputs);
-        nodes.forEach((x) => x.released());
+        for (let i in nodes) {
+            if (nodes[i].released()) {
+                releasedOnObject = true;
+            }
+        }
     });
+    if (!releasedOnObject) {
+        if (clickedNode != null) {
+            clickedNode.addWireNode();
+        }
+    }
     Controls.move(controls).mouseReleased(e);
 }
