@@ -1,6 +1,6 @@
 let controls = {
     view: {x: 0, y: 0, zoom: 1},
-    viewPos: { prevX: null,  prevY: null,  isDragging: false },
+    viewPos: { prevX: null, prevY: null, isDragging: false },
 }
 
 class Controls {
@@ -50,7 +50,7 @@ class Controls {
             const { x, y, deltaY } = e;
             const direction = deltaY > 0 ? -1 : 1;
             const factor = 0.06;
-            const zoom = 1 * direction * factor * controls.view.zoom;
+            const zoom = direction * factor * controls.view.zoom;
 
             const wx = (x - controls.view.x) / (width * controls.view.zoom);
             const wy = (y - controls.view.y) / (height * controls.view.zoom);

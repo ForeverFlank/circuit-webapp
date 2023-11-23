@@ -34,14 +34,18 @@ const state = {
     }
 }
 
+var uniqueNumber = 0;
+
 function unique(str = '') {
-    return str + '_' + Date.now().toString(16) + Math.floor(Math.random() * 2 ** 32).toString(16);
+    uniqueNumber++;
+    return str + '_' + uniqueNumber.toString() + '_' + Math.floor(Math.random() * 2 ** 32).toString(16) + Date.now().toString(16);
 }
 
 class Wire {
-    constructor(source, destination, name, value = state.highZ) {
+    constructor(source, destination, rendered = true, name = '', value = state.highZ) {
         this.source = source;
         this.destination = destination;
+        this.rendered = rendered;
         this.id = unique(name);
         this.value = value;
     }
@@ -67,6 +71,7 @@ class Wire {
         return abs(sin(ab.angleBetween(bc))) * bc.mag() <= radius / 2;
     }
     render() {
+        if (!this.rendered) return;
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();
         let destinationX = this.destination.getCanvasX();
@@ -88,9 +93,10 @@ class Wire {
         pop();
     }
     pressed() {
+        if (!this.rendered) return;
         if (this.isHovering()) {
             if (mouseClickedButton == RIGHT) {
-                this.destination.disconnect(this.source);
+                this.source.disconnect(this.destination);
             }
         }
     }
@@ -107,7 +113,6 @@ class Node {
         this.relativeX = relativeX;
         this.relativeY = relativeY;
         this.dragging = false;
-        // console.log(name, owner)
     }
     isConnected() {
         return this.connections.length > 0;
@@ -116,7 +121,6 @@ class Node {
         return this.value;
     }
     setValue(value, evaluate = true, traversed = []) {
-        // console.log(traversed)
         this.value = value;
         if (evaluate) {
             this.owner.evaluate();
@@ -133,6 +137,49 @@ class Node {
     }
     getCanvasY() {
         return this.owner.y + this.relativeY * 20;
+    }
+    connect(node) {
+        if (this.id == node.id) return;
+        if (this.connections.includes(new Wire(this, node))) return;
+        this.connections.push(new Wire(this, node));
+        node.connections.push(new Wire(node, this, false));
+
+        if (node.nodeType == 'output') {
+            node.setValue(node.value);
+        }
+        if (node.nodeType == 'input') {
+            if (node.value == state.highZ) {
+                this.setValue(this.value);
+            } else { 
+                node.setValue(node.value);
+            }
+        }
+    }
+    disconnect(node) {
+        let wire, index;
+        console.log('b', node.connections, this.connections)
+        wire = node.connections.find((x) => (
+            x.source.id == node.id &&
+            x.destination.id == this.id));
+        console.log('w1', wire)
+        node.connections = node.connections.filter(x => x != wire);
+
+        wire = this.connections.find((x) => (
+            x.source.id == this.id &&
+            x.destination.id == node.id));
+        console.log('w2', wire)
+        this.connections = this.connections.filter(x => x != wire);
+
+        console.log('a', node.connections, this.connections)
+        if (node.nodeType == 'output') {
+            
+        }
+        else if (node.nodeType == 'input') {
+
+        }
+
+        node.owner.evaluate();
+        this.owner.evaluate();
     }
     isHovering() {
         let result = (mouseCanvasX - this.getCanvasX()) ** 2 +
@@ -181,41 +228,16 @@ class InputNode extends Node {
         this.nodeType = 'input';
     }
     connect(node) {
-        if (node.nodeType == 'output') {
-            if (!node.connections.includes(new Wire(node, this))) {
-                node.connections.push(new Wire(node, this));
-                this.connections.push(new Wire(this, node));
-            }
-            node.setValue(node.value);
-        }
-        if (node.nodeType == 'input') {
-            node.connections.push(new Wire(node, this));
-            this.connections.push(new Wire(this, node));
-            if (node.value == state.highZ) {
-                this.setValue(this.value);
-            } else { 
-                node.setValue(node.value);
-            }
-        }
+        super.connect(node);
     }
     disconnect(node) {
-        if (node.nodeType == 'output') {
-            let wire = node.connections.find((x) => x.source.name == node.name);
-            let index = node.connections.indexOf(wire);
-            node.connections.pop(index);
-        }
-        else if (node.nodeType == 'input') {
-            let wire = node.connections.find((x) => x.source.name == node.name);
-            let index = node.connections.indexOf(wire);
-            node.connections.pop(index);
-        }
-        node.owner.evaluate();
-        this.owner.evaluate();
+        super.disconnect(node);
     }
     released() {
         if (this.isHovering()) {
             if (clickedNode != null) {
                 clickedNode.connect(this);
+                clickedNode = null;
             }
         }
         super.released();
@@ -228,30 +250,16 @@ class OutputNode extends Node {
         this.nodeType = 'output';
     }
     connect(node) {
-        if (node.nodeType == 'input') {
-            this.connections.push(new Wire(this, node));
-            node.connections.push(new Wire(node, this));
-            this.setValue(this.value);
-        }
+        super.connect(node);
     }
     disconnect(node) {
-        if (node.nodeType == 'output') {
-            let wire = node.connections.find((x) => x.source.name == node.name);
-            let index = node.connections.indexOf(wire);
-            node.connections.pop(index);
-        }
-        else if (node.nodeType == 'input') {
-            let wire = node.connections.find((x) => x.source.name == node.name);
-            let index = node.connections.indexOf(wire);
-            node.connections.pop(index);
-        }
-        node.owner.evaluate();
-        this.owner.evaluate();
+        super.disconnect(node);
     }
     released() {
         if (this.isHovering()) {
             if (clickedNode != null) {
                 clickedNode.connect(this);
+                clickedNode = null;
             }
         }
         super.released();
@@ -288,19 +296,20 @@ class Module {
         // DFS
         if (checkForDisconnectedInput) {
             this.inputs.forEach((x) => {
+                console.log(x.connections)
                 let stack = [];
                 let traversed = new Set();
                 stack.push(x);
                 let connectedToOutput = false;
                 while (stack.length > 0) {
+                    // console.log('s', stack)
                     let v = stack.pop();
                     // console.log('v', v, stack, traversed)
                     if (!traversed.has(v.id)) {
                         traversed.add(v.id);
                         v.connections.forEach((u) => {
-                            u = u.destination;
-                            stack.push(u);
-                            if (u.nodeType == 'output') {
+                            stack.push(u.destination);
+                            if (u.destination.nodeType == 'output') {
                                 connectedToOutput |= true;
                             }
                         });
@@ -316,6 +325,7 @@ class Module {
                         y.destination.owner.evaluate(false);
                     });
                 }
+                console.log(x.id, connectedToOutput)
             });
         }
     }
@@ -339,6 +349,7 @@ class Module {
         rect(this.x, this.y, this.w * 20, this.h * 20);
         noStroke();
         fill(0);
+        // textFont(fontRegular);
         textAlign(CENTER);
         text(name, this.w * 20 / 2 + this.x, this.h * 20 / 2 + this.y + 3);
         // this.inputs.forEach((x) => x.render());
@@ -448,17 +459,6 @@ class OrGate extends Module {
     }
 }
 
-/*
-let and = new AndGate('a1');
-and.inputs[0].setValue(state.high);
-and.inputs[1].setValue(state.high);
-let not = new NotGate('n1');
-and.outputs[0].connect(not.inputs[0]);
-and.inputs[1].setValue(state.low);
-console.log(and);
-console.log(not);
-*/
-
 class Circuit extends Module {
     constructor(name) {
         super(name);
@@ -502,59 +502,3 @@ function addOrGate() {
 }
 
 var circuit = new Circuit();
-
-if (0) {
-    let in1 = new Input('i1');
-    let in2 = new Input('i2');
-    let and1 = new AndGate('a1');
-    let and2 = new AndGate('a2');
-    let not1 = new NotGate('n1');
-    let not2 = new NotGate('n2');
-    let or1 = new OrGate('o1');
-
-    circuit.addInputModule(in1);
-    circuit.addInputModule(in2);
-    circuit.addModule(and1);
-    circuit.addModule(and2);
-    circuit.addModule(not1);
-    circuit.addModule(not2);
-    circuit.addModule(or1);
-
-    // S = A(-B) + (-A)B
-
-    in1.outputs[0].connect(not2.inputs[0]);     // -A
-    in2.outputs[0].connect(not1.inputs[0]);     // -B
-
-    console.log(in1);
-    console.log(in2);
-
-    // A(-B)
-    in1.outputs[0].connect(and1.inputs[0]);
-    not1.outputs[0].connect(and1.inputs[1]);
-
-    // console.log(and1);
-
-    // (-A)B
-    not2.outputs[0].connect(and2.inputs[0]);
-    in2.outputs[0].connect(and2.inputs[1]);
-
-    // +
-    and1.outputs[0].connect(or1.inputs[0]);
-    and2.outputs[0].connect(or1.inputs[1]);
-
-    in1.setInput(state.low);
-    in2.setInput(state.low);
-    console.log('0 xor 0 =', or1.outputs[0].value);
-
-    in1.setInput(state.low);
-    in2.setInput(state.high);
-    console.log('0 xor 1 =', or1.outputs[0].value);
-
-    in1.setInput(state.high);
-    in2.setInput(state.low);
-    console.log('1 xor 0 =', or1.outputs[0].value);
-
-    in1.setInput(state.high);
-    in2.setInput(state.high);
-    console.log('1 xor 1 =', or1.outputs[0].value);
-}
