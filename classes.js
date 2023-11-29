@@ -1,6 +1,6 @@
 'use strict';
 
-var DEBUG = false;
+var DEBUG = 0;
 
 var NODE_HOVERING_RADIUS = 8;
 
@@ -73,6 +73,12 @@ class Wire {
         const bc = p5.Vector.sub(b, c);
 
         return abs(sin(ab.angleBetween(bc))) * bc.mag() <= radius / 2;
+    }
+    setDirection(from, to) {
+        console.log(from, from.id == this.source.id)
+        this.rendered = (from.id == this.source.id);
+        let hiddenWire = to.connections.find((x) => x.destination.id == from.id);
+        hiddenWire.rendered = !(from.id == this.source.id);
     }
     render() {
         if (!this.rendered) return;
@@ -149,6 +155,7 @@ class Node {
         this.connections.forEach((wire) => {
             let src = wire.source;
             let dest = wire.destination;
+            /*
             let displayedWire = dest.connections.find((y) =>
                 y.source.id == dest.id);
             let hiddenWire = src.connections.find((y) =>
@@ -156,6 +163,7 @@ class Node {
             displayedWire.rendered = true;
             hiddenWire.rendered = false;
             console.log(displayedWire ,hiddenWire)
+            */
             if (!traversed.has(wire.destination.id)) {
                 dest.setValue(value, true, traversed.add(this.id));
             }
@@ -175,8 +183,13 @@ class Node {
 
         if (node.nodeType == 'output') {
             node.setValue(node.value);
-        }
-        if (node.nodeType == 'input') {
+        } else if (node.nodeType == 'input') {
+            if (node.value == state.highZ) {
+                this.setValue(this.value);
+            } else {
+                node.setValue(node.value);
+            }
+        } else {
             if (node.value == state.highZ) {
                 this.setValue(this.value);
             } else {
@@ -350,7 +363,7 @@ class Module {
         return this.rollover;
     }
     evaluate(checkForDisconnectedInput = true) {
-        console.log('called from', this.id)
+        console.log('called from', this.id);
         // DFS
         if (checkForDisconnectedInput) {
             this.inputs.forEach((x) => {
@@ -360,19 +373,21 @@ class Module {
                 let connectedToOutput = false;
                 while (stack.length > 0) {
                     // console.log('s', stack)
-                    let v = stack.pop();
+                    let src = stack.pop();
                     // console.log('v', v, stack, traversed)
-                    if (!traversed.has(v.id)) {
-                        traversed.add(v.id);
-                        v.connections.forEach((u) => {
-                            stack.push(u.destination);
+                    if (!traversed.has(src.id)) {
+                        traversed.add(src.id);
+                        src.connections.forEach((w) => {
+                            let dest = w.destination;
+                            w.setDirection(src, dest);
+                            stack.push(dest);
                             // u.destination.owner.evaluate(false);
-                            if (u.destination.nodeType == 'output') {
+                            if (dest.nodeType == 'output') {
                                 connectedToOutput |= true;
                             }
                         });
                         if (connectedToOutput) {
-                            break;
+                            // break;
                         }
                     }
                 }
@@ -445,10 +460,13 @@ class Module {
 class WireNode extends Module {
     constructor(name, x, y) {
         super(name, x, y, 0, 0);
-        this.inputs = [new InputNode(this, 'node', 0, 0, state.highZ)];
+        this.inputs = [new Node(this, 'node', 0, 0, state.highZ)];
     }
     isHovering() {
         return this.inputs[0].isHovering();
+    }
+    evaluate() {
+
     }
     pressed() {
         if (this.isHovering()) {
@@ -577,6 +595,34 @@ class Circuit extends Module {
     evaluateInputs() {
         this.inputModules.forEach((x) => x.evaluate());
     }
+    toModule() {
+        this.inputs = this.inputModules.map(x => x.outputs[0]);
+        this.outputs = this.outputModules.map(x => x.inputs[0]);
+        this.isSubModule = true;
+        return this;
+    }
 }
 
+let nameID = 0;
 var circuit = new Circuit();
+var customModules = {};
+
+function saveModule() {
+    let name = 'MODULE' + nameID;
+    // let newModule = Object.assign(Object.create(Object.getPrototypeOf(circuit)), circuit);
+    let newModule = circuit;
+    console.log(newModule)
+    newModule.name = name;
+    newModule.displayName = name;
+    newModule.w = 3;
+    newModule.h = max(newModule.inputModules.length, newModule.outputModules.length) + 1;
+    customModules[name] = newModule.toModule();
+    console.log(customModules[name])
+    circuit = new Circuit();
+    let button = document.createElement('button');
+    button.textContent = name;
+    button.addEventListener('click', () => circuit.addModule(customModules[name]));
+    document.getElementById('module-button-container').appendChild(button);
+    console.log(customModules[name])
+    nameID++;
+}
