@@ -35,7 +35,7 @@ function draw() {
         wires = wires.concat(x.connections);
     });
     
-    circuit.modules.forEach((x) => x.render());
+    circuit.modules.forEach((x) => { x.render() });
     wires.forEach((x) => x.render());
     nodes.forEach((x) => x.render());
     // console.log(nodes)
@@ -68,7 +68,10 @@ function touchStarted(e) {
     if (pressedOnObject) {
 
     } else {
-        Controls.move(controls).mousePressed(e);
+        if (mouseButton == LEFT)
+            0;
+        if (mouseButton == CENTER)
+            Controls.move(controls).mousePressed(e);
     }    
 }
 

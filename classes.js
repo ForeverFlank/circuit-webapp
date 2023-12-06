@@ -1,6 +1,6 @@
 'use strict';
 
-var DEBUG = 0;
+var DEBUG = 1;
 
 var NODE_HOVERING_RADIUS = 8;
 
@@ -11,27 +11,36 @@ var mouseClickedButton;
 var isDrawingWire = false;
 var clickedNode;
 
+var wireNodeLookup = {};
+
 const state = {
+    err: -2,
     highZ: -1,
     low: 0,
     high: 1,
     op: {
         not: (s) => {
+            if (s == state.err || s == state.highZ) return state.err;
             if (s == state.high) return state.low;
             return state.high;
         },
         and: (s) => {
             for (let i in s)
                 if (s[i] != state.high) return state.low;
+            for (let i in s)
+                if (s[i] == state.err || s[i] == state.highZ) return state.err;
             return state.high;
         },
         or: (s) => {
             for (let i in s)
                 if (s[i] == state.high) return state.high;
+            for (let i in s)
+                if (s[i] == state.err || s[i] == state.highZ) return state.err;
             return state.low;
         }
     },
     color: (s) => {
+        if (s == state.err) return color(255, 128, 0);
         if (s == state.highZ) return color(128, 128, 128);
         if (s == state.low) return color(255, 0, 0);
         if (s == state.high) return color(0, 255, 0);
@@ -101,7 +110,7 @@ class Wire {
         rect(-length / 2, -width / 2, length, width);
         // line(sourceX, sourceY, destinationX, destinationY);
         pop();
-        
+
         push();
         noStroke(0);
         fill(color(255, 255, 0));
@@ -110,7 +119,7 @@ class Wire {
         const speed = 2;
         let dotCount = Math.floor(length / dotDistance);
         for (let i = 0; i < dotCount; i++) {
-            let t = (speed * Date.now() / (length * dotDistance) + i / dotCount) % 1 ;
+            let t = (speed * Date.now() / (length * dotDistance) + i / dotCount) % 1;
             let deltaX = destinationX - sourceX;
             let deltaY = destinationY - sourceY;
             circle(sourceX + deltaX * t, sourceY + deltaY * t, 5);
@@ -147,6 +156,7 @@ class Node {
         return this.value;
     }
     setValue(value, evaluate = true, traversed = new Set()) {
+        // console.log('set from ' + this.id, traversed)
         this.value = value;
         if (evaluate) {
             this.owner.evaluate();
@@ -155,16 +165,7 @@ class Node {
         this.connections.forEach((wire) => {
             let src = wire.source;
             let dest = wire.destination;
-            /*
-            let displayedWire = dest.connections.find((y) =>
-                y.source.id == dest.id);
-            let hiddenWire = src.connections.find((y) =>
-                y.source.id == src.id);
-            displayedWire.rendered = true;
-            hiddenWire.rendered = false;
-            console.log(displayedWire ,hiddenWire)
-            */
-            if (!traversed.has(wire.destination.id)) {
+            if (!traversed.has(dest.id)) {
                 dest.setValue(value, true, traversed.add(this.id));
             }
         });
@@ -181,6 +182,12 @@ class Node {
         this.connections.push(new Wire(this, node));
         node.connections.push(new Wire(node, this, false));
 
+        if (node.value == state.highZ) {
+            this.setValue(this.value);
+        } else {
+            node.setValue(node.value);
+        }
+        /*
         if (node.nodeType == 'output') {
             node.setValue(node.value);
         } else if (node.nodeType == 'input') {
@@ -196,28 +203,19 @@ class Node {
                 node.setValue(node.value);
             }
         }
+        */
     }
     disconnect(node) {
-        let wire, index;
-        // console.log('b', node.connections, this.connections)
+        let wire;
         wire = node.connections.find((x) => (
             x.source.id == node.id &&
             x.destination.id == this.id));
-        // console.log('w1', wire)
         node.connections = node.connections.filter(x => x != wire);
 
         wire = this.connections.find((x) => (
             x.source.id == this.id &&
             x.destination.id == node.id));
-        // console.log('w2', wire)
         this.connections = this.connections.filter(x => x != wire);
-
-        // console.log('a', node.connections, this.connections)
-        if (node.nodeType == 'output') {
-
-        } else if (node.nodeType == 'input') {
-
-        }
 
         node.owner.evaluate();
         this.owner.evaluate();
@@ -276,8 +274,14 @@ class Node {
         return false;
     }
     released() {
-        // this.owner.evaluate();
         this.dragging = false;
+        if (this.isHovering()) {
+            if (clickedNode != null) {
+                clickedNode.connect(this);
+                clickedNode = null;
+                return true;
+            }
+        }
     }
     addWireNode() {
         let x = Math.round(mouseCanvasX / 20) * 20;
@@ -303,13 +307,6 @@ class InputNode extends Node {
     }
     released() {
         super.released();
-        if (this.isHovering()) {
-            if (clickedNode != null) {
-                clickedNode.connect(this);
-                clickedNode = null;
-                return true;
-            }
-        }
     }
 }
 
@@ -326,13 +323,6 @@ class OutputNode extends Node {
     }
     released() {
         super.released();
-        if (this.isHovering()) {
-            if (clickedNode != null) {
-                clickedNode.connect(this);
-                clickedNode = null;
-                return false;
-            }
-        }
     }
 }
 
@@ -362,24 +352,21 @@ class Module {
             !hoveringNode;
         return this.rollover;
     }
-    evaluate(checkForDisconnectedInput = true) {
-        console.log('called from', this.id);
+    evaluate(checkDisconnectedInput = true, evaluated = new Set()) {
+        console.log('called from', this.id, checkDisconnectedInput);
         // DFS
-        if (checkForDisconnectedInput) {
+        if (checkDisconnectedInput) {
             this.inputs.forEach((x) => {
                 let stack = [];
                 let traversed = new Set();
                 stack.push(x);
                 let connectedToOutput = false;
                 while (stack.length > 0) {
-                    // console.log('s', stack)
                     let src = stack.pop();
-                    // console.log('v', v, stack, traversed)
                     if (!traversed.has(src.id)) {
                         traversed.add(src.id);
                         src.connections.forEach((w) => {
                             let dest = w.destination;
-                            w.setDirection(src, dest);
                             stack.push(dest);
                             // u.destination.owner.evaluate(false);
                             if (dest.nodeType == 'output') {
@@ -387,20 +374,46 @@ class Module {
                             }
                         });
                         if (connectedToOutput) {
-                            // break;
+                            break;
                         }
                     }
                 }
                 if (!connectedToOutput) {
+                    console.log('not')
                     x.value = state.highZ;
                     x.connections.forEach((y) => {
                         y.destination.value = state.highZ;
-                        y.destination.owner.evaluate(false);
+                        if (!evaluated.has(this.id)) {
+                            y.destination.owner.evaluate(false, evaluated.add(this.id));
+                        }
                     });
                 }
-                // console.log(x.id, x.connections, connectedToOutput)
             });
         }
+        // console.log('called from', this.id);
+        this.outputs.forEach((x) => {
+            let stack = [];
+            let traversed = new Set();
+            let marked = new Set();
+            stack.push(x);
+            while (stack.length > 0) {
+                let src = stack.pop();
+                if (!traversed.has(src.id)) {
+                    traversed.add(src.id);
+                    marked.add(src.id);
+                    src.connections.forEach((w) => {
+                        let dest = w.destination;
+                        stack.push(dest);
+                        if (!marked.has(dest.id))
+                            w.setDirection(src, dest);
+                        if (this.inputs.some(x => x.id == dest.id))
+                            throw new Error('Circular Loop!');
+                        marked.add(dest.id);
+                    });
+                }
+            }
+        });
+
     }
     remove() {
         circuit.removeModule(this);
@@ -428,6 +441,11 @@ class Module {
         // textFont(fontRegular);
         textAlign(CENTER);
         text(name, this.w * 20 / 2 + this.x, this.h * 20 / 2 + this.y + 3);
+        if (DEBUG) {
+            push();
+            text(this.id, this.x, this.y + 40);
+            pop();
+        }
         // this.inputs.forEach((x) => x.render());
         // this.outputs.forEach((x) => x.render());
     }
@@ -465,8 +483,46 @@ class WireNode extends Module {
     isHovering() {
         return this.inputs[0].isHovering();
     }
-    evaluate() {
-
+    evaluate(evaluated = new Set(), connectedToOutput = false) {
+        this.inputs.forEach((x) => {
+            let stack = [];
+            let traversed = new Set();
+            stack.push(x);
+            while (stack.length > 0) {
+                let src = stack.pop();
+                if (!traversed.has(src.id)) {
+                    traversed.add(src.id);
+                    src.connections.forEach((w) => {
+                        let dest = w.destination;
+                        stack.push(dest);
+                        if (dest.nodeType == 'output') {
+                            connectedToOutput |= true;
+                        }
+                    });
+                    if (connectedToOutput) {
+                        break;
+                    }
+                }
+            }
+            if (!connectedToOutput) {
+                this.inputs.forEach((x) => {
+                    let stack2 = [];
+                    let traversed2 = new Set();
+                    stack2.push(x);
+                    while (stack2.length > 0) {
+                        let src = stack2.pop();
+                        if (!traversed2.has(src.id)) {
+                            traversed2.add(src.id);
+                            src.connections.forEach((w) => {
+                                let dest = w.destination;
+                                stack2.push(dest);
+                                dest.value = state.highZ;
+                            });
+                        }
+                    }
+                });
+            }
+        });
     }
     pressed() {
         if (this.isHovering()) {
@@ -498,8 +554,8 @@ class Input extends Module {
     setInput(value) {
         this.outputs[0].setValue(value);
     }
-    evaluate(checkForDisconnectedInput = true) {
-        // this.outputs[0].setValue(this.outputState);
+    evaluate() {
+        super.evaluate();
     }
     render() {
         let char;
@@ -589,8 +645,12 @@ class Circuit extends Module {
     removeModule(module, evaluate = true) {
         // console.log(this.modules)
         // console.log(module)
+        module.inputs.concat(module.outputs).forEach(x => x.disconnectAll());
         this.modules = this.modules.filter(x => x.id != module.id);
-
+        if (evaluate) {
+            module.evaluate();
+            this.evaluateInputs();
+        }
     }
     evaluateInputs() {
         this.inputModules.forEach((x) => x.evaluate());
