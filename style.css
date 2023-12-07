@@ -5,6 +5,10 @@ body {
   height: 100%;
 }
 
+* {
+    user-select: none;
+}
+
 #canvas-container {
     z-index: -1;
     position: fixed;

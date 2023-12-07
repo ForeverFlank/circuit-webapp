@@ -7,7 +7,7 @@
 // rotation
 // cleanup next googol years
 
-var DEBUG = 1;
+var DEBUG = 0;
 
 var NODE_HOVERING_RADIUS = 8;
 
@@ -19,9 +19,7 @@ var isDrawingWire = false;
 var clickedNode;
 
 var wireNodeLookup = {};
-
-var draggingObject = { id: 0 };
-var isPressed = false;
+var pressedObjectID = 0;
 
 const state = {
     err: -2,
@@ -70,8 +68,9 @@ class Wire {
         this.destination = destination;
         this.rendered = rendered;
         this.id = unique(name);
+        this.isHovering = false;
     }
-    isHovering() {
+    checkHovering() {
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();
         let destinationX = this.destination.getCanvasX();
@@ -107,7 +106,6 @@ class Wire {
 
         let length = sqrt((sourceX - destinationX) ** 2 + (sourceY - destinationY) ** 2);
         let angle = atan2(destinationY - sourceY, destinationX - sourceX);
-        let hovering = this.isHovering();
 
         push();
         stroke(0);
@@ -115,7 +113,7 @@ class Wire {
         fill(state.color(this.source.value));
         translate((destinationX + sourceX) / 2, (destinationY + sourceY) / 2);
         rotate(angle);
-        let width = hovering ? 10 : 6;
+        let width = this.isHovering ? 10 : 6;
         rect(-length / 2, -width / 2, length, width);
         pop();
         if (!(this.source.value == state.highZ &&
@@ -137,8 +135,9 @@ class Wire {
         }
     }
     pressed() {
+        this.isHovering = this.checkHovering();
         if (!this.rendered) return;
-        if (this.isHovering()) {
+        if (this.isHovering) {
             if (mouseClickedButton == RIGHT) {
                 this.source.disconnect(this.destination);
             }
@@ -157,6 +156,7 @@ class Node {
         this.relativeX = relativeX;
         this.relativeY = relativeY;
         this.dragging = false;
+        this.isHovering = false;
     }
     isConnected() {
         return this.connections.length > 0;
@@ -232,7 +232,7 @@ class Node {
             x.source.disconnect(x.destination);
         });
     }
-    isHovering() {
+    checkHovering() {
         let result =
             (mouseCanvasX - this.getCanvasX()) ** 2 +
             (mouseCanvasY - this.getCanvasY()) ** 2 <=
@@ -244,16 +244,15 @@ class Node {
         strokeWeight(2);
         let netX = this.getCanvasX();
         let netY = this.getCanvasY();
-        let hovering = this.isHovering();
         if (this.dragging) {
             line(netX, netY, mouseCanvasX, mouseCanvasY);
-        } else if (hovering) {
+        } else if (this.isHovering) {
         } else {
         }
         stroke(0);
         strokeWeight(2);
         fill(state.color(this.value));
-        circle(netX, netY, hovering ? 14 : 10);
+        circle(netX, netY, this.isHovering ? 14 : 10);
         if (DEBUG) {
             push();
             text(this.id.slice(0, 10), netX, netY - 10);
@@ -261,8 +260,9 @@ class Node {
         }
     }
     pressed() {
-        if (this.isHovering() && !isPressed) {
-            isPressed = true;
+        this.isHovering = this.checkHovering();
+        if (this.isHovering && pressedObjectID == 0) {
+            pressedObjectID = this.id;
             if (mouseClickedButton == LEFT) {
                 line(this.getCanvasX(), this.getCanvasY(), mouseCanvasX, mouseCanvasY);
                 clickedNode = this;
@@ -278,13 +278,14 @@ class Node {
     }
     released() {
         this.dragging = false;
-        if (this.isHovering()) {
+        if (this.isHovering) {
             if (clickedNode != null) {
                 clickedNode.connect(this);
                 clickedNode = null;
                 return true;
             }
         }
+        this.isHovering = false;
     }
     addWireNode() {
         let x = Math.round(mouseCanvasX / 20) * 20;
@@ -306,9 +307,6 @@ class InputNode extends Node {
     disconnect(node) {
         super.disconnect(node);
     }
-    released() {
-        super.released();
-    }
 }
 
 class OutputNode extends Node {
@@ -321,9 +319,6 @@ class OutputNode extends Node {
     }
     disconnect(node) {
         super.disconnect(node);
-    }
-    released() {
-        super.released();
     }
 }
 
@@ -340,11 +335,12 @@ class Module {
         this.outputs = [];
         this.dragging = false;
         this.mouseDown = false;
+        this.isHovering = false;
     }
-    isHovering() {
+    checkHovering() {
         let hoveringNode = false;
-        this.inputs.forEach((x) => { hoveringNode |= x.isHovering() });
-        this.outputs.forEach((x) => { hoveringNode |= x.isHovering() });
+        this.inputs.forEach((x) => { hoveringNode |= x.checkHovering() });
+        this.outputs.forEach((x) => { hoveringNode |= x.checkHovering() });
         let hovering = mouseCanvasX > this.x &&
             mouseCanvasX < this.x + this.w * 20 &&
             mouseCanvasY > this.y &&
@@ -353,7 +349,7 @@ class Module {
         return hovering;
     }
     evaluate(checkDisconnectedInput = true, evaluated = new Set()) {
-        console.log('called from', this.id, checkDisconnectedInput);
+        // console.log('called from', this.id, checkDisconnectedInput);
         // DFS
         if (checkDisconnectedInput) {
             this.inputs.forEach((x) => {
@@ -428,14 +424,14 @@ class Module {
         circuit.removeModule(this);
     }
     render(name = this.displayName) {
-        let hovering = this.isHovering();
+        // let hovering = this.isHovering();
         if (this.dragging) {
             // this.rawX = mouseCanvasX + this.offsetX;
             // this.rawY = mouseCanvasY + this.offsetY;
             // this.x = round(this.rawX / 20) * 20;
             // this.y = round(this.rawY / 20) * 20;
             fill(160);
-        } else if (hovering) {
+        } else if (this.isHovering) {
             fill(220);
         } else {
             fill(255);
@@ -456,9 +452,10 @@ class Module {
         }
     }
     pressed() {
-        if (this.isHovering() && !isPressed) {
+        this.isHovering = this.checkHovering();
+        if (this.isHovering && pressedObjectID == 0) {
             if (mouseClickedButton == LEFT) {
-                isPressed = true;
+                pressedObjectID = this.id;
                 this.pressedX = this.x;
                 this.pressedY = this.y;
                 this.mouseDown = true && !this.dragging;
@@ -485,6 +482,7 @@ class Module {
     }
     released() {
         this.dragging = false;
+        this.isHovering = false;
     }
 }
 
@@ -493,8 +491,8 @@ class WireNode extends Module {
         super(name, x, y, 0, 0);
         this.inputs = [new Node(this, 'node', 0, 0, state.highZ)];
     }
-    isHovering() {
-        return this.inputs[0].isHovering();
+    checkHovering() {
+        return this.inputs[0].checkHovering();
     }
     evaluate(evaluated = new Set(), connectedToOutput = false) {
         this.inputs.forEach((x) => {
@@ -538,8 +536,8 @@ class WireNode extends Module {
         });
     }
     pressed() {
-        if (this.isHovering() && !isPressed) {
-            isPressed = true;
+        if (this.checkHovering() && pressedObjectID == 0) {
+            pressedObjectID = this.id;
             if (mouseClickedButton == LEFT) {
                 return true;
             }
@@ -583,7 +581,7 @@ class Input extends Module {
     released() {
         super.released();
         if (this.pressedX == this.x && this.pressedY == this.y) {
-            if (this.isHovering()) {
+            if (pressedObjectID == this.id) {
                 if (this.outputState == state.low) {
                     this.outputState = state.high;
                 } else {
@@ -593,7 +591,6 @@ class Input extends Module {
                 return true;
             }
         }
-
     }
     static add() {
         let module = new Input('input');

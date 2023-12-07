@@ -50,9 +50,12 @@ function draw() {
     let fps = frameRate();
     document.getElementById('fps-counter').innerText = fps;
     // console.log(nodes)
+    // console.log(pressedObjectID)
 }
 
 function objectsPress() {
+    mouseCanvasX = (mouseX - controls.view.x - containerWidth() / 2) / controls.view.zoom;
+    mouseCanvasY = (mouseY - controls.view.y - containerHeight() / 2) / controls.view.zoom;
     let pressedOnObject = false;
     mouseClickedButton = mouseButton;
     for (let i = circuit.modules.length - 1; i >= 0; i--) {
@@ -79,7 +82,11 @@ function objectsPress() {
     return pressedOnObject;
 }
 
+var released = false;
+
 function touchStarted(e) {
+    released = false;
+    console.log('start')
     let pressedOnObject = objectsPress();
 
     if (pressedOnObject) {
@@ -121,24 +128,27 @@ function touchMoved(e) {
 }
 
 function touchEnded(e) {
-    let releasedOnObject = false;
-    circuit.modules.forEach((x) => {
-        x.released();
-        let nodes = x.inputs.concat(x.outputs);
-        for (let i in nodes) {
-            if (nodes[i].released()) {
-                releasedOnObject = true;
+    if (!released) {
+        
+        console.log('end')
+        let releasedOnObject = false;
+        circuit.modules.forEach((x) => {
+            x.released();
+            let nodes = x.inputs.concat(x.outputs);
+            for (let i in nodes) {
+                if (nodes[i].released()) {
+                    releasedOnObject = true;
+                }
+            }
+        });
+        if (!releasedOnObject) {
+            if (clickedNode != null) {
+                clickedNode.addWireNode();
             }
         }
-    });
-    if (!releasedOnObject) {
-        if (clickedNode != null) {
-            clickedNode.addWireNode();
-        }
+        Controls.move(controls).released(e);
+        selected = false;
+        pressedObjectID = 0;
     }
-    Controls.move(controls).released(e);
-    selected = false;
-    mouseX = -100;
-    mouseY = -100;
-    isPressed = false;
+    released = true;
 }
