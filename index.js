@@ -42,7 +42,7 @@ function draw() {
     nodes.forEach((x) => {
         wires = wires.concat(x.connections);
     });
-    
+
     circuit.modules.forEach((x) => { x.render() });
     wires.forEach((x) => x.render());
     nodes.forEach((x) => x.render());
@@ -89,23 +89,33 @@ function touchStarted(e) {
             0;
         if (mouseButton == CENTER)
             Controls.move(controls).pressed(e);
-    }    
+    }
 }
 
 function touchMoved(e) {
+    mouseClickedButton = mouseButton;
+    let pressedOnObject = false;
+    mouseClickedButton = mouseButton;
     for (let i = circuit.modules.length - 1; i >= 0; i--) {
         let module = circuit.modules[i];
         let nodes = module.inputs.concat(module.outputs);
         for (let j = nodes.length - 1; j >= 0; j--) {
-            //if (nodes[j].dragged()) {
-            // }
+            if (nodes[j].pressed()) {
+                pressedOnObject = true;
+                break;
+            }
             let wires = nodes[j].connections;
             for (let k = wires.length - 1; k >= 0; k--) {
-                // if (wires[k].dragged()) {
-                // }
+                if (wires[k].pressed()) {
+                    pressedOnObject = true;
+                    break;
+                }
             }
         }
-        module.dragged();
+        if (module.pressed()) {
+            pressedOnObject = true;
+            break;
+        }
     }
     Controls.move(controls).dragged(e);
 }
@@ -127,4 +137,8 @@ function touchEnded(e) {
         }
     }
     Controls.move(controls).released(e);
+    selected = false;
+    mouseX = -100;
+    mouseY = -100;
+    isPressed = false;
 }

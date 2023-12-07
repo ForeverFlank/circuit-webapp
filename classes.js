@@ -20,6 +20,9 @@ var clickedNode;
 
 var wireNodeLookup = {};
 
+var draggingObject = { id: 0 };
+var isPressed = false;
+
 const state = {
     err: -2,
     highZ: -1,
@@ -241,16 +244,11 @@ class Node {
         strokeWeight(2);
         let netX = this.getCanvasX();
         let netY = this.getCanvasY();
-        this.connections.forEach((x) => {
-            // x.render();
-        });
         let hovering = this.isHovering();
         if (this.dragging) {
             line(netX, netY, mouseCanvasX, mouseCanvasY);
         } else if (hovering) {
-            // fill(180);
         } else {
-            // 
         }
         stroke(0);
         strokeWeight(2);
@@ -263,7 +261,8 @@ class Node {
         }
     }
     pressed() {
-        if (this.isHovering()) {
+        if (this.isHovering() && !isPressed) {
+            isPressed = true;
             if (mouseClickedButton == LEFT) {
                 line(this.getCanvasX(), this.getCanvasY(), mouseCanvasX, mouseCanvasY);
                 clickedNode = this;
@@ -455,12 +454,11 @@ class Module {
             text(this.dragging, this.x, this.y + 55);
             pop();
         }
-        // this.inputs.forEach((x) => x.render());
-        // this.outputs.forEach((x) => x.render());
     }
     pressed() {
-        if (this.isHovering()) {
+        if (this.isHovering() && !isPressed) {
             if (mouseClickedButton == LEFT) {
+                isPressed = true;
                 this.pressedX = this.x;
                 this.pressedY = this.y;
                 this.mouseDown = true && !this.dragging;
@@ -477,15 +475,13 @@ class Module {
                 this.remove();
             }
         }
-        return false;
-    }
-    dragged() {
         if (this.dragging) {
             this.rawX = mouseCanvasX + this.offsetX;
             this.rawY = mouseCanvasY + this.offsetY;
             this.x = round(this.rawX / 20) * 20;
             this.y = round(this.rawY / 20) * 20;
         }
+        return false;
     }
     released() {
         this.dragging = false;
@@ -542,7 +538,8 @@ class WireNode extends Module {
         });
     }
     pressed() {
-        if (this.isHovering()) {
+        if (this.isHovering() && !isPressed) {
+            isPressed = true;
             if (mouseClickedButton == LEFT) {
                 return true;
             }
@@ -660,8 +657,6 @@ class Circuit extends Module {
         return module;
     }
     removeModule(module, evaluate = true) {
-        // console.log(this.modules)
-        // console.log(module)
         module.inputs.concat(module.outputs).forEach(x => x.disconnectAll());
         this.modules = this.modules.filter(x => x.id != module.id);
         if (evaluate) {
