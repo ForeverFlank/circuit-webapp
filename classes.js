@@ -1,5 +1,12 @@
 'use strict';
 
+// TODO
+// multi bits wire
+// graph search >=2 outputs with non high Z and throws error
+// subcircuits
+// rotation
+// cleanup next googol years
+
 var DEBUG = 1;
 
 var NODE_HOVERING_RADIUS = 8;
@@ -26,7 +33,7 @@ const state = {
         },
         and: (s) => {
             for (let i in s)
-                if (s[i] != state.high) return state.low;
+                if (s[i] == state.low) return state.low;
             for (let i in s)
                 if (s[i] == state.err || s[i] == state.highZ) return state.err;
             return state.high;
@@ -40,7 +47,7 @@ const state = {
         }
     },
     color: (s) => {
-        if (s == state.err) return color(255, 128, 0);
+        if (s == state.err) return color(128, 0, 0);
         if (s == state.highZ) return color(128, 128, 128);
         if (s == state.low) return color(255, 0, 0);
         if (s == state.high) return color(0, 255, 0);
@@ -55,12 +62,11 @@ function unique(str = '') {
 }
 
 class Wire {
-    constructor(source, destination, rendered = true, name = '', value = state.highZ) {
+    constructor(source, destination, rendered = true, name = '') {
         this.source = source;
         this.destination = destination;
         this.rendered = rendered;
         this.id = unique(name);
-        this.value = value;
     }
     isHovering() {
         let sourceX = this.source.getCanvasX();
@@ -108,24 +114,24 @@ class Wire {
         rotate(angle);
         let width = hovering ? 10 : 6;
         rect(-length / 2, -width / 2, length, width);
-        // line(sourceX, sourceY, destinationX, destinationY);
         pop();
+        if (!(this.source.value == state.highZ &&
+            this.destination.value == state.highZ)) {
 
-        push();
-        noStroke(0);
-        fill(color(255, 255, 0));
-        //console.log(length)
-        const dotDistance = 20;
-        const speed = 2;
-        let dotCount = Math.floor(length / dotDistance);
-        for (let i = 0; i < dotCount; i++) {
-            let t = (speed * Date.now() / (length * dotDistance) + i / dotCount) % 1;
-            let deltaX = destinationX - sourceX;
-            let deltaY = destinationY - sourceY;
-            circle(sourceX + deltaX * t, sourceY + deltaY * t, 5);
-            // console.log(t)
+            push();
+            noStroke(0);
+            fill(color(255, 255, 0));
+            const dotDistance = 20;
+            const speed = 2;
+            let dotCount = Math.floor(length / dotDistance);
+            for (let i = 0; i < dotCount; i++) {
+                let t = (speed * Date.now() / (length * dotDistance) + i / dotCount) % 1;
+                let deltaX = destinationX - sourceX;
+                let deltaY = destinationY - sourceY;
+                circle(sourceX + deltaX * t, sourceY + deltaY * t, 5);
+            }
+            pop();
         }
-        pop();
     }
     pressed() {
         if (!this.rendered) return;
@@ -156,12 +162,10 @@ class Node {
         return this.value;
     }
     setValue(value, evaluate = true, traversed = new Set()) {
-        // console.log('set from ' + this.id, traversed)
         this.value = value;
         if (evaluate) {
             this.owner.evaluate();
         }
-        // fix bug here
         this.connections.forEach((wire) => {
             let src = wire.source;
             let dest = wire.destination;
@@ -254,7 +258,7 @@ class Node {
         circle(netX, netY, hovering ? 14 : 10);
         if (DEBUG) {
             push();
-            text(this.id, netX, netY - 10);
+            text(this.id.slice(0, 10), netX, netY - 10);
             pop();
         }
     }
@@ -289,8 +293,6 @@ class Node {
         let dest = WireNode.add(x, y);
         clickedNode.connect(dest.inputs[0]);
         clickedNode = null;
-        // this.released();
-        // console.log(clickedNode)
     }
 }
 
@@ -338,19 +340,18 @@ class Module {
         this.inputs = [];
         this.outputs = [];
         this.dragging = false;
-        this.rollover = false;
         this.mouseDown = false;
     }
     isHovering() {
         let hoveringNode = false;
         this.inputs.forEach((x) => { hoveringNode |= x.isHovering() });
         this.outputs.forEach((x) => { hoveringNode |= x.isHovering() });
-        this.rollover = mouseCanvasX > this.x &&
+        let hovering = mouseCanvasX > this.x &&
             mouseCanvasX < this.x + this.w * 20 &&
             mouseCanvasY > this.y &&
             mouseCanvasY < this.y + this.h * 20 &&
             !hoveringNode;
-        return this.rollover;
+        return hovering;
     }
     evaluate(checkDisconnectedInput = true, evaluated = new Set()) {
         console.log('called from', this.id, checkDisconnectedInput);
@@ -359,8 +360,10 @@ class Module {
             this.inputs.forEach((x) => {
                 let stack = [];
                 let traversed = new Set();
+                let marked = new Set();
                 stack.push(x);
                 let connectedToOutput = false;
+                let outputsCount = 0;
                 while (stack.length > 0) {
                     let src = stack.pop();
                     if (!traversed.has(src.id)) {
@@ -371,15 +374,17 @@ class Module {
                             // u.destination.owner.evaluate(false);
                             if (dest.nodeType == 'output') {
                                 connectedToOutput |= true;
+                                if (dest.value != state.highZ &&
+                                    !marked.has(dest.id)) {
+                                    outputsCount++;
+                                    marked.add(dest.id);
+                                }
                             }
                         });
-                        if (connectedToOutput) {
-                            break;
-                        }
                     }
                 }
                 if (!connectedToOutput) {
-                    console.log('not')
+                    // console.log('not')
                     x.value = state.highZ;
                     x.connections.forEach((y) => {
                         y.destination.value = state.highZ;
@@ -387,6 +392,11 @@ class Module {
                             y.destination.owner.evaluate(false, evaluated.add(this.id));
                         }
                     });
+                } else {
+                    // console.log(outputsCount)
+                    if (outputsCount >= 2) {
+                        throw new Error('Shortage');
+                    }
                 }
             });
         }
@@ -421,12 +431,10 @@ class Module {
     render(name = this.displayName) {
         let hovering = this.isHovering();
         if (this.dragging) {
-            this.rawX = mouseCanvasX + this.offsetX;
-            this.rawY = mouseCanvasY + this.offsetY;
-            this.x = round(this.rawX / 20) * 20;
-            this.y = round(this.rawY / 20) * 20;
-        }
-        if (this.dragging) {
+            // this.rawX = mouseCanvasX + this.offsetX;
+            // this.rawY = mouseCanvasY + this.offsetY;
+            // this.x = round(this.rawX / 20) * 20;
+            // this.y = round(this.rawY / 20) * 20;
             fill(160);
         } else if (hovering) {
             fill(220);
@@ -443,7 +451,8 @@ class Module {
         text(name, this.w * 20 / 2 + this.x, this.h * 20 / 2 + this.y + 3);
         if (DEBUG) {
             push();
-            text(this.id, this.x, this.y + 40);
+            text(this.id.slice(0, 10), this.x, this.y + 40);
+            text(this.dragging, this.x, this.y + 55);
             pop();
         }
         // this.inputs.forEach((x) => x.render());
@@ -462,13 +471,21 @@ class Module {
                 }
                 this.offsetX = this.rawX - mouseCanvasX;
                 this.offsetY = this.rawY - mouseCanvasY;
-                return true;
+                return this;
             }
             if (mouseClickedButton == RIGHT) {
                 this.remove();
             }
         }
         return false;
+    }
+    dragged() {
+        if (this.dragging) {
+            this.rawX = mouseCanvasX + this.offsetX;
+            this.rawY = mouseCanvasY + this.offsetY;
+            this.x = round(this.rawX / 20) * 20;
+            this.y = round(this.rawY / 20) * 20;
+        }
     }
     released() {
         this.dragging = false;

@@ -5,13 +5,13 @@ let controls = {
 
 class Controls {
     static move(controls) {
-        function mousePressed(e) {
+        function pressed(e) {
             controls.viewPos.isDragging = true;
             controls.viewPos.prevX = e.clientX;
             controls.viewPos.prevY = e.clientY;
         }
 
-        function mouseDragged(e) {
+        function dragged(e) {
             const { prevX, prevY, isDragging } = controls.viewPos;
             if (!isDragging) return;
 
@@ -26,25 +26,20 @@ class Controls {
             }
         }
 
-        function mouseReleased(e) {
+        function released(e) {
             controls.viewPos.isDragging = false;
             controls.viewPos.prevX = null;
             controls.viewPos.prevY = null;
         }
 
         return {
-            mousePressed,
-            mouseDragged,
-            mouseReleased
+            pressed,
+            dragged,
+            released
         }
     }
 
     static zoom(controls) {
-        // function calcPos(x, y, zoom) {
-        //   const newX = width - (width * zoom - x);
-        //   const newY = height - (height * zoom - y);
-        //   return {x: newX, y: newY}
-        // }
 
         function worldZoom(e) {
             const { x, y, deltaY } = e;
@@ -52,8 +47,8 @@ class Controls {
             const factor = 0.06;
             const zoom = direction * factor * controls.view.zoom;
 
-            const wx = (x - controls.view.x) / (width * controls.view.zoom);
-            const wy = (y - controls.view.y) / (height * controls.view.zoom);
+            const wx = (x - controls.view.x - containerWidth() / 2) / (width * controls.view.zoom);
+            const wy = (y - controls.view.y - containerHeight() / 2) / (height * controls.view.zoom);
 
             controls.view.x -= wx * width * zoom;
             controls.view.y -= wy * height * zoom;
