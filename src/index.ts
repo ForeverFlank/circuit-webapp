@@ -1,5 +1,5 @@
-var containerWidth = () => document.getElementById('canvas-container').clientWidth;
-var containerHeight = () => document.getElementById('canvas-container').clientHeight;
+import { mouseUpdate, containerWidth, containerHeight, circuit, setPressedObjectID, clickedNode, setClickedNode } from "./classes";
+import { Controls, controls } from "./camera";
 
 function setup() {
     var canvas = createCanvas(containerWidth(), containerHeight());
@@ -13,8 +13,7 @@ function windowResized() {
 }
 
 function draw() {
-    mouseCanvasX = (mouseX - controls.view.x - containerWidth() / 2) / controls.view.zoom;
-    mouseCanvasY = (mouseY - controls.view.y - containerHeight() / 2) / controls.view.zoom;
+    mouseUpdate();
 
     // console.log(controls.view)
     translate(containerWidth() / 2, containerHeight() / 2);
@@ -48,16 +47,14 @@ function draw() {
     nodes.forEach((x) => x.render());
 
     let fps = frameRate();
-    document.getElementById('fps-counter').innerText = fps;
+    document.getElementById('fps-counter').innerText = fps.toString(2);
     // console.log(nodes)
     // console.log(pressedObjectID)
 }
 
 function objectsPress() {
-    mouseCanvasX = (mouseX - controls.view.x - containerWidth() / 2) / controls.view.zoom;
-    mouseCanvasY = (mouseY - controls.view.y - containerHeight() / 2) / controls.view.zoom;
+    mouseUpdate();
     let pressedOnObject = false;
-    mouseClickedButton = mouseButton;
     for (let i = circuit.modules.length - 1; i >= 0; i--) {
         let module = circuit.modules[i];
         let nodes = module.inputs.concat(module.outputs);
@@ -85,6 +82,8 @@ function objectsPress() {
 var released = false;
 
 function touchStarted(e) {
+    console.log(e)
+    // if (e.type != 'touchstart') return;
     released = false;
     console.log('start')
     let pressedOnObject = objectsPress();
@@ -97,12 +96,11 @@ function touchStarted(e) {
         if (mouseButton == CENTER)
             Controls.move(controls).pressed(e);
     }
+    // return true;
 }
 
 function touchMoved(e) {
-    mouseClickedButton = mouseButton;
     let pressedOnObject = false;
-    mouseClickedButton = mouseButton;
     for (let i = circuit.modules.length - 1; i >= 0; i--) {
         let module = circuit.modules[i];
         let nodes = module.inputs.concat(module.outputs);
@@ -129,7 +127,6 @@ function touchMoved(e) {
 
 function touchEnded(e) {
     if (!released) {
-        
         console.log('end')
         let releasedOnObject = false;
         circuit.modules.forEach((x) => {
@@ -147,8 +144,16 @@ function touchEnded(e) {
             }
         }
         Controls.move(controls).released(e);
-        selected = false;
-        pressedObjectID = 0;
+        // selected = false;
     }
+    setPressedObjectID(0);
     released = true;
+    // return false;
 }
+
+const isTouchDevice =  function() {
+    const is_or_not =  'ontouchstart' in window        // works on most browsers 
+        || navigator.maxTouchPoints;       // works on IE10/11 and Surface
+
+    return is_or_not ? true : false; // Fix to always return true or false
+};

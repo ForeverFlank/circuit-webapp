@@ -6,15 +6,26 @@ body {
 }
 
 * {
-    user-select: none;
+  user-select: none;
+}
+
+button {
+  height: 40px;
+}
+
+.top {
+  background-color: aqua;
+  border-bottom: #ddd 2px;
+  width: 100%;
+  height: 8%;
 }
 
 #canvas-container {
-    z-index: -1;
-    position: fixed;
-    background-color: rgb(54, 139, 179);
-    left: 0%;
-    top: 8%;
-    width: 100%;
-    height: 92%;
+  z-index: -1;
+  position: fixed;
+  background-color: rgb(54, 139, 179);
+  left: 0%;
+  top: 8%;
+  width: 100%;
+  height: 92%;
 }

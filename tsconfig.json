@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "allowJs": true,
+      "target": "ES2016",
+      "types": ["p5/global"],
+      "baseUrl": ".",
+      "allowSyntheticDefaultImports": true,
+      "moduleResolution": "node",
+      "rootDir": "./src",
+      "outDir": "./dist"
+    }
+}

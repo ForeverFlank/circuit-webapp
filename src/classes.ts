@@ -1,4 +1,8 @@
 'use strict';
+/// @ts-check
+/// <reference path="../../node_modules/@types/p5/global.d.ts" />
+import * as p5 from 'p5';
+import { controls } from './camera';
 
 // TODO
 // multi bits wire
@@ -7,53 +11,70 @@
 // rotation
 // cleanup next googol years
 
-var DEBUG = 0;
+const DEBUG = 0;
 
-var NODE_HOVERING_RADIUS = 8;
+const NODE_HOVERING_RADIUS = 8;
 
-var mouseCanvasX;
-var mouseCanvasY;
-var mouseClickedButton;
+export function containerWidth() {
+    return document.getElementById('canvas-container').clientWidth; }
+export function containerHeight() {
+    return document.getElementById('canvas-container').clientHeight; }
+
+export var mouseCanvasX: number;
+export var mouseCanvasY: number;
+export function mouseUpdate() {
+    mouseCanvasX = (mouseX - controls.view.x - containerWidth() / 2) / controls.view.zoom;
+    mouseCanvasY = (mouseY - controls.view.y - containerHeight() / 2) / controls.view.zoom;
+}
 
 var isDrawingWire = false;
-var clickedNode;
+export var clickedNode;
+export function setClickedNode(node) {
+    clickedNode = node;
+}
 
 var wireNodeLookup = {};
-var pressedObjectID = 0;
+export var pressedObjectID: any = 0;
+export function setPressedObjectID(id) {
+    pressedObjectID = id;
+}
 
-const state = {
-    err: -2,
-    highZ: -1,
-    low: 0,
-    high: 1,
-    op: {
-        not: (s) => {
-            if (s == state.err || s == state.highZ) return state.err;
-            if (s == state.high) return state.low;
-            return state.high;
-        },
-        and: (s) => {
-            for (let i in s)
-                if (s[i] == state.low) return state.low;
-            for (let i in s)
-                if (s[i] == state.err || s[i] == state.highZ) return state.err;
-            return state.high;
-        },
-        or: (s) => {
-            for (let i in s)
-                if (s[i] == state.high) return state.high;
-            for (let i in s)
-                if (s[i] == state.err || s[i] == state.highZ) return state.err;
-            return state.low;
-        }
-    },
-    color: (s) => {
+export var placeX = 0;
+export var placeY = 0;
+
+export class State {
+    err = -2;
+    highZ = -1;
+    low = 0;
+    high = 1;
+    not(s) {
+        if (s == state.err || s == state.highZ) return state.err;
+        if (s == state.high) return state.low;
+        return state.high;
+    }
+    and(s) {
+        for (let i in s)
+            if (s[i] == state.low) return state.low;
+        for (let i in s)
+            if (s[i] == state.err || s[i] == state.highZ) return state.err;
+        return state.high;
+    }
+    or(s) {
+        for (let i in s)
+            if (s[i] == state.high) return state.high;
+        for (let i in s)
+            if (s[i] == state.err || s[i] == state.highZ) return state.err;
+        return state.low;
+    }
+    color(s) {
         if (s == state.err) return color(128, 0, 0);
         if (s == state.highZ) return color(128, 128, 128);
         if (s == state.low) return color(255, 0, 0);
         if (s == state.high) return color(0, 255, 0);
     }
 }
+
+export const state = new State();
 
 var uniqueNumber = 0;
 
@@ -63,6 +84,11 @@ function unique(str = '') {
 }
 
 class Wire {
+    source: Node;
+    destination: Node;
+    rendered: boolean;
+    id: string;
+    isHovering: boolean;
     constructor(source, destination, rendered = true, name = '') {
         this.source = source;
         this.destination = destination;
@@ -120,7 +146,7 @@ class Wire {
             this.destination.value == state.highZ)) {
 
             push();
-            noStroke(0);
+            noStroke();
             fill(color(255, 255, 0));
             const dotDistance = 20;
             const speed = 2;
@@ -138,16 +164,26 @@ class Wire {
         this.isHovering = this.checkHovering();
         if (!this.rendered) return;
         if (this.isHovering) {
-            if (mouseClickedButton == RIGHT) {
+            if (mouseButton == RIGHT) {
                 this.source.disconnect(this.destination);
+                return this;
             }
         }
+        return false;
     }
 }
 
 class Node {
+    owner: Module;
+    name: string;
+    id: string;
+    value: number;
+    connections: Wire[];
+    nodeType: string;
+    relativeX: number; relativeY: number;
+    isDragging: boolean;
+    isHovering: boolean;
     constructor(owner, name, relativeX = 0, relativeY = 0, value = state.highZ) {
-        this.value = null;
         this.owner = owner;
         this.name = name;
         this.id = unique(name);
@@ -155,7 +191,7 @@ class Node {
         this.connections = [];
         this.relativeX = relativeX;
         this.relativeY = relativeY;
-        this.dragging = false;
+        this.isDragging = false;
         this.isHovering = false;
     }
     isConnected() {
@@ -170,7 +206,7 @@ class Node {
             this.owner.evaluate();
         }
         this.connections.forEach((wire) => {
-            let src = wire.source;
+            // let src = wire.source;
             let dest = wire.destination;
             if (!traversed.has(dest.id)) {
                 dest.setValue(value, true, traversed.add(this.id));
@@ -194,23 +230,6 @@ class Node {
         } else {
             node.setValue(node.value);
         }
-        /*
-        if (node.nodeType == 'output') {
-            node.setValue(node.value);
-        } else if (node.nodeType == 'input') {
-            if (node.value == state.highZ) {
-                this.setValue(this.value);
-            } else {
-                node.setValue(node.value);
-            }
-        } else {
-            if (node.value == state.highZ) {
-                this.setValue(this.value);
-            } else {
-                node.setValue(node.value);
-            }
-        }
-        */
     }
     disconnect(node) {
         let wire;
@@ -244,15 +263,15 @@ class Node {
         strokeWeight(2);
         let netX = this.getCanvasX();
         let netY = this.getCanvasY();
-        if (this.dragging) {
+        if (this.isDragging) {
             line(netX, netY, mouseCanvasX, mouseCanvasY);
-        } else if (this.isHovering) {
+        } else if (this.isDragging) {
         } else {
         }
         stroke(0);
         strokeWeight(2);
         fill(state.color(this.value));
-        circle(netX, netY, this.isHovering ? 14 : 10);
+        circle(netX, netY, this.isDragging ? 14 : 10);
         if (DEBUG) {
             push();
             text(this.id.slice(0, 10), netX, netY - 10);
@@ -263,13 +282,13 @@ class Node {
         this.isHovering = this.checkHovering();
         if (this.isHovering && pressedObjectID == 0) {
             pressedObjectID = this.id;
-            if (mouseClickedButton == LEFT) {
+            if (mouseButton == LEFT) {
                 line(this.getCanvasX(), this.getCanvasY(), mouseCanvasX, mouseCanvasY);
                 clickedNode = this;
-                this.dragging = true;
+                this.isDragging = true;
                 return true;
             }
-            if (mouseClickedButton == RIGHT) {
+            if (mouseButton == RIGHT) {
                 this.disconnectAll();
             }
 
@@ -277,7 +296,7 @@ class Node {
         return false;
     }
     released() {
-        this.dragging = false;
+        this.isDragging = false;
         if (this.isHovering) {
             if (clickedNode != null) {
                 clickedNode.connect(this);
@@ -296,7 +315,7 @@ class Node {
     }
 }
 
-class InputNode extends Node {
+export class InputNode extends Node {
     constructor(owner, name, relativeX = 0, relativeY = 0, value = state.highZ) {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'input';
@@ -309,7 +328,7 @@ class InputNode extends Node {
     }
 }
 
-class OutputNode extends Node {
+export class OutputNode extends Node {
     constructor(owner, name, relativeX = 0, relativeY = 0, value = state.highZ) {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'output';
@@ -322,29 +341,42 @@ class OutputNode extends Node {
     }
 }
 
-class Module {
-    constructor(name, x, y, w = 2, h = 2) {
+export class Module {
+    x: number; y: number;
+    width: number; height: number;
+    name: string;
+    id: string;
+    displayName: string;
+    inputs: Node[];
+    outputs: Node[];
+    isSubModule: boolean;
+    isDragging: boolean;
+    mouseDown: boolean;
+    isHovering: boolean;
+    rawX: number; rawY: number;
+    offsetX: number; offsetY: number;
+    constructor(name, x = 0, y = 0, weight = 2, height = 2) {
         this.x = (x == null) ? 0 : x;
         this.y = (y == null) ? 0 : y;
-        this.w = w;
-        this.h = h;
+        this.width = width;
+        this.height = height;
         this.name = name;
         this.id = unique(name);
         this.displayName = '';
         this.inputs = [];
         this.outputs = [];
-        this.dragging = false;
+        this.isDragging = false;
         this.mouseDown = false;
         this.isHovering = false;
     }
     checkHovering() {
         let hoveringNode = false;
-        this.inputs.forEach((x) => { hoveringNode |= x.checkHovering() });
-        this.outputs.forEach((x) => { hoveringNode |= x.checkHovering() });
+        this.inputs.forEach((x) => { hoveringNode ||= x.checkHovering() });
+        this.outputs.forEach((x) => { hoveringNode ||= x.checkHovering() });
         let hovering = mouseCanvasX > this.x &&
-            mouseCanvasX < this.x + this.w * 20 &&
+            mouseCanvasX < this.x + this.width * 20 &&
             mouseCanvasY > this.y &&
-            mouseCanvasY < this.y + this.h * 20 &&
+            mouseCanvasY < this.y + this.height * 20 &&
             !hoveringNode;
         return hovering;
     }
@@ -368,7 +400,7 @@ class Module {
                             stack.push(dest);
                             // u.destination.owner.evaluate(false);
                             if (dest.nodeType == 'output') {
-                                connectedToOutput |= true;
+                                connectedToOutput ||= true;
                                 if (dest.value != state.highZ &&
                                     !marked.has(dest.id)) {
                                     outputsCount++;
@@ -425,41 +457,40 @@ class Module {
     }
     render(name = this.displayName) {
         // let hovering = this.isHovering();
-        if (this.dragging) {
+        if (this.isDragging) {
             // this.rawX = mouseCanvasX + this.offsetX;
             // this.rawY = mouseCanvasY + this.offsetY;
             // this.x = round(this.rawX / 20) * 20;
             // this.y = round(this.rawY / 20) * 20;
             fill(160);
-        } else if (this.isHovering) {
+        } else if (this.isDragging) {
             fill(220);
         } else {
             fill(255);
         }
         stroke(0);
         strokeWeight(2);
-        rect(this.x, this.y, this.w * 20, this.h * 20);
+        rect(this.x, this.y, this.width * 20, this.height * 20);
         noStroke();
         fill(0);
-        // textFont(fontRegular);
         textAlign(CENTER);
-        text(name, this.w * 20 / 2 + this.x, this.h * 20 / 2 + this.y + 3);
+        text(name, this.width * 20 / 2 + this.x, this.height * 20 / 2 + this.y + 3);
         if (DEBUG) {
             push();
             text(this.id.slice(0, 10), this.x, this.y + 40);
-            text(this.dragging, this.x, this.y + 55);
+            text(this.isDragging, this.x, this.y + 55);
             pop();
         }
     }
-    pressed() {
+    pressed(): any {
         this.isHovering = this.checkHovering();
         if (this.isHovering && pressedObjectID == 0) {
-            if (mouseClickedButton == LEFT) {
+            if (mouseButton == LEFT) {
                 pressedObjectID = this.id;
-                this.pressedX = this.x;
-                this.pressedY = this.y;
-                this.mouseDown = true && !this.dragging;
-                this.dragging = true;
+                // this.pressedX = this.x;
+                // this.pressedY = this.y;
+                this.mouseDown = true && !this.isDragging;
+                this.isDragging = true;
                 if (this.mouseDown) {
                     this.rawX = this.x;
                     this.rawY = this.y;
@@ -468,11 +499,11 @@ class Module {
                 this.offsetY = this.rawY - mouseCanvasY;
                 return this;
             }
-            if (mouseClickedButton == RIGHT) {
+            if (mouseButton == RIGHT) {
                 this.remove();
             }
         }
-        if (this.dragging) {
+        if (this.isDragging) {
             this.rawX = mouseCanvasX + this.offsetX;
             this.rawY = mouseCanvasY + this.offsetY;
             this.x = round(this.rawX / 20) * 20;
@@ -481,7 +512,7 @@ class Module {
         return false;
     }
     released() {
-        this.dragging = false;
+        this.isDragging = false;
         this.isHovering = false;
     }
 }
@@ -494,7 +525,7 @@ class WireNode extends Module {
     checkHovering() {
         return this.inputs[0].checkHovering();
     }
-    evaluate(evaluated = new Set(), connectedToOutput = false) {
+    evaluate(connectedToOutput = false, evaluated = new Set()) {
         this.inputs.forEach((x) => {
             let stack = [];
             let traversed = new Set();
@@ -507,7 +538,7 @@ class WireNode extends Module {
                         let dest = w.destination;
                         stack.push(dest);
                         if (dest.nodeType == 'output') {
-                            connectedToOutput |= true;
+                            connectedToOutput ||= true;
                         }
                     });
                     if (connectedToOutput) {
@@ -538,10 +569,10 @@ class WireNode extends Module {
     pressed() {
         if (this.checkHovering() && pressedObjectID == 0) {
             pressedObjectID = this.id;
-            if (mouseClickedButton == LEFT) {
-                return true;
+            if (mouseButton == LEFT) {
+                return this;
             }
-            if (mouseClickedButton == RIGHT) {
+            if (mouseButton == RIGHT) {
                 this.remove();
             }
         }
@@ -557,7 +588,8 @@ class WireNode extends Module {
     }
 }
 
-class Input extends Module {
+export class Input extends Module {
+    outputState: number;
     constructor(name, x, y) {
         super(name, x, y, 2, 2);
         this.outputState = state.low;
@@ -580,6 +612,7 @@ class Input extends Module {
     }
     released() {
         super.released();
+        /*
         if (this.pressedX == this.x && this.pressedY == this.y) {
             if (pressedObjectID == this.id) {
                 if (this.outputState == state.low) {
@@ -591,14 +624,15 @@ class Input extends Module {
                 return true;
             }
         }
+        */
     }
     static add() {
-        let module = new Input('input');
+        let module = new Input('input', placeX, placeY);
         circuit.addInputModule(module);
     }
 }
 
-class Output extends Module {
+export class Output extends Module {
     constructor(name, x, y) {
         super(name, x, y, 2, 2);
         this.inputs = [new InputNode(this, 'in1', 0, 1, state.highZ)];
@@ -615,12 +649,15 @@ class Output extends Module {
         super.render(char);
     }
     static add() {
-        let module = new Output('output');
+        let module = new Output('output', placeX, placeY);
         circuit.addOutputModule(module);
     }
 }
 
 class Circuit extends Module {
+    modules: Module[];
+    inputModules: Module[];
+    outputModules: Module[];
     constructor(name) {
         super(name);
         this.modules = [];
@@ -673,7 +710,7 @@ class Circuit extends Module {
 }
 
 let nameID = 0;
-var circuit = new Circuit();
+export var circuit = new Circuit('Circuit');
 var customModules = {};
 
 function saveModule() {
@@ -683,11 +720,11 @@ function saveModule() {
     console.log(newModule)
     newModule.name = name;
     newModule.displayName = name;
-    newModule.w = 3;
-    newModule.h = max(newModule.inputModules.length, newModule.outputModules.length) + 1;
+    newModule.width = 3;
+    newModule.height = max(newModule.inputModules.length, newModule.outputModules.length) + 1;
     customModules[name] = newModule.toModule();
     console.log(customModules[name])
-    circuit = new Circuit();
+    circuit = new Circuit('Circuit');
     let button = document.createElement('button');
     button.textContent = name;
     button.addEventListener('click', () => circuit.addModule(customModules[name]));

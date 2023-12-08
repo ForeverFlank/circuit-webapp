@@ -1,9 +1,11 @@
-let controls = {
+import { containerWidth, containerHeight } from "./classes";
+
+export var controls = {
     view: {x: 0, y: 0, zoom: 1},
     viewPos: { prevX: null, prevY: null, isDragging: false },
 }
 
-class Controls {
+export class Controls {
     static move(controls) {
         function pressed(e) {
             controls.viewPos.isDragging = true;
