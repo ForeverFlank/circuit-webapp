@@ -1,11 +1,12 @@
 {
     "compilerOptions": {
       "allowJs": true,
-      "target": "ES2016",
+      "target": "ES6",
       "types": ["p5/global"],
-      "baseUrl": ".",
       "allowSyntheticDefaultImports": true,
-      "moduleResolution": "node",
+      "module": "None",
+      // "module": "CommonJS",
+      // "moduleResolution": "node",
       "rootDir": "./src",
       "outDir": "./dist"
     }

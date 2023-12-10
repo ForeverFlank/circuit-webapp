@@ -1,8 +1,7 @@
-'use strict';
-/// @ts-check
-/// <reference path="../../node_modules/@types/p5/global.d.ts" />
-import * as p5 from 'p5';
-import { controls } from './camera';
+/// <reference path="../node_modules/@types/p5/global.d.ts" />
+/// <reference path="./camera.ts" />
+// import * as p5 from 'p5';
+// import { controls } from './camera.js';
 
 // TODO
 // multi bits wire
@@ -12,37 +11,36 @@ import { controls } from './camera';
 // cleanup next googol years
 
 const DEBUG = 0;
-
 const NODE_HOVERING_RADIUS = 8;
 
-export function containerWidth() {
-    return document.getElementById('canvas-container').clientWidth; }
-export function containerHeight() {
-    return document.getElementById('canvas-container').clientHeight; }
+// function containerWidth() {
+//     return document.getElementById('canvas-container').clientWidth; }
+// function containerHeight() {
+//     return document.getElementById('canvas-container').clientHeight; }
 
-export var mouseCanvasX: number;
-export var mouseCanvasY: number;
-export function mouseUpdate() {
+var mouseCanvasX: number;
+var mouseCanvasY: number;
+function mouseUpdate() {
     mouseCanvasX = (mouseX - controls.view.x - containerWidth() / 2) / controls.view.zoom;
     mouseCanvasY = (mouseY - controls.view.y - containerHeight() / 2) / controls.view.zoom;
 }
 
 var isDrawingWire = false;
-export var clickedNode;
-export function setClickedNode(node) {
+var clickedNode;
+function setClickedNode(node) {
     clickedNode = node;
 }
 
 var wireNodeLookup = {};
-export var pressedObjectID: any = 0;
-export function setPressedObjectID(id) {
+var pressedObjectID: any = 0;
+function setPressedObjectID(id) {
     pressedObjectID = id;
 }
 
-export var placeX = 0;
-export var placeY = 0;
+var placeX = 0;
+var placeY = 0;
 
-export class State {
+class State {
     err = -2;
     highZ = -1;
     low = 0;
@@ -74,7 +72,7 @@ export class State {
     }
 }
 
-export const state = new State();
+const state = new State();
 
 var uniqueNumber = 0;
 
@@ -84,8 +82,8 @@ function unique(str = '') {
 }
 
 class Wire {
-    source: Node;
-    destination: Node;
+    source: ModuleNode;
+    destination: ModuleNode;
     rendered: boolean;
     id: string;
     isHovering: boolean;
@@ -101,21 +99,33 @@ class Wire {
         let sourceY = this.source.getCanvasY();
         let destinationX = this.destination.getCanvasX();
         let destinationY = this.destination.getCanvasY();
-        const a = createVector(sourceX, sourceY);
-        const b = createVector(destinationX, destinationY);
-        const c = createVector(mouseCanvasX, mouseCanvasY);
+        // const a = createVector(sourceX, sourceY);
+        // const b = createVector(destinationX, destinationY);
+        // const c = createVector(mouseCanvasX, mouseCanvasY);
+        const distance = (u, v) => sqrt((u.x - v.x) ** 2 + (u.y - v.y) ** 2);
+        const sub = (u, v) => { return { x: u.x - v.x, y: u.y - v.y} };
+        const mag = (v) => distance(v, { x: 0, y: 0} );
+        const angle = (u, v) => acos((u.x * v.x + u.y * v.y) / (mag(u) * mag(v)));
 
-        const l = p5.Vector.sub(a, b).mag();
+        const a = { x: sourceX, y: sourceY };
+        const b = {x:destinationX, y:destinationY};
+        const c = {x:mouseCanvasX, y:mouseCanvasY};
+
+        // const l = p5.Vector.sub(a, b).mag();
+        const l = mag(sub(a, b));
         const radius = 6;
 
-        if (a.dist(c) > l + radius / 2 || b.dist(c) > l + radius / 2) {
+        if (distance(a, c) > l + radius / 2 || distance(b, c) > l + radius / 2) {
             return false;
         }
 
-        const ab = p5.Vector.sub(a, b);
-        const bc = p5.Vector.sub(b, c);
+        // const ab = p5.Vector.sub(a, b);
+        // const bc = p5.Vector.sub(b, c);
+        const ab = sub(a, b);
+        const bc = sub(b, c);
 
-        return abs(sin(ab.angleBetween(bc))) * bc.mag() <= radius / 2;
+        // return abs(sin(ab.angleBetween(bc))) * mag(bc) <= radius / 2;
+        return abs(sin(angle(ab, bc))) * mag(bc) <= radius / 2;
     }
     setDirection(from, to) {
         console.log(from, from.id == this.source.id)
@@ -173,7 +183,7 @@ class Wire {
     }
 }
 
-class Node {
+class ModuleNode {
     owner: Module;
     name: string;
     id: string;
@@ -221,7 +231,7 @@ class Node {
     }
     connect(node) {
         if (this.id == node.id) return;
-        if (this.connections.includes(new Wire(this, node))) return;
+        if (this.connections.indexOf(new Wire(this, node)) >= 0) return;
         this.connections.push(new Wire(this, node));
         node.connections.push(new Wire(node, this, false));
 
@@ -315,7 +325,7 @@ class Node {
     }
 }
 
-export class InputNode extends Node {
+class InputNode extends ModuleNode {
     constructor(owner, name, relativeX = 0, relativeY = 0, value = state.highZ) {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'input';
@@ -328,7 +338,7 @@ export class InputNode extends Node {
     }
 }
 
-export class OutputNode extends Node {
+class OutputNode extends ModuleNode {
     constructor(owner, name, relativeX = 0, relativeY = 0, value = state.highZ) {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'output';
@@ -341,21 +351,21 @@ export class OutputNode extends Node {
     }
 }
 
-export class Module {
+class Module {
     x: number; y: number;
     width: number; height: number;
     name: string;
     id: string;
     displayName: string;
-    inputs: Node[];
-    outputs: Node[];
+    inputs: ModuleNode[];
+    outputs: ModuleNode[];
     isSubModule: boolean;
     isDragging: boolean;
     mouseDown: boolean;
     isHovering: boolean;
     rawX: number; rawY: number;
     offsetX: number; offsetY: number;
-    constructor(name, x = 0, y = 0, weight = 2, height = 2) {
+    constructor(name, x = 0, y = 0, width = 2, height = 2) {
         this.x = (x == null) ? 0 : x;
         this.y = (y == null) ? 0 : y;
         this.width = width;
@@ -520,7 +530,7 @@ export class Module {
 class WireNode extends Module {
     constructor(name, x, y) {
         super(name, x, y, 0, 0);
-        this.inputs = [new Node(this, 'node', 0, 0, state.highZ)];
+        this.inputs = [new ModuleNode(this, 'node', 0, 0, state.highZ)];
     }
     checkHovering() {
         return this.inputs[0].checkHovering();
@@ -588,7 +598,7 @@ class WireNode extends Module {
     }
 }
 
-export class Input extends Module {
+class Input extends Module {
     outputState: number;
     constructor(name, x, y) {
         super(name, x, y, 2, 2);
@@ -632,7 +642,7 @@ export class Input extends Module {
     }
 }
 
-export class Output extends Module {
+class Output extends Module {
     constructor(name, x, y) {
         super(name, x, y, 2, 2);
         this.inputs = [new InputNode(this, 'in1', 0, 1, state.highZ)];
@@ -710,7 +720,7 @@ class Circuit extends Module {
 }
 
 let nameID = 0;
-export var circuit = new Circuit('Circuit');
+var circuit = new Circuit('Circuit');
 var customModules = {};
 
 function saveModule() {

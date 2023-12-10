@@ -1,3 +1,8 @@
+:root {
+  --light-gray: rgb(242, 242, 242);
+  --gray: rgb(178, 178, 178);
+}
+
 html,
 body {
   margin: 0px;
@@ -14,10 +19,20 @@ button {
 }
 
 .top {
-  background-color: aqua;
-  border-bottom: #ddd 2px;
+  background-color: var(--light-gray);
+  border-bottom: solid var(--gray) 2px;
   width: 100%;
-  height: 8%;
+  height: 52px;
+}
+
+.properties {
+  background-color: var(--light-gray);
+  border: solid var(--gray) 2px;;
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  width: 150px;
+  height: 200px;
 }
 
 #canvas-container {
@@ -25,7 +40,7 @@ button {
   position: fixed;
   background-color: rgb(54, 139, 179);
   left: 0%;
-  top: 8%;
+  top: 52px;
   width: 100%;
-  height: 92%;
+  height: 100%;
 }

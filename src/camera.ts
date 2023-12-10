@@ -1,11 +1,17 @@
-import { containerWidth, containerHeight } from "./classes";
+/// <reference path="../node_modules/@types/p5/global.d.ts" />
+// import { containerWidth, containerHeight } from "./classes";
 
-export var controls = {
+function containerWidth() {
+    return document.getElementById('canvas-container').clientWidth; }
+function containerHeight() {
+    return document.getElementById('canvas-container').clientHeight; }
+
+var controls = {
     view: {x: 0, y: 0, zoom: 1},
     viewPos: { prevX: null, prevY: null, isDragging: false },
 }
 
-export class Controls {
+class Controls {
     static move(controls) {
         function pressed(e) {
             controls.viewPos.isDragging = true;

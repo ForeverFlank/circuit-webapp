@@ -1,5 +1,7 @@
-import { mouseUpdate, containerWidth, containerHeight, circuit, setPressedObjectID, clickedNode, setClickedNode } from "./classes";
-import { Controls, controls } from "./camera";
+/// <reference path="../node_modules/@types/p5/global.d.ts" />
+/// <reference path="./classes.ts" />
+/// <reference path="./camera.ts" />
+// import p5 from "p5";
 
 function setup() {
     var canvas = createCanvas(containerWidth(), containerHeight());
@@ -20,9 +22,10 @@ function draw() {
     translate(controls.view.x, controls.view.y);
     scale(controls.view.zoom);
 
+    push();
     noStroke();
-    background(250);
-    fill(230);
+    background(242);
+    fill(218);
     for (let y = -500; y <= 500; y += 20) {
         for (let x = -500; x <= 500; x += 20) {
             ellipse(x, y, 5, 5);
@@ -31,7 +34,7 @@ function draw() {
     rect(-5, -5, 10, 10);
     stroke(0);
     strokeWeight(2);
-    fill(255);
+    pop();
 
     let nodes = [];
     circuit.modules.forEach((x) => {
@@ -47,7 +50,7 @@ function draw() {
     nodes.forEach((x) => x.render());
 
     let fps = frameRate();
-    document.getElementById('fps-counter').innerText = fps.toString(2);
+    document.getElementById('fps-counter').innerText = fps.toFixed(2);
     // console.log(nodes)
     // console.log(pressedObjectID)
 }
@@ -151,9 +154,4 @@ function touchEnded(e) {
     // return false;
 }
 
-const isTouchDevice =  function() {
-    const is_or_not =  'ontouchstart' in window        // works on most browsers 
-        || navigator.maxTouchPoints;       // works on IE10/11 and Surface
-
-    return is_or_not ? true : false; // Fix to always return true or false
-};
+// new p5(sketch);

@@ -1,4 +1,5 @@
-import { State, state, placeX, placeY, Module, InputNode, OutputNode, circuit } from './classes'
+/// <reference path="../node_modules/@types/p5/global.d.ts" />
+/// <reference path="./classes.ts" />
 
 class NotGate extends Module {
     constructor(name, x, y) {
