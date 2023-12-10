@@ -1,6 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
 :root {
   --light-gray: rgb(242, 242, 242);
   --gray: rgb(178, 178, 178);
+}
+
+* {
+  user-select: none;
+  font-family: 'Inter', sans-serif;
 }
 
 html,
@@ -8,10 +15,6 @@ body {
   margin: 0px;
   width: 100%;
   height: 100%;
-}
-
-* {
-  user-select: none;
 }
 
 button {
@@ -31,14 +34,14 @@ button {
   position: fixed;
   right: 30px;
   bottom: 30px;
-  width: 150px;
+  width: 200px;
   height: 200px;
+  padding: 10px;
 }
 
 #canvas-container {
   z-index: -1;
   position: fixed;
-  background-color: rgb(54, 139, 179);
   left: 0%;
   top: 52px;
   width: 100%;

@@ -18,6 +18,8 @@ const NODE_HOVERING_RADIUS = 8;
 // function containerHeight() {
 //     return document.getElementById('canvas-container').clientHeight; }
 
+var mod = (a, b) => ((a % b) + b) % b;
+
 var mouseCanvasX: number;
 var mouseCanvasY: number;
 function mouseUpdate() {

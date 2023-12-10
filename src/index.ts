@@ -3,6 +3,8 @@
 /// <reference path="./camera.ts" />
 // import p5 from "p5";
 
+p5.disableFriendlyErrors = true;
+
 function setup() {
     var canvas = createCanvas(containerWidth(), containerHeight());
     canvas.parent('canvas-container');
@@ -17,8 +19,11 @@ function windowResized() {
 function draw() {
     mouseUpdate();
 
+    let width = containerWidth();
+    let height = containerHeight();
+
     // console.log(controls.view)
-    translate(containerWidth() / 2, containerHeight() / 2);
+    translate(width / 2, height / 2);
     translate(controls.view.x, controls.view.y);
     scale(controls.view.zoom);
 
@@ -26,14 +31,28 @@ function draw() {
     noStroke();
     background(242);
     fill(218);
-    for (let y = -500; y <= 500; y += 20) {
-        for (let x = -500; x <= 500; x += 20) {
+    for (let i = 0;
+             i <= ceil(height / 20) * 20;
+             i += 20) {
+        for (let j = 0;
+                 j <= ceil(width / 20) * 20;
+                 j += 20) {
+            let w = 40 * ceil(width / 40);
+            let h = 40 * ceil(height / 40);
+            let x = j - ceil(w / 2);
+            if (j + controls.view.x < 0 || j + controls.view.x > w)
+                x += w * ceil(-(j + controls.view.x) / w);
+            let y = i - ceil(h / 2);
+            if (i + controls.view.y < 0 || i + controls.view.y > h)
+                y += h * ceil(-(i + controls.view.y) / h);
             ellipse(x, y, 5, 5);
+            // textSize(10);
+            // text((j + controls.view.x).toString(), x, y)
         }
     }
     rect(-5, -5, 10, 10);
-    stroke(0);
-    strokeWeight(2);
+    // stroke(0);
+    // strokeWeight(2);
     pop();
 
     let nodes = [];
