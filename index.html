@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>My Website</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
@@ -29,23 +28,29 @@
       </div>
     </div>
 
+    <div class="controls">
+      <button onclick="setControlMode('edit')">Edit</button>
+      <button onclick="setControlMode('pan')">Pan</button>
+    </div>
+    
     <div class="properties">
-      <h3>Abv</h3>
+      <h3 id="selecting"></h3>
+      <input style="display: none;" type="range" min="-2" max="1" value="0" step="1" id="input-value" oninput="setInput()">
     </div>
 
     <p id="fps-counter" style="position: fixed; left: 80%; top: 0%;">0</p>
     
-    <script src="dist/p5.js"></script>
-    <script src="dist/camera.js"></script>
-    <script src="dist/classes.js"></script>
-    <script src="dist/gates.js"></script>
+    <script src="src/p5.min.js"></script>
+    <script src="src/camera.js"></script>
+    <script src="src/classes.js"></script>
+    <script src="src/gates.js"></script>
     <!--
       <script src="lib/fabric.min.js"></script>
       <script src="gate-data.js"></script>
       <script src="gate.js"></script>
       <script src="mouse.js"></script>
     -->
-    <script src="dist/ui.js"></script>
-    <script src="dist/index.js"></script>
+    <script src="src/ui.js"></script>
+    <script src="src/index.js"></script>
   </body>
 </html>

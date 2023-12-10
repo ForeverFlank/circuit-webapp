@@ -1,25 +1,37 @@
-/// <reference path="../node_modules/@types/p5/global.d.ts" />
-// import { containerWidth, containerHeight } from "./classes";
+function getContainerWidth() {
+    return document.getElementById('canvas-container').clientWidth;
+}
+function getContainerHeight() {
+    return document.getElementById('canvas-container').clientHeight;
+}
 
-function containerWidth() {
-    return document.getElementById('canvas-container').clientWidth; }
-function containerHeight() {
-    return document.getElementById('canvas-container').clientHeight; }
+var containerWidth = getContainerWidth();
+var containerHeight = getContainerHeight();
 
 var controls = {
-    view: {x: 0, y: 0, zoom: 1},
+    view: { x: 0, y: 0, zoom: 1 },
     viewPos: { prevX: null, prevY: null, isDragging: false },
 }
 
 class Controls {
     static move(controls) {
         function pressed(e) {
+            if (e.type.includes('touch')) e = e.touches[0];
             controls.viewPos.isDragging = true;
             controls.viewPos.prevX = e.clientX;
             controls.viewPos.prevY = e.clientY;
         }
 
         function dragged(e) {
+            /*
+            if (e.type.includes('touch')) {
+                e = e.touches[0];
+                controls.viewPos.isDragging = true;
+                controls.viewPos.prevX = e.clientX;
+                controls.viewPos.prevY = e.clientY;
+            }
+            */
+            if (e.type.includes('touch')) e = e.touches[0];
             const { prevX, prevY, isDragging } = controls.viewPos;
             if (!isDragging) return;
 
@@ -48,15 +60,14 @@ class Controls {
     }
 
     static zoom(controls) {
-
         function worldZoom(e) {
             const { x, y, deltaY } = e;
             const direction = deltaY > 0 ? -1 : 1;
-            const factor = 0.06;
-            const zoom = direction * factor * controls.view.zoom;
+            const factor = 0.07;
+            const zoom = 1 * direction * factor * controls.view.zoom;
 
-            const wx = (x - controls.view.x - containerWidth() / 2) / (width * controls.view.zoom);
-            const wy = (y - controls.view.y - containerHeight() / 2) / (height * controls.view.zoom);
+            const wx = (x - controls.view.x - containerWidth / 2) / (width * controls.view.zoom);
+            const wy = (y - controls.view.y - containerHeight / 2) / (height * controls.view.zoom);
 
             controls.view.x -= wx * width * zoom;
             controls.view.y -= wy * height * zoom;

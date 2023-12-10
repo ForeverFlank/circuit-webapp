@@ -1,6 +1,3 @@
-/// <reference path="../node_modules/@types/p5/global.d.ts" />
-/// <reference path="./classes.ts" />
-
 class NotGate extends Module {
     constructor(name, x, y) {
         super(name, x, y, 2, 2);
@@ -10,11 +7,11 @@ class NotGate extends Module {
     }
     evaluate(checkForDisconnectedInput = true) {
         super.evaluate(checkForDisconnectedInput);
-        let result = state.not(this.inputs[0].getValue());
+        let result = State.not(this.inputs[0].getValue());
         this.outputs[0].setValue(result, false);
     }
     static add() {
-        circuit.addModule(new NotGate('not', placeX, placeY));
+        circuit.addModule(new NotGate('NOT Gate', placeX, placeY));
     }
 }
 
@@ -29,13 +26,13 @@ class AndGate extends Module {
     }
     evaluate(checkForDisconnectedInput = true) {
         super.evaluate(checkForDisconnectedInput);
-        let result = state.and([
+        let result = State.and([
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);
         this.outputs[0].setValue(result, false);
     }
     static add() {
-        circuit.addModule(new AndGate('and', placeX, placeY));
+        circuit.addModule(new AndGate('AND Gate', placeX, placeY));
     }
 }
 
@@ -50,13 +47,13 @@ class OrGate extends Module {
     }
     evaluate(checkForDisconnectedInput = true) {
         super.evaluate(checkForDisconnectedInput);
-        let result = state.or([
+        let result = State.or([
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);
         this.outputs[0].setValue(result, false);
     }
     static add() {
-        circuit.addModule(new OrGate('or', placeX, placeY));
+        circuit.addModule(new OrGate('OR Gate', placeX, placeY));
     }
 }
 
@@ -71,14 +68,14 @@ class NandGate extends Module {
     }
     evaluate(checkForDisconnectedInput = true) {
         super.evaluate(checkForDisconnectedInput);
-        let result = state.and([
+        let result = State.and([
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);
-        result = state.not(result);
+        result = State.not(result);
         this.outputs[0].setValue(result, false);
     }
     static add() {
-        circuit.addModule(new NandGate('nand', placeX, placeY));
+        circuit.addModule(new NandGate('NAND Gate', placeX, placeY));
     }
 }
 
@@ -93,14 +90,14 @@ class NorGate extends Module {
     }
     evaluate(checkForDisconnectedInput = true) {
         super.evaluate(checkForDisconnectedInput);
-        let result = state.or([
+        let result = State.or([
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);
-        result = state.not(result);
+        result = State.not(result);
         this.outputs[0].setValue(result, false);
     }
     static add() {
-        circuit.addModule(new NorGate('nor', placeX, placeY));
+        circuit.addModule(new NorGate('NOR Gate', placeX, placeY));
     }
 }
 
@@ -117,13 +114,13 @@ class XorGate extends Module {
         super.evaluate(checkForDisconnectedInput);
         let a = this.inputs[0].getValue();
         let b = this.inputs[1].getValue()
-        let p = state.and([a, state.not(b)]);
-        let q = state.and([b, state.not(a)]);
-        let result = state.or([p, q]);
-        result = state.not(result);
+        let p = State.and([a, State.not(b)]);
+        let q = State.and([b, State.not(a)]);
+        let result = State.or([p, q]);
+        result = State.not(result);
         this.outputs[0].setValue(result, false);
     }
     static add() {
-        circuit.addModule(new XorGate('xor', placeX, placeY));
+        circuit.addModule(new XorGate('XOR Gate', placeX, placeY));
     }
 }
