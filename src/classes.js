@@ -6,7 +6,7 @@
 // cleanup next googol years
 
 const DEBUG = 0;
-const NODE_HOVERING_RADIUS = 8;
+const NODE_HOVERING_RADIUS = 10;
 
 var mod = (a, b) => ((a % b) + b) % b;
 
@@ -23,7 +23,7 @@ function setClickedNode(node) {
     clickedNode = node;
 }
 
-var wireNodeLookup = {};
+var gridNodeLookup = {};
 var pressedObject = { id: 0 };
 var selectedObject = {};
 
@@ -60,6 +60,11 @@ class State {
             if (s[i] == State.err || s[i] == State.highZ) return State.err;
         return State.low;
     }
+    static xor(a, b) {
+        let p = State.and([a, State.not(b)]);
+        let q = State.and([b, State.not(a)]);
+        return State.or([p, q]);
+    }
     static color(s) {
         if (s == State.err) return color(128, 0, 0);
         if (s == State.highZ) return color(128, 128, 128);
@@ -73,6 +78,15 @@ var uniqueNumber = 0;
 function unique(str = '') {
     uniqueNumber++;
     return str + '_' + uniqueNumber.toString() + '_' + Math.floor(Math.random() * 2 ** 32).toString(16) + Date.now().toString(16);
+}
+
+function filterObject(obj, condition) {
+    return Object.keys(obj)
+        .filter(key => condition(obj[key], key))
+        .reduce((result, key) => {
+            result[key] = obj[key];
+            return result;
+        }, {});
 }
 
 class Wire {
@@ -92,17 +106,17 @@ class Wire {
         // const b = createVector(destinationX, destinationY);
         // const c = createVector(mouseCanvasX, mouseCanvasY);
         const distance = (u, v) => sqrt((u.x - v.x) ** 2 + (u.y - v.y) ** 2);
-        const sub = (u, v) => { return { x: u.x - v.x, y: u.y - v.y} };
-        const mag = (v) => distance(v, { x: 0, y: 0} );
+        const sub = (u, v) => { return { x: u.x - v.x, y: u.y - v.y } };
+        const mag = (v) => distance(v, { x: 0, y: 0 });
         const angle = (u, v) => acos((u.x * v.x + u.y * v.y) / (mag(u) * mag(v)));
 
         const a = { x: sourceX, y: sourceY };
-        const b = {x:destinationX, y:destinationY};
-        const c = {x:mouseCanvasX, y:mouseCanvasY};
+        const b = { x: destinationX, y: destinationY };
+        const c = { x: mouseCanvasX, y: mouseCanvasY };
 
         // const l = p5.Vector.sub(a, b).mag();
         const l = mag(sub(a, b));
-        const radius = 6;
+        const radius = NODE_HOVERING_RADIUS;
 
         if (distance(a, c) > l + radius / 2 || distance(b, c) > l + radius / 2) {
             return false;
@@ -117,13 +131,14 @@ class Wire {
         return abs(sin(angle(ab, bc))) * mag(bc) <= radius / 2;
     }
     setDirection(from, to) {
-        console.log(from, from.id == this.source.id)
+        // console.log(from, from.id == this.source.id)
         this.rendered = (from.id == this.source.id);
         let hiddenWire = to.connections.find((x) => x.destination.id == from.id);
         hiddenWire.rendered = !(from.id == this.source.id);
     }
     render() {
         if (!this.rendered) return;
+
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();
         let destinationX = this.destination.getCanvasX();
@@ -138,12 +153,11 @@ class Wire {
         fill(State.color(this.source.value));
         translate((destinationX + sourceX) / 2, (destinationY + sourceY) / 2);
         rotate(angle);
-        let width = this.isHovering ? 10 : 6;
+        let width = this.checkHovering() ? 10 : 6;
         rect(-length / 2, -width / 2, length, width);
         pop();
         if (!(this.source.value == State.highZ &&
             this.destination.value == State.highZ)) {
-
             push();
             noStroke();
             fill(color(255, 255, 0));
@@ -184,6 +198,17 @@ class ModuleNode {
         this.relativeY = relativeY;
         this.isDragging = false;
         this.isHovering = false;
+        gridNodeLookup[this.getPosition()] = this;
+        console.log(gridNodeLookup)
+    }
+    getPosition() {
+        return [this.relativeX + this.owner.x / 20, this.relativeY + this.owner.y / 20];
+    }
+    updateGridNodeLookup() {
+        gridNodeLookup = Object.fromEntries(
+            Object.entries(gridNodeLookup)
+                .filter(([key, value]) => value.id != this.id));
+        gridNodeLookup[this.getPosition()] = this;
     }
     isConnected() {
         return this.connections.length > 0;
@@ -192,13 +217,19 @@ class ModuleNode {
         return this.value;
     }
     setValue(value, evaluate = true, traversed = new Set()) {
+
+        // todo: set the wireNode if no other outputs are connected
+        console.log('set ' + this.name + ' to ' + value)
         this.value = value;
+        if (this.value == State.highZ && this.nodeType == 'output') return;
         if (evaluate) {
             this.owner.evaluate();
         }
         this.connections.forEach((wire) => {
             // let src = wire.source;
             let dest = wire.destination;
+            // if (!traversed.has(dest.id) &&
+            //     ((dest.value != State.highZ) || !(dest.nodeType == 'output'))) {
             if (!traversed.has(dest.id)) {
                 dest.setValue(value, true, traversed.add(this.id));
             }
@@ -216,11 +247,15 @@ class ModuleNode {
         this.connections.push(new Wire(this, node));
         node.connections.push(new Wire(node, this, false));
 
+        /*
         if (node.value == State.highZ) {
             this.setValue(this.value);
         } else {
             node.setValue(node.value);
         }
+        */
+
+        circuit.evaluateInputs();
     }
     disconnect(node) {
         let wire;
@@ -234,8 +269,14 @@ class ModuleNode {
             x.destination.id == node.id));
         this.connections = this.connections.filter(x => x != wire);
 
-        node.owner.evaluate();
-        this.owner.evaluate();
+        // node.owner.evaluate();
+        // this.owner.evaluate();
+        circuit.evaluateInputs();
+
+        if (node.connections.length == 0 && node.nodeType == 'node')
+            circuit.removeModule(node.owner);
+        if (this.connections.length == 0 && this.nodeType == 'node')
+            circuit.removeModule(this.owner);
     }
     disconnectAll() {
         this.connections.forEach((x) => {
@@ -262,7 +303,7 @@ class ModuleNode {
         stroke(0);
         strokeWeight(2);
         fill(State.color(this.value));
-        circle(netX, netY, this.isDragging ? 14 : 10);
+        circle(netX, netY, this.checkHovering() ? 14 : 10);
         if (DEBUG) {
             push();
             text(this.id.slice(0, 10), netX, netY - 10);
@@ -379,7 +420,6 @@ class Module {
                         src.connections.forEach((w) => {
                             let dest = w.destination;
                             stack.push(dest);
-                            // u.destination.owner.evaluate(false);
                             if (dest.nodeType == 'output') {
                                 connectedToOutput ||= true;
                                 if (dest.value != State.highZ &&
@@ -391,8 +431,8 @@ class Module {
                         });
                     }
                 }
+
                 if (!connectedToOutput) {
-                    // console.log('not')
                     x.value = State.highZ;
                     x.connections.forEach((y) => {
                         y.destination.value = State.highZ;
@@ -401,8 +441,9 @@ class Module {
                         }
                     });
                 } else {
-                    // console.log(outputsCount)
                     if (outputsCount >= 2) {
+                        this.isDragging = false;
+                        this.isHovering = false;
                         throw new Error('Shortage');
                     }
                 }
@@ -410,6 +451,7 @@ class Module {
         }
         // console.log('called from', this.id);
         this.outputs.forEach((x) => {
+            if (x.value == State.highZ) return;
             let stack = [];
             let traversed = new Set();
             let marked = new Set();
@@ -439,12 +481,8 @@ class Module {
     render(name = this.displayName) {
         // let hovering = this.isHovering();
         if (this.isDragging) {
-            // this.rawX = mouseCanvasX + this.offsetX;
-            // this.rawY = mouseCanvasY + this.offsetY;
-            // this.x = round(this.rawX / 20) * 20;
-            // this.y = round(this.rawY / 20) * 20;
             fill(160);
-        } else if (this.isDragging) {
+        } else if (this.checkHovering()) {
             fill(220);
         } else {
             fill(255);
@@ -454,8 +492,8 @@ class Module {
         rect(this.x, this.y, this.width * 20, this.height * 20);
         noStroke();
         fill(0);
-        textAlign(CENTER);
-        text(name, this.width * 20 / 2 + this.x, this.height * 20 / 2 + this.y + 3);
+        textAlign(CENTER, CENTER);
+        text(name, this.width * 20 / 2 + this.x, this.height * 20 / 2 + this.y);
         if (DEBUG) {
             push();
             text(this.id.slice(0, 10), this.x, this.y + 40);
@@ -468,8 +506,6 @@ class Module {
         if (this.isHovering && pressedObject.id == 0) {
             if (mouseButton == LEFT) {
                 pressedObject = this;
-                // this.pressedX = this.x;
-                // this.pressedY = this.y;
                 this.mouseDown = true && !this.isDragging;
                 this.isDragging = true;
                 if (this.mouseDown) {
@@ -489,12 +525,31 @@ class Module {
             this.rawY = mouseCanvasY + this.offsetY;
             this.x = round(this.rawX / 20) * 20;
             this.y = round(this.rawY / 20) * 20;
+            this.inputs.concat(this.outputs.forEach(x => x.updateGridNodeLookup()));
         }
         return false;
     }
     released() {
         this.isDragging = false;
         this.isHovering = false;
+        this.inputs.concat(this.outputs).forEach(x => {
+            let otherNode = gridNodeLookup[x.getPosition()];
+            // console.log('w', otherNode)
+            if (otherNode != null && otherNode.owner.id != x.owner.id) {
+                console.log(x, 'found', otherNode);
+                if (x.nodeType != 'node' && otherNode.nodeType != 'node') return;
+                if (otherNode.nodeType == 'node') {
+                    [x, otherNode] = [otherNode, x];
+                }
+                x.connections.forEach(wire => {
+                    let destination = wire.destination;
+                    circuit.removeModule(x.owner);
+                    otherNode.connect(destination);
+                    console.log('replaced')
+                });
+
+            }
+        });
     }
 }
 
@@ -572,21 +627,27 @@ class WireNode extends Module {
 class Input extends Module {
     constructor(name, x, y) {
         super(name, x, y, 2, 2);
-        this.outputState = State.low;
+        this.outputValue = State.low;
         this.outputs = [new OutputNode(this, 'out1', 2, 1, State.low)];
     }
     setInput(value) {
-        this.outputs[0].setValue(value);
+        this.outputValue = value;
+        this.outputs[0].setValue(this.outputValue);
     }
     evaluate() {
+        // this.outputs[0].setValue(this.outputValue, false);
         super.evaluate();
     }
     render() {
         let char;
-        if (this.outputState == State.low) {
+        if (this.outputValue == State.low) {
             char = '0';
-        } else {
+        } else if (this.outputValue == State.high) {
             char = '1';
+        } else if (this.outputValue == State.highZ) {
+            char = 'Z';
+        } else {
+            char = 'E';
         }
         super.render(char);
     }
@@ -601,8 +662,9 @@ class Input extends Module {
 
 function setInput() {
     let value = document.getElementById('input-value').value;
-    console.log(selectedObject)
+    // console.log(selectedObject)
     selectedObject.setInput(State.fromNumber(value));
+    circuit.evaluateInputs();
 }
 
 class Output extends Module {
@@ -612,12 +674,15 @@ class Output extends Module {
     }
     render() {
         let char;
-        if (this.inputs[0].value == State.low) {
+        let value = this.inputs[0].value;
+        if (value == State.low) {
             char = '0';
-        } else if (this.inputs[0].value == State.high) {
+        } else if (value == State.high) {
             char = '1';
-        } else {
+        } else if (value == State.highZ) {
             char = 'Z';
+        } else {
+            char = 'E';
         }
         super.render(char);
     }
@@ -669,7 +734,14 @@ class Circuit extends Module {
         }
     }
     evaluateInputs() {
-        this.inputModules.forEach((x) => x.evaluate());
+        this.modules.forEach(m => {
+            m.inputs.concat(m.outputs).forEach(x => x.value = State.highZ);
+        });
+        this.modules.forEach(m => {
+            m.evaluate();
+        });
+        // this.inputModules.forEach((x) => { x.evaluate() });
+        this.inputModules.forEach((x) => { x.setInput(x.outputValue) });
     }
     toModule() {
         this.inputs = this.inputModules.map(x => x.outputs[0]);

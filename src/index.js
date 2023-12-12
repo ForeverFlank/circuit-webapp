@@ -31,26 +31,15 @@ function grid() {
     strokeWeight(1);
     let startX = floor((-view.x - roundedWidth / 2) / 20 / zoom) * 20;
     let startY = floor((-view.y - roundedHeight / 2) / 20 / zoom) * 20 ;
-    let endX = floor((-view.x + roundedWidth / 2) / 20 / zoom) * 20;
-    let endY = floor((-view.y + roundedHeight / 2) / 20 / zoom) * 20;
+    let endX = ceil((-view.x + roundedWidth / 2) / 20 / zoom) * 20;
+    let endY = ceil((-view.y + roundedHeight / 2) / 20 / zoom) * 20;
     for (let x = startX; x <= endX; x += 20) {
-        // textSize(9);
-        // text(x, x, -30);
         line(x, startY, x, endY);
     }
     for (let y = startY; y <= endY; y += 20) {
         line(startX, y, endX, y);
     }
-    /*
-    for (let i = 0; i <= hz; i += 20) {
-        let y = i;
-        let screenY = (i + view.y + h / 2) / z;
-        if (screenY < 0 || screenY > hz)
-            y += hz * ceil(-screenY / hz);
-        rect(-wz / 2 - view.x, y - THICKNESS / 2, wz, THICKNESS);
-    }
-    */
-    rect(-5, -5, 10, 10);
+    // rect(-5, -5, 10, 10);
     // stroke(0);
     // strokeWeight(2);
     pop();

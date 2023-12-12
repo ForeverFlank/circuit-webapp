@@ -65,13 +65,18 @@ class Controls {
             const direction = deltaY > 0 ? -1 : 1;
             const factor = 0.07;
             const zoom = 1 * direction * factor * controls.view.zoom;
-
-            const wx = (x - controls.view.x - containerWidth / 2) / (width * controls.view.zoom);
-            const wy = (y - controls.view.y - containerHeight / 2) / (height * controls.view.zoom);
-
-            controls.view.x -= wx * width * zoom;
-            controls.view.y -= wy * height * zoom;
             controls.view.zoom += zoom;
+            if (controls.view.zoom < 0.2) controls.view.zoom = 0.2;
+            else if (controls.view.zoom > 5) controls.view.zoom = 5;
+            else {
+                const wx = (x - controls.view.x - containerWidth / 2) / (width * controls.view.zoom);
+                const wy = (y - controls.view.y - containerHeight / 2) / (height * controls.view.zoom);
+                
+                controls.view.x -= wx * width * zoom;
+                controls.view.y -= wy * height * zoom;
+                
+            }
+            
         }
 
         return { worldZoom }
