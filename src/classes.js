@@ -5,7 +5,7 @@
 // rotation
 // cleanup next googol years
 
-const DEBUG = 1;
+const DEBUG = 0;
 const NODE_HOVERING_RADIUS = 10;
 
 var mod = (a, b) => ((a % b) + b) % b;
