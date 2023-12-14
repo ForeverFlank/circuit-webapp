@@ -179,7 +179,8 @@ function touchEnded(e) {
         });
         if (!releasedOnObject) {
             if (clickedNode != null) {
-                clickedNode.addWireNode();
+                let wireNode = clickedNode.addWireNode();
+                wireNode.inputs[0].connectByGrid();
             }
         }
         Controls.move(controls).released(e);

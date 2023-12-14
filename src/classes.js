@@ -5,7 +5,7 @@
 // rotation
 // cleanup next googol years
 
-const DEBUG = 0;
+const DEBUG = 1;
 const NODE_HOVERING_RADIUS = 10;
 
 var mod = (a, b) => ((a % b) + b) % b;
@@ -97,7 +97,7 @@ class Wire {
         this.id = unique(name);
         this.isHovering = false;
     }
-    checkHovering() {
+    hovering() {
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();
         let destinationX = this.destination.getCanvasX();
@@ -153,7 +153,7 @@ class Wire {
         fill(State.color(this.source.value));
         translate((destinationX + sourceX) / 2, (destinationY + sourceY) / 2);
         rotate(angle);
-        let width = this.checkHovering() ? 10 : 6;
+        let width = this.hovering() ? 10 : 6;
         rect(-length / 2, -width / 2, length, width);
         pop();
         if (!(this.source.value == State.highZ &&
@@ -174,7 +174,7 @@ class Wire {
         }
     }
     pressed() {
-        this.isHovering = this.checkHovering();
+        this.isHovering = this.hovering();
         if (!this.rendered) return;
         if (this.isHovering) {
             if (mouseButton == RIGHT) {
@@ -192,6 +192,7 @@ class ModuleNode {
         this.name = name;
         this.id = unique(name);
         this.value = value;
+        this.isHighZ = (value == State.highZ);
         this.connections = [];
         this.nodeType = 'node';
         this.relativeX = relativeX;
@@ -213,25 +214,69 @@ class ModuleNode {
     isConnected() {
         return this.connections.length > 0;
     }
+    connectedToOutput() {
+        let stack = [];
+        let traversed = new Set();
+        let marked = new Set();
+        stack.push(this);
+        let isConnectedToOutput = false;
+        let outputsCount = 0;
+        while (stack.length > 0) {
+            let src = stack.pop();
+            if (!traversed.has(src.id)) {
+                traversed.add(src.id);
+                src.connections.forEach((w) => {
+                    let dest = w.destination;
+                    stack.push(dest);
+                    if (dest.nodeType == 'output') {
+                        isConnectedToOutput ||= true;
+                        if (!dest.isHighZ &&
+                            !marked.has(dest.id)) {
+                            outputsCount++;
+                            marked.add(dest.id);
+                        }
+                    }
+                });
+            }
+        }
+        console.log(isConnectedToOutput, outputsCount)
+        return {
+            isConnectedToOutput: isConnectedToOutput,
+            outputsCount: outputsCount
+        };
+    }
     getValue() {
         return this.value;
     }
-    setValue(value, evaluate = true, traversed = new Set()) {
-
-        // todo: set the wireNode if no other outputs are connected
+    setValue(value, evaluate = true, setByModule = false, traversed = new Set()) {
+        // todo: set if no other outputs are connected
+        // todo: internal value that contains highZ state
         console.log('set ' + this.name + ' to ' + value)
-        this.value = value;
-        if (this.value == State.highZ && this.nodeType == 'output') return;
+        // if (this.isHighZ && this.nodeType == 'output') return;
+        if (setByModule) {
+            this.isHighZ = value == State.highZ;
+            if (!this.isHighZ || this.connectedToOutput().outputsCount == 0)
+                this.value = value;
+        }
+        else {
+            this.value = value;
+        }
         if (evaluate) {
             this.owner.evaluate();
         }
         this.connections.forEach((wire) => {
             // let src = wire.source;
             let dest = wire.destination;
+            // if (!traversed.has(dest.id)) {
             // if (!traversed.has(dest.id) &&
-            //     ((dest.value != State.highZ) || !(dest.nodeType == 'output'))) {
+            //     (!(dest.nodeType == 'output') || !dest.isHighZ)) {
             if (!traversed.has(dest.id)) {
-                dest.setValue(value, true, traversed.add(this.id));
+                if (!this.isHighZ || this.value != State.highZ) {
+                    dest.setValue(this.value, false, false, traversed.add(this.id));
+                }
+                if (dest.nodeType != 'output') {
+                    dest.owner.evaluate();
+                }
             }
         });
     }
@@ -248,7 +293,7 @@ class ModuleNode {
         node.connections.push(new Wire(node, this, false));
 
         /*
-        if (node.value == State.highZ) {
+        if (node.isHighZ) {
             this.setValue(this.value);
         } else {
             node.setValue(node.value);
@@ -269,8 +314,8 @@ class ModuleNode {
             x.destination.id == node.id));
         this.connections = this.connections.filter(x => x != wire);
 
-        // node.owner.evaluate();
-        // this.owner.evaluate();
+        node.owner.evaluate();
+        this.owner.evaluate();
         circuit.evaluateInputs();
 
         if (node.connections.length == 0 && node.nodeType == 'node')
@@ -283,7 +328,27 @@ class ModuleNode {
             x.source.disconnect(x.destination);
         });
     }
-    checkHovering() {
+    connectByGrid() {
+        let thisNode = this;
+        let otherNode = gridNodeLookup[thisNode.getPosition()];
+        // console.log('w', otherNode)
+        if (otherNode != null && otherNode.owner.id != thisNode.owner.id) {
+            // console.log('aa')
+            // console.log(thisNode, 'found', otherNode);
+            if (thisNode.nodeType != 'node' && otherNode.nodeType != 'node') return;
+            if (otherNode.nodeType == 'node') {
+                [thisNode, otherNode] = [otherNode, thisNode];
+            }
+            thisNode.connections.forEach(wire => {
+                let destination = wire.destination;
+                circuit.removeModule(thisNode.owner);
+                otherNode.connect(destination);
+                // console.log('replaced')
+            });
+
+        }
+    }
+    hovering() {
         let result =
             (mouseCanvasX - this.getCanvasX()) ** 2 +
             (mouseCanvasY - this.getCanvasY()) ** 2 <=
@@ -303,15 +368,17 @@ class ModuleNode {
         stroke(0);
         strokeWeight(2);
         fill(State.color(this.value));
-        circle(netX, netY, this.checkHovering() ? 14 : 10);
+        circle(netX, netY, this.hovering() ? 14 : 10);
         if (DEBUG) {
             push();
-            text(this.id.slice(0, 10), netX, netY - 10);
+            text(this.name, netX, netY - 12);
+            // text(this.isHighZ, netX, netY - 22);
+            // text(this.id.slice(0, 10), netX, netY - 10);
             pop();
         }
     }
     pressed() {
-        this.isHovering = this.checkHovering();
+        this.isHovering = this.hovering();
         if (this.isHovering && pressedObject.id == 0) {
             pressedObject = this;
             if (mouseButton == LEFT) {
@@ -344,6 +411,7 @@ class ModuleNode {
         let dest = WireNode.add(x, y);
         clickedNode.connect(dest.inputs[0]);
         clickedNode = null;
+        return dest;
     }
 }
 
@@ -352,12 +420,6 @@ class InputNode extends ModuleNode {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'input';
     }
-    connect(node) {
-        super.connect(node);
-    }
-    disconnect(node) {
-        super.disconnect(node);
-    }
 }
 
 class OutputNode extends ModuleNode {
@@ -365,22 +427,17 @@ class OutputNode extends ModuleNode {
         super(owner, name, relativeX, relativeY, value);
         this.nodeType = 'output';
     }
-    connect(node) {
-        super.connect(node);
-    }
-    disconnect(node) {
-        super.disconnect(node);
-    }
 }
 
 class Module {
-    constructor(name, x = 0, y = 0, width = 2, height = 2) {
-        this.x = (x == null) ? 0 : x;
-        this.y = (y == null) ? 0 : y;
-        this.width = width;
-        this.height = height;
+    constructor(name, delay = 1, width = 2, height = 2, x = placeX, y = placeY) {
         this.name = name;
         this.id = unique(name);
+        this.delay = delay;
+        this.width = width;
+        this.height = height;
+        this.x = x;
+        this.y = y;
         this.displayName = '';
         this.inputs = [];
         this.outputs = [];
@@ -391,10 +448,10 @@ class Module {
         this.rawX = null; this.rawY = null;
         this.offsetX = null; this.offsetY = null;
     }
-    checkHovering() {
+    hovering() {
         let hoveringNode = false;
-        this.inputs.forEach((x) => { hoveringNode ||= x.checkHovering() });
-        this.outputs.forEach((x) => { hoveringNode ||= x.checkHovering() });
+        this.inputs.forEach((x) => { hoveringNode ||= x.hovering() });
+        this.outputs.forEach((x) => { hoveringNode ||= x.hovering() });
         let hovering = mouseCanvasX > this.x &&
             mouseCanvasX < this.x + this.width * 20 &&
             mouseCanvasY > this.y &&
@@ -406,12 +463,12 @@ class Module {
         // console.log('called from', this.id, checkDisconnectedInput);
         // DFS
         if (checkDisconnectedInput) {
-            this.inputs.forEach((x) => {
+            this.inputs.concat(this.outputs).forEach(x => {
                 let stack = [];
                 let traversed = new Set();
                 let marked = new Set();
                 stack.push(x);
-                let connectedToOutput = false;
+                let isConnectedToOutput = x.nodeType == 'output';
                 let outputsCount = 0;
                 while (stack.length > 0) {
                     let src = stack.pop();
@@ -421,8 +478,8 @@ class Module {
                             let dest = w.destination;
                             stack.push(dest);
                             if (dest.nodeType == 'output') {
-                                connectedToOutput ||= true;
-                                if (dest.value != State.highZ &&
+                                isConnectedToOutput ||= true;
+                                if (!dest.isHighZ &&
                                     !marked.has(dest.id)) {
                                     outputsCount++;
                                     marked.add(dest.id);
@@ -431,9 +488,10 @@ class Module {
                         });
                     }
                 }
-
-                if (!connectedToOutput) {
+                console.log('eval', isConnectedToOutput, outputsCount)
+                if (!isConnectedToOutput) {
                     x.value = State.highZ;
+                    x.isHighZ = true;
                     x.connections.forEach((y) => {
                         y.destination.value = State.highZ;
                         if (!evaluated.has(this.id)) {
@@ -451,7 +509,7 @@ class Module {
         }
         // console.log('called from', this.id);
         this.outputs.forEach((x) => {
-            if (x.value == State.highZ) return;
+            if (x.isHighZ) return;
             let stack = [];
             let traversed = new Set();
             let marked = new Set();
@@ -464,10 +522,14 @@ class Module {
                     src.connections.forEach((w) => {
                         let dest = w.destination;
                         stack.push(dest);
-                        if (!marked.has(dest.id))
+                        if (!marked.has(dest.id)) {
                             w.setDirection(src, dest);
-                        if (this.inputs.some(x => x.id == dest.id))
+                        }
+                        if (this.inputs.some(x => x.id == dest.id)) {
+                            this.isDragging = false;
+                            this.isHovering = false;
                             throw new Error('Circular Loop!');
+                        }
                         marked.add(dest.id);
                     });
                 }
@@ -482,7 +544,7 @@ class Module {
         // let hovering = this.isHovering();
         if (this.isDragging) {
             fill(160);
-        } else if (this.checkHovering()) {
+        } else if (this.hovering()) {
             fill(220);
         } else {
             fill(255);
@@ -496,13 +558,13 @@ class Module {
         text(name, this.width * 20 / 2 + this.x, this.height * 20 / 2 + this.y);
         if (DEBUG) {
             push();
-            text(this.id.slice(0, 10), this.x, this.y + 40);
-            text(this.isDragging, this.x, this.y + 55);
+            // text(this.id.slice(0, 10), this.x, this.y + 40);
+            text(this.name, this.x + this.width * 10, this.y + 52);
             pop();
         }
     }
     pressed() {
-        this.isHovering = this.checkHovering();
+        this.isHovering = this.hovering();
         if (this.isHovering && pressedObject.id == 0) {
             if (mouseButton == LEFT) {
                 pressedObject = this;
@@ -533,6 +595,8 @@ class Module {
         this.isDragging = false;
         this.isHovering = false;
         this.inputs.concat(this.outputs).forEach(x => {
+            x.connectByGrid();
+            /*
             let otherNode = gridNodeLookup[x.getPosition()];
             // console.log('w', otherNode)
             if (otherNode != null && otherNode.owner.id != x.owner.id) {
@@ -549,17 +613,18 @@ class Module {
                 });
 
             }
+            */
         });
     }
 }
 
 class WireNode extends Module {
     constructor(name, x, y) {
-        super(name, x, y, 0, 0);
+        super(name, 0, 0, 0, x, y);
         this.inputs = [new ModuleNode(this, 'node', 0, 0, State.highZ)];
     }
-    checkHovering() {
-        return this.inputs[0].checkHovering();
+    hovering() {
+        return this.inputs[0].hovering();
     }
     evaluate(connectedToOutput = false, evaluated = new Set()) {
         this.inputs.forEach((x) => {
@@ -603,7 +668,7 @@ class WireNode extends Module {
         });
     }
     pressed() {
-        if (this.checkHovering() && pressedObject.id == 0) {
+        if (this.hovering() && pressedObject.id == 0) {
             pressedObject = this;
             if (mouseButton == LEFT) {
                 return this;
@@ -618,21 +683,21 @@ class WireNode extends Module {
         super.render();
     }
     static add(x, y) {
-        let module = new WireNode('', x, y)
+        let module = new WireNode('', x, y);
         circuit.addModule(module);
         return module;
     }
 }
 
 class Input extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 2, 2);
+    constructor(name) {
+        super(name, 0, 2, 2);
         this.outputValue = State.low;
         this.outputs = [new OutputNode(this, 'out1', 2, 1, State.low)];
     }
     setInput(value) {
         this.outputValue = value;
-        this.outputs[0].setValue(this.outputValue);
+        this.outputs[0].setValue(this.outputValue, true, true);
     }
     evaluate() {
         // this.outputs[0].setValue(this.outputValue, false);
@@ -655,7 +720,7 @@ class Input extends Module {
         super.released();
     }
     static add() {
-        let module = new Input('Input', placeX, placeY);
+        let module = new Input('Input');
         circuit.addInputModule(module);
     }
 }
@@ -668,8 +733,8 @@ function setInput() {
 }
 
 class Output extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 2, 2);
+    constructor(name) {
+        super(name, 0, 2, 2);
         this.inputs = [new InputNode(this, 'in1', 0, 1, State.highZ)];
     }
     render() {
@@ -687,7 +752,7 @@ class Output extends Module {
         super.render(char);
     }
     static add() {
-        let module = new Output('Output', placeX, placeY);
+        let module = new Output('Output');
         circuit.addOutputModule(module);
     }
 }
@@ -735,10 +800,16 @@ class Circuit extends Module {
     }
     evaluateInputs() {
         this.modules.forEach(m => {
-            m.inputs.concat(m.outputs).forEach(x => x.value = State.highZ);
+            //  m.inputs.concat(m.outputs).forEach(x => x.value = State.highZ);
+            m.inputs.forEach(x => {
+                if (x.connectedToOutput().isConnectedToOutput) {
+                    x.isHighZ = true;
+                    x.value = State.highZ;
+                }
+            });
         });
         this.modules.forEach(m => {
-            m.evaluate();
+            // m.evaluate();
         });
         // this.inputModules.forEach((x) => { x.evaluate() });
         this.inputModules.forEach((x) => { x.setInput(x.outputValue) });

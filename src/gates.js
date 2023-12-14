@@ -1,6 +1,6 @@
 class NotGate extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 2, 2);
+    constructor(name) {
+        super(name, 1, 2, 2);
         this.inputs = [new InputNode(this, 'Input 1', 0, 1)];
         this.outputs = [new OutputNode(this, 'Output', 2, 1)];
         this.displayName = 'NOT';
@@ -8,16 +8,16 @@ class NotGate extends Module {
     evaluate(checkForDisconnectedInput = true) {
         super.evaluate(checkForDisconnectedInput);
         let result = State.not(this.inputs[0].getValue());
-        this.outputs[0].setValue(result, false);
+        this.outputs[0].setValue(result, false, true);
     }
     static add() {
-        circuit.addModule(new NotGate('NOT Gate', placeX, placeY));
+        circuit.addModule(new NotGate('NOT Gate'));
     }
 }
 
 class AndGate extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 3, 2);
+    constructor(name) {
+        super(name, 2, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -29,16 +29,16 @@ class AndGate extends Module {
         let result = State.and([
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);
-        this.outputs[0].setValue(result, false);
+        this.outputs[0].setValue(result, false, true);
     }
     static add() {
-        circuit.addModule(new AndGate('AND Gate', placeX, placeY));
+        circuit.addModule(new AndGate('AND Gate'));
     }
 }
 
 class OrGate extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 3, 2);
+    constructor(name) {
+        super(name, 2, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -50,16 +50,16 @@ class OrGate extends Module {
         let result = State.or([
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);
-        this.outputs[0].setValue(result, false);
+        this.outputs[0].setValue(result, false, true);
     }
     static add() {
-        circuit.addModule(new OrGate('OR Gate', placeX, placeY));
+        circuit.addModule(new OrGate('OR Gate'));
     }
 }
 
 class NandGate extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 3, 2);
+    constructor(name) {
+        super(name, 2, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -72,7 +72,7 @@ class NandGate extends Module {
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);
         result = State.not(result);
-        this.outputs[0].setValue(result, false);
+        this.outputs[0].setValue(result, false, true);
     }
     static add() {
         circuit.addModule(new NandGate('NAND Gate', placeX, placeY));
@@ -80,8 +80,8 @@ class NandGate extends Module {
 }
 
 class NorGate extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 3, 2);
+    constructor(name) {
+        super(name, 2, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -94,7 +94,7 @@ class NorGate extends Module {
             this.inputs[0].getValue(),
             this.inputs[1].getValue()]);
         result = State.not(result);
-        this.outputs[0].setValue(result, false);
+        this.outputs[0].setValue(result, false, true);
     }
     static add() {
         circuit.addModule(new NorGate('NOR Gate', placeX, placeY));
@@ -102,8 +102,8 @@ class NorGate extends Module {
 }
 
 class XorGate extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 3, 2);
+    constructor(name) {
+        super(name, 2, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -115,7 +115,7 @@ class XorGate extends Module {
         let result = State.xor(
             this.inputs[0].getValue(),
             this.inputs[1].getValue());
-        this.outputs[0].setValue(result, false);
+        this.outputs[0].setValue(result, false, true);
     }
     static add() {
         circuit.addModule(new XorGate('XOR Gate', placeX, placeY));
@@ -123,8 +123,8 @@ class XorGate extends Module {
 }
 
 class XnorGate extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 3, 2);
+    constructor(name) {
+        super(name, 2, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -136,7 +136,7 @@ class XnorGate extends Module {
         let result = State.not(State.xor(
             this.inputs[0].getValue(),
             this.inputs[1].getValue()));
-        this.outputs[0].setValue(result, false);
+        this.outputs[0].setValue(result, false, true);
     }
     static add() {
         circuit.addModule(new XnorGate('XNOR Gate', placeX, placeY));
@@ -144,8 +144,8 @@ class XnorGate extends Module {
 }
 
 class FullAdder extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 3, 2);
+    constructor(name) {
+        super(name, 2, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 1),
@@ -163,8 +163,8 @@ class FullAdder extends Module {
         let p = State.xor(a, b);
         let sum = State.xor(p, cIn);
         let cOut = State.or([State.and([a, b]), State.and([p, cIn])]);
-        this.outputs[0].setValue(sum, false);
-        this.outputs[1].setValue(cOut, false);
+        this.outputs[0].setValue(sum, false, true);
+        this.outputs[1].setValue(cOut, false, true);
     }
     static add() {
         circuit.addModule(new FullAdder('Full Adder', placeX, placeY));
@@ -172,8 +172,8 @@ class FullAdder extends Module {
 }
 
 class TriStateBuffer extends Module {
-    constructor(name, x, y) {
-        super(name, x, y, 2, 2);
+    constructor(name) {
+        super(name, 2, 2, 2);
         this.inputs = [
             new InputNode(this, 'Input', 0, 1),
             new InputNode(this, 'Control', 1, 0)];
@@ -185,11 +185,11 @@ class TriStateBuffer extends Module {
         let input = this.inputs[0].getValue();
         let control = this.inputs[1].getValue();
         if (control == State.high)
-            this.outputs[0].setValue(input, false);
+            this.outputs[0].setValue(input, false, true);
         else if (control == State.low)
-            this.outputs[0].setValue(State.highZ, false);
+            this.outputs[0].setValue(State.highZ, false, true);
         else
-            this.outputs[0].setValue(State.err, false);
+            this.outputs[0].setValue(State.err, false, true);
     }
     static add() {
         circuit.addModule(new TriStateBuffer('Tri-State Buffer', placeX, placeY));
