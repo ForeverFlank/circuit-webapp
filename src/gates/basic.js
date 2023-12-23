@@ -1,6 +1,6 @@
 class NotGate extends Module {
     constructor(name) {
-        super(name, 1, 2, 2);
+        super(name, 2, 2);
         this.inputs = [new InputNode(this, 'Input 1', 0, 1)];
         this.outputs = [new OutputNode(this, 'Output', 2, 1)];
         this.displayName = 'NOT';
@@ -17,7 +17,7 @@ class NotGate extends Module {
 
 class AndGate extends Module {
     constructor(name) {
-        super(name, 2, 3, 2);
+        super(name, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -38,7 +38,7 @@ class AndGate extends Module {
 
 class OrGate extends Module {
     constructor(name) {
-        super(name, 2, 3, 2);
+        super(name, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -59,7 +59,7 @@ class OrGate extends Module {
 
 class NandGate extends Module {
     constructor(name) {
-        super(name, 2, 3, 2);
+        super(name, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -81,7 +81,7 @@ class NandGate extends Module {
 
 class NorGate extends Module {
     constructor(name) {
-        super(name, 2, 3, 2);
+        super(name, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -103,7 +103,7 @@ class NorGate extends Module {
 
 class XorGate extends Module {
     constructor(name) {
-        super(name, 2, 3, 2);
+        super(name, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -124,7 +124,7 @@ class XorGate extends Module {
 
 class XnorGate extends Module {
     constructor(name) {
-        super(name, 2, 3, 2);
+        super(name, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
@@ -145,7 +145,7 @@ class XnorGate extends Module {
 
 class FullAdder extends Module {
     constructor(name) {
-        super(name, 2, 3, 2);
+        super(name, 3, 2);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 1),
@@ -173,7 +173,7 @@ class FullAdder extends Module {
 
 class TriStateBuffer extends Module {
     constructor(name) {
-        super(name, 2, 2, 2);
+        super(name, 2, 2);
         this.inputs = [
             new InputNode(this, 'Input', 0, 1),
             new InputNode(this, 'Control', 1, 0)];

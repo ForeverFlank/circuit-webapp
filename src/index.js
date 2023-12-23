@@ -52,7 +52,6 @@ function draw() {
 
     // let w = 40 * ceil(containerWidth / 40);
     // let h = 40 * ceil(containerHeight / 40);
-    // console.log(controls.view)
     translate(width / 2, height / 2);
     translate(controls.view.x, controls.view.y);
     scale(controls.view.zoom);
@@ -74,7 +73,6 @@ function draw() {
 
     let fps = frameRate();
     document.getElementById('fps-counter').innerText = fps.toFixed(2);
-    // console.log(nodes)
 }
 
 function mouseWheel(e) {
@@ -111,8 +109,6 @@ function objectsPress() {
 var released = false;
 
 function touchStarted(e) {
-    console.log(e)
-    console.log('start')
     released = false;
 
     if (controlMode == 'edit') {
@@ -156,17 +152,14 @@ function touchMoved(e) {
             }
         }
         if (pressedObject.id != 0) selectedObject = pressedObject;
-        // console.log(selectedObject)
     }
     if (controlMode == 'pan' || mouseButton == CENTER) {
-        // console.log('drag')
         Controls.move(controls).dragged(e);
     }
 }
 
 function touchEnded(e) {
     if (!released) {
-        console.log('end')
         let releasedOnObject = false;
         circuit.modules.forEach((x) => {
             x.released();

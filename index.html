@@ -29,6 +29,10 @@
         <button onclick="FullAdder.add()">Full Adder</button>
         <button onclick="TriStateBuffer.add()">Tri-State Buffer</button>
       </div>
+      <button class="accordion" onclick="openGateMenu('gate-latches')">Latches</button>
+      <div id="gate-latches" style="display: none;">
+        <button onclick="SRLatch.add()">SR Latch</button>
+      </div>
     </div>
 
     <div class="controls">
@@ -44,9 +48,14 @@
     <p id="fps-counter" style="position: fixed; left: 80%; top: 0%;">0</p>
     
     <script src="src/p5.min.js"></script>
+    <script src="src/init.js"></script>
     <script src="src/camera.js"></script>
-    <script src="src/classes.js"></script>
-    <script src="src/gates.js"></script>
+    <script src="src/classes/state.js"></script>
+    <script src="src/classes/wire.js"></script>
+    <script src="src/classes/modulenode.js"></script>
+    <script src="src/classes/module.js"></script>
+    <script src="src/gates/basic.js"></script>
+    <script src="src/gates/latches.js"></script>
     <!--
       <script src="lib/fabric.min.js"></script>
       <script src="gate-data.js"></script>

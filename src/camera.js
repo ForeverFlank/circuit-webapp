@@ -1,13 +1,3 @@
-function getContainerWidth() {
-    return document.getElementById('canvas-container').clientWidth;
-}
-function getContainerHeight() {
-    return document.getElementById('canvas-container').clientHeight;
-}
-
-var containerWidth = getContainerWidth();
-var containerHeight = getContainerHeight();
-
 var controls = {
     view: { x: 0, y: 0, zoom: 1 },
     viewPos: { prevX: null, prevY: null, isDragging: false },
