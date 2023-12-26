@@ -34,7 +34,7 @@ class Module {
             !hoveringNode;
         return hovering;
     }
-    evaluate(checkDisconnectedInput = true, evaluated = new Set()) {
+    evaluate(time, checkDisconnectedInput = true, evaluated = new Set()) {
         // console.log('called from', this.id, checkDisconnectedInput);
         // DFS
         if (checkDisconnectedInput) {
@@ -70,7 +70,7 @@ class Module {
                     x.connections.forEach((y) => {
                         y.destination.value = State.highZ;
                         if (!evaluated.has(this.id)) {
-                            y.destination.owner.evaluate(false, evaluated.add(this.id));
+                            y.destination.owner.evaluate(time, false, evaluated.add(this.id));
                         }
                     });
                 } else {
@@ -252,13 +252,12 @@ class Input extends Module {
         this.outputValue = State.low;
         this.outputs = [new OutputNode(this, 'out1', 2, 1, State.low, 0)];
     }
-    setInput(value) {
+    setInput(value, time = 0) {
         this.outputValue = value;
-        this.outputs[0].setValue(this.outputValue, true, true);
+        this.outputs[0].setValue(this.outputValue, time, true, true);
     }
-    evaluate() {
-        // this.outputs[0].setValue(this.outputValue, false);
-        super.evaluate();
+    evaluate(time) {
+        super.evaluate(time);
     }
     render() {
         let char;
@@ -286,7 +285,7 @@ function setInput() {
     let value = document.getElementById('input-value').value;
     // console.log(selectedObject)
     selectedObject.setInput(State.fromNumber(value));
-    circuit.evaluateAll();
+    circuit.evaluateAll(false);
 }
 
 class Output extends Module {
@@ -360,78 +359,116 @@ class Circuit extends Module {
             this.evaluateAll();
         }
     }
-    evaluateAll() {
-        // todo: evaluate by OUTPUTS, not inputs
-        this.getNodes().forEach(node => node.totalDelay = [0]);
+    evaluateAll(reset = true) {
+        this.getNodes().forEach(node => node.totalDelay = []);
         let startingNodes = [];
         this.modules.forEach(m => {
             if (m.name == 'Input') {
+                m.setInput(m.outputValue);
                 startingNodes.push(m.outputs[0]);
             } else {
                 m.inputs.forEach(x => {
                     if (x.connectedToOutput().isConnectedToOutput) {
-                        x.isHighZ = true;
-                        x.value = State.highZ;
                     } else {
                         startingNodes.push(x);
                     }
+                    if (x.nodeType == 'node' || reset) {
+                        x.isHighZ = true;
+                        x.value = State.highZ;
+                        x.valueAtTime[0] = State.highZ;
+                    } else {
+                        x.valueAtTime[0] = x.value;
+                    }
                 });
+
             }
+        });
+        this.modules.forEach(m => {
+            m.inputs.forEach(x => {
+                if (x.connectedToOutput().outputsCount == 0) {
+                    x.isHighZ = true;
+                    x.value = State.highZ;
+                    x.valueAtTime[0] = State.highZ;
+                }
+            });
         });
         console.log(startingNodes);
         startingNodes.forEach(node => {
+            node.totalDelay = [0];
             let stack = [];
             let traversed = new Set();
             let marked = new Set();
             stack.push(node);
             while (stack.length > 0) {
                 let src = stack.pop();
+                let srcDelay = src.totalDelay;
                 if (!traversed.has(src.id)) {
-                    let last = (x) => x[x.length - 1];
                     traversed.add(src.id);
+                    // console.log('-', src.owner.name, src.name);
                     src.connections.forEach(wire => {
                         let dest = wire.destination;
-                        let delay = max(last(dest.totalDelay),
-                                        last(src.totalDelay));
-                        if (!dest.totalDelay.includes(delay)) {
-                            dest.totalDelay.push(delay);
-                        }
+                        // if (traversed.has(dest.id)) return;
+                        // let delay = max(last(dest.totalDelay),
+                        //                 last(src.totalDelay));
+                        let delay = srcDelay;
+                        // console.log(dest.name, src, src.totalDelay)
+                        dest.totalDelay = dest.totalDelay.concat(delay);
+                        dest.totalDelay = [...new Set(dest.totalDelay)];
                         stack.push(dest);
                     });
-                    // console.log('-', src.name, stack);
                     if (src.nodeType == 'input') {
                         let outputs = src.owner.outputs;
                         outputs.forEach(outputNode => {
+
+                            let stack2 = [];
+                            let traversed2 = new Set();
+                            stack2.push(outputNode);
+                            while (stack2.length > 0) {
+                                let x = stack2.pop();
+                                if (!traversed2.has(x.id)) {
+                                    traversed2.add(x.id);
+                                    traversed.delete(x.id);
+                                    x.connections.forEach(w => {
+                                        let d = w.destination;
+                                        stack2.push(d);
+                                    })
+                                }
+                            }
+
+                            traversed.delete(outputNode.id);
+                            /*
                             let delay = max(last(outputNode.totalDelay),
                                         last(src.totalDelay) + outputNode.delay);
-                            if (!outputNode.totalDelay.includes(delay)) {
-                                outputNode.totalDelay.push(delay);
-                            }
+                            */
+                            let delay = src.totalDelay.map(x => x + outputNode.delay);
+                            outputNode.totalDelay = outputNode.totalDelay.concat(delay);
+                            outputNode.totalDelay = [...new Set(outputNode.totalDelay)];
                             stack.push(outputNode);
                         });
                     }
                 }
             }
         });
-        // let queue = this.getNodes().sort((a, b) => a.totalDelay - b.totalDelay);
         let queue = [];
         let nodes = this.getNodes();
         nodes.forEach(node => {
+            // console.log('!', node.name, node.totalDelay)
+            // node.totalDelay = [...new Set(node.totalDelay)];
+            // node.valueAtTime
+            node.totalDelay.sort();
             node.totalDelay.forEach(t => {
                 queue.push([t, node]);
             });
         });
         queue = queue.sort((a, b) => a[0] - b[0]);
-        console.log('q', queue.filter(x => x[1].nodeType == 'output'));
-        // this.inputModules.forEach((x) => { x.setInput(x.outputValue) });
-        // startingNodes.forEach(x => { x.setValue(x.value) });
+        // console.log('q', queue.filter(x => x[1].nodeType == 'output'));
         queue
-        .filter(x => x[1].nodeType == 'output')
-        .forEach(x => { x[1].setValue(x[1].value); x[1].owner.evaluate() });
-        // this.modules.forEach(m => {
-        //     m.evaluate();
-        // });
-        // this.inputModules.forEach((x) => { x.evaluate() });
+            .filter(x => x[1].nodeType == 'output' || x[1].nodeType == 'node')
+            .forEach(x => {
+                x[1].setValue(x[1].value, x[0]);
+                x[1].owner.evaluate(x[0], x[0], true);
+                // console.log('-', x[1].name)
+            });
     }
     toModule() {
         this.inputs = this.inputModules.map(x => x.outputs[0]);

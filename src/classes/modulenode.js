@@ -5,7 +5,8 @@ class ModuleNode {
         this.id = unique(name);
         this.value = value;
         this.delay = delay;
-        this.totalDelay = [0];
+        this.totalDelay = [];
+        this.valueAtTime = { 0: value };
         this.isHighZ = (value == State.highZ);
         this.connections = [];
         this.nodeType = 'node';
@@ -59,14 +60,35 @@ class ModuleNode {
             outputsCount: outputsCount
         };
     }
-    getValue() {
-        return this.value;
+    getValue(time) {
+        if (time == null)
+            return this.value;
+        let result = this.valueAtTime[time];
+        if (result == null) {
+            let keys = Object.keys(this.valueAtTime)
+                             .map(x => parseFloat(x))
+                             .sort();
+            let maxKey = keys[keys.length - 1]
+            if (time > maxKey) {
+                return this.valueAtTime[maxKey];
+            }
+            for (let i in keys) {
+                if (keys[i] > time) {
+                    let lastTime = keys[i - 1];
+                    return this.valueAtTime[lastTime];
+                }
+            }
+        }
+        return result;
     }
-    setValue(value, evaluate = true, setByModule = false, inputDelay = 0, traversed = new Set()) {
+    setValue(value, time, evaluate = true, setByModule = false, inputDelay = 0, traversed = new Set()) {
+        console.log(this.name, 'set', value, 'at time', time);
+
         // todo: set if no other outputs are connected
         // todo: internal value that contains highZ state
-        console.log('set ' + this.name + ' to ' + value)
+        // console.log('set ' + this.name + ' to ' + value)
         // if (this.isHighZ && this.nodeType == 'output') return;
+
         if (setByModule) {
             this.isHighZ = value == State.highZ;
             if (!this.isHighZ || this.connectedToOutput().outputsCount == 0)
@@ -75,22 +97,17 @@ class ModuleNode {
         else {
             this.value = value;
         }
+
+        this.valueAtTime[time] = this.value;
+
         if (evaluate) {
-            this.owner.evaluate();
+            this.owner.evaluate(time);
         }
         this.connections.forEach((wire) => {
             let dest = wire.destination;
-            /*if (!traversed.has(dest.id)) {
-                if (!this.isHighZ || this.value != State.highZ) {
-                    dest.setValue(this.value, false, false, inputDelay, traversed.add(this.id));
-                }
-                if (dest.nodeType != 'output') {
-                    dest.owner.evaluate();
-                }
-            }*/
             if (!traversed.has(dest.id)) {
                 if (!this.isHighZ || this.value != State.highZ) {
-                    dest.setValue(this.value, false, false, inputDelay, traversed.add(this.id));
+                    dest.setValue(this.value, time, false, false, inputDelay, traversed.add(this.id));
                 }
                 if (dest.nodeType != 'output') {
                     // dest.owner.evaluate();
@@ -110,14 +127,6 @@ class ModuleNode {
         this.connections.push(new Wire(this, node));
         node.connections.push(new Wire(node, this, false));
 
-        /*
-        if (node.isHighZ) {
-            this.setValue(this.value);
-        } else {
-            node.setValue(node.value);
-        }
-        */
-
         circuit.evaluateAll();
     }
     disconnect(node) {
@@ -132,8 +141,8 @@ class ModuleNode {
             x.destination.id == node.id));
         this.connections = this.connections.filter(x => x != wire);
 
-        node.owner.evaluate();
-        this.owner.evaluate();
+        // node.owner.evaluate();
+        // this.owner.evaluate();
         circuit.evaluateAll();
 
         if (node.connections.length == 0 && node.nodeType == 'node')

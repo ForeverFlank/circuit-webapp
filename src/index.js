@@ -45,6 +45,40 @@ function grid() {
     pop();
 }
 
+function timingDiagram(xPos, yPos) {
+    xPos = 20;
+    yPos = 350;
+    push();
+    let nodes = circuit.getNodes();
+    fill(0);
+    rect(xPos, yPos, 400, 30 + nodes.length * 15);
+
+    fill(255);
+    for (let i = 0; i <= 10; i += 1) {
+        text(i, 50 + xPos + 20 * i, yPos + 30 + nodes.length * 15)
+    }
+
+    let i = 1;
+    nodes.forEach(x => {
+        fill(255);
+        noStroke();
+        text(x.name, xPos + 5, yPos + (15 * i++));
+        noFill();
+        stroke(0, 255, 0);
+        strokeWeight(1);
+        line(xPos + 45, yPos + 15 * i - 20, xPos + 45, yPos + 15 * i - 25);
+        beginShape();
+        for (let t = 0; t <= 10; t += 0.2) {
+            // console.log(x.getValue(t))
+            let value = x.getValue(t);
+            value = (value >= 0) ? value : 0;
+            vertex(xPos + t * 20 + 50, yPos + 15 * i + value * -5 - 20);
+        }
+        endShape();
+    })
+    pop();
+}
+
 function draw() {
     mouseUpdate();
 
@@ -52,6 +86,7 @@ function draw() {
 
     // let w = 40 * ceil(containerWidth / 40);
     // let h = 40 * ceil(containerHeight / 40);
+    push();
     translate(width / 2, height / 2);
     translate(controls.view.x, controls.view.y);
     scale(controls.view.zoom);
@@ -70,7 +105,10 @@ function draw() {
     circuit.modules.forEach((x) => { x.render() });
     wires.forEach((x) => x.render());
     nodes.forEach((x) => x.render());
+    pop();
 
+    timingDiagram();
+    
     let fps = frameRate();
     document.getElementById('fps-counter').innerText = fps.toFixed(2);
 }

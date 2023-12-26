@@ -8,18 +8,18 @@ class SRLatch extends Module {
         this.displayName = 'SR';
         this.latchValue = State.low;
     }
-    evaluate(checkForDisconnectedInput = true) {
-        super.evaluate(checkForDisconnectedInput);
-        let s = this.inputs[0].getValue();
-        let r = this.inputs[1].getValue();
+    evaluate(time) {
+        super.evaluate(time);
+        let s = this.inputs[0].getValue(time);
+        let r = this.inputs[1].getValue(time);
         if (this.latchValue == State.low && s == State.high) {
             this.latchValue = State.high;
         }
         if (this.latchValue == State.high && r == State.high) {
             this.latchValue = State.low;
         }
-        this.outputs[0].setValue(this.latchValue, false, true);
-        this.outputs[1].setValue(State.not(this.latchValue), false, true);
+        this.outputs[0].setValue(this.latchValue, time + this.outputs[0].delay, false, true);
+        this.outputs[1].setValue(State.not(this.latchValue), time + this.outputs[1].delay, false, true);
     }
     static add() {
         circuit.addModule(new SRLatch('SR Latch'));
