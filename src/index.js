@@ -5,8 +5,9 @@ function setControlMode(mode) {
     controlMode = mode;
 }
 
+var canvas;
 function setup() {
-    var canvas = createCanvas(containerWidth, containerHeight);
+    canvas = createCanvas(containerWidth, containerHeight);
     canvas.parent('canvas-container');
 }
 
@@ -46,10 +47,10 @@ function grid() {
 }
 
 function timingDiagram(xPos, yPos) {
-    xPos = 20;
-    yPos = 350;
-    push();
     let nodes = circuit.getNodes();
+    xPos = 20;
+    yPos = 600 - nodes.length * 15;
+    push();
     fill(0);
     rect(xPos, yPos, 400, 30 + nodes.length * 15);
 
@@ -64,17 +65,20 @@ function timingDiagram(xPos, yPos) {
         noStroke();
         text(x.name, xPos + 5, yPos + (15 * i++));
         noFill();
-        stroke(0, 255, 0);
+        stroke(255);
         strokeWeight(1);
         line(xPos + 45, yPos + 15 * i - 20, xPos + 45, yPos + 15 * i - 25);
-        beginShape();
+        
         for (let t = 0; t <= 10; t += 0.2) {
             // console.log(x.getValue(t))
             let value = x.getValue(t);
+            stroke(State.color(value));
             value = (value >= 0) ? value : 0;
+            beginShape();
             vertex(xPos + t * 20 + 50, yPos + 15 * i + value * -5 - 20);
+            vertex(xPos + t * 20 + 54, yPos + 15 * i + value * -5 - 20);
+            endShape();
         }
-        endShape();
     })
     pop();
 }
@@ -113,6 +117,18 @@ function draw() {
     document.getElementById('fps-counter').innerText = fps.toFixed(2);
 }
 
+function selectedObjectUI() {
+    let name = selectedObject.name;
+    name = (name == null) ? '' : name;
+    document.getElementById('selecting').innerText = name;
+    document.getElementById('input-value').style.display = (selectedObject.name == 'Input') ? 'block' : 'none';
+}
+
+function removePressedObject() {
+    selectedObject.remove();
+    selectedObjectUI();
+}
+
 function mouseWheel(e) {
     Controls.zoom(controls).worldZoom(e);
 }
@@ -148,17 +164,21 @@ var released = false;
 
 function touchStarted(e) {
     released = false;
-
+    
     if (controlMode == 'edit') {
         let pressedOnObject = objectsPress();
-        if (pressedObject.id != 0) selectedObject = pressedObject;
-        if (pressedOnObject) {
-            document.getElementById('selecting').innerText = selectedObject.name;
-            document.getElementById('input-value').style.display = (selectedObject.name == 'Input') ? 'block' : 'none';
-        } else {
-            if (mouseButton == CENTER)
-                Controls.move(controls).pressed(e);
+        if (pressedObject.id != 0) {
+            selectedObject = pressedObject;
         }
+        if (!pressedOnObject) {
+            if (mouseButton == LEFT) {
+                // selectedObject = { id: 0 };
+            }
+            if (mouseButton == CENTER) {
+                Controls.move(controls).pressed(e);
+            }
+        }
+        selectedObjectUI();
     }
     if (controlMode == 'pan' || mouseButton == CENTER) {
         Controls.move(controls).pressed(e);

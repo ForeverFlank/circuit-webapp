@@ -8,7 +8,7 @@ class NotGate extends Module {
     evaluate(time) {
         super.evaluate(time);
         let result = State.not(this.inputs[0].getValue(time));
-        this.outputs[0].setValue(result, time, false, true);
+        this.outputs[0].setValue(result, time + this.outputs[0].delay, false, true);
     }
     static add() {
         circuit.addModule(new NotGate('NOT Gate'));
@@ -29,7 +29,7 @@ class AndGate extends Module {
         let result = State.and([
             this.inputs[0].getValue(time),
             this.inputs[1].getValue(time)]);
-        this.outputs[0].setValue(result, time, false, true);
+        this.outputs[0].setValue(result, time + this.outputs[0].delay, false, true);
     }
     static add() {
         circuit.addModule(new AndGate('AND Gate'));
@@ -50,7 +50,7 @@ class OrGate extends Module {
         let result = State.or([
             this.inputs[0].getValue(time),
             this.inputs[1].getValue(time)]);
-        this.outputs[0].setValue(result, time, false, true);
+        this.outputs[0].setValue(result, time + this.outputs[0].delay, false, true);
     }
     static add() {
         circuit.addModule(new OrGate('OR Gate'));
@@ -72,7 +72,7 @@ class NandGate extends Module {
             this.inputs[0].getValue(time),
             this.inputs[1].getValue(time)]);
         result = State.not(result);
-        this.outputs[0].setValue(result, time, false, true);
+        this.outputs[0].setValue(result, time + this.outputs[0].delay, false, true);
     }
     static add() {
         circuit.addModule(new NandGate('NAND Gate', placeX, placeY));
@@ -94,7 +94,7 @@ class NorGate extends Module {
             this.inputs[0].getValue(time),
             this.inputs[1].getValue(time)]);
         result = State.not(result);
-        this.outputs[0].setValue(result, time, false, true);
+        this.outputs[0].setValue(result, time + this.outputs[0].delay, false, true);
     }
     static add() {
         circuit.addModule(new NorGate('NOR Gate', placeX, placeY));
@@ -115,7 +115,7 @@ class XorGate extends Module {
         let result = State.xor(
             this.inputs[0].getValue(time),
             this.inputs[1].getValue(time));
-        this.outputs[0].setValue(result, time, false, true);
+        this.outputs[0].setValue(result, time + this.outputs[0].delay, false, true);
     }
     static add() {
         circuit.addModule(new XorGate('XOR Gate', placeX, placeY));
@@ -136,7 +136,7 @@ class XnorGate extends Module {
         let result = State.not(State.xor(
             this.inputs[0].getValue(time),
             this.inputs[1].getValue(time)));
-        this.outputs[0].setValue(result, time, false, true);
+        this.outputs[0].setValue(result, time + this.outputs[0].delay, false, true);
     }
     static add() {
         circuit.addModule(new XnorGate('XNOR Gate', placeX, placeY));
@@ -163,8 +163,8 @@ class FullAdder extends Module {
         let p = State.xor(a, b);
         let sum = State.xor(p, cIn);
         let cOut = State.or([State.and([a, b]), State.and([p, cIn])]);
-        this.outputs[0].setValue(sum, time, false, true);
-        this.outputs[1].setValue(cOut, time, false, true);
+        this.outputs[0].setValue(sum, time + this.outputs[0].delay, false, true);
+        this.outputs[1].setValue(cOut, time + this.outputs[1].delay, false, true);
     }
     static add() {
         circuit.addModule(new FullAdder('Full Adder', placeX, placeY));
@@ -185,11 +185,11 @@ class TriStateBuffer extends Module {
         let input = this.inputs[0].getValue(time);
         let control = this.inputs[1].getValue(time);
         if (control == State.high)
-            this.outputs[0].setValue(input, time, false, true);
+            this.outputs[0].setValue(input, time + this.outputs[0].delay, false, true);
         else if (control == State.low)
-            this.outputs[0].setValue(State.highZ, time, false, true);
+            this.outputs[0].setValue(State.highZ, time + this.outputs[0].delay, false, true);
         else
-            this.outputs[0].setValue(State.err, time, false, true);
+            this.outputs[0].setValue(State.err, time + this.outputs[0].delay, false, true);
     }
     static add() {
         circuit.addModule(new TriStateBuffer('Tri-State Buffer', placeX, placeY));

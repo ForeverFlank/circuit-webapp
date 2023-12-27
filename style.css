@@ -39,6 +39,12 @@ button {
   padding: 1em;
 }
 
+.delete {
+  position: fixed;
+  right: 30px;
+  top: 60px;
+}
+
 #selecting {
   margin-top: 0.2em;
 }

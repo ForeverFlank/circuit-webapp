@@ -7,7 +7,7 @@
     <title>My Website</title>
     <link rel="stylesheet" href="./style.css">
   </head>
-  <body>
+  <body oncontextmenu="return false">
     <div class="top"></div>
     <div id="module-button-container">
       <button onclick="saveModule()">Make Module</button>
@@ -39,6 +39,7 @@
       <button onclick="setControlMode('edit')">Edit</button>
       <button onclick="setControlMode('pan')">Pan</button>
     </div>
+    <button class="delete" onclick="removePressedObject()">Delete</button>
     
     <div class="properties">
       <h3 id="selecting"></h3>
@@ -54,6 +55,7 @@
     <script src="src/classes/wire.js"></script>
     <script src="src/classes/modulenode.js"></script>
     <script src="src/classes/module.js"></script>
+    <script src="src/classes/circuit.js"></script>
     <script src="src/gates/basic.js"></script>
     <script src="src/gates/latches.js"></script>
     <!--

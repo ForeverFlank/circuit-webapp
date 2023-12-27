@@ -14,6 +14,7 @@ class ModuleNode {
         this.relativeY = relativeY;
         this.isDragging = false;
         this.isHovering = false;
+        this.linkedInputModule = null;
         gridNodeLookup[this.getPosition()] = this;
         // console.log(gridNodeLookup)
     }
@@ -102,6 +103,9 @@ class ModuleNode {
 
         if (evaluate) {
             this.owner.evaluate(time);
+        }
+        if (this.linkedInputModule != null) {
+            this.linkedInputModule.setInput(value, time);
         }
         this.connections.forEach((wire) => {
             let dest = wire.destination;
@@ -245,6 +249,12 @@ class ModuleNode {
         clickedNode.connect(dest.inputs[0]);
         clickedNode = null;
         return dest;
+    }
+    linkInputModule(module) {
+        this.linkedInputModule = module;
+    }
+    linkOutputModule(module) {
+        module.linkedOutputNode = this;
     }
 }
 

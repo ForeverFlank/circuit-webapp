@@ -3,6 +3,7 @@ class Wire {
         this.source = source;
         this.destination = destination;
         this.rendered = rendered;
+        this.isSubModuleWire = false;
         this.id = unique(name);
         this.isHovering = false;
     }
@@ -40,6 +41,7 @@ class Wire {
     }
     render() {
         if (!this.rendered) return;
+        if (this.isSubModuleWire) return;
 
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();
@@ -58,8 +60,10 @@ class Wire {
         let width = this.hovering() ? 10 : 6;
         rect(-length / 2, -width / 2, length, width);
         pop();
-        if (!(this.source.value == State.highZ &&
-            this.destination.value == State.highZ)) {
+        if (!((this.source.value == State.highZ ||
+               this.source.value == State.err) &&
+               (this.destination.value == State.highZ ||
+               this.destination.value == State.err))) {
             push();
             noStroke();
             fill(color(255, 255, 0));
