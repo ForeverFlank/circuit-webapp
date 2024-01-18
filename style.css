@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
 :root {
-  --light-gray: rgb(242, 242, 242);
-  --gray: rgb(178, 178, 178);
+  --light-gray: rgb(250, 250, 250);
+  --gray: #bec3c8;
 }
 
 * {
@@ -15,22 +15,98 @@ body {
   margin: 0px;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 button {
   height: 40px;
+  cursor: pointer;
+}
+
+.shadow {
+  box-shadow: 0 2px 8px rgba(105, 105, 105, 0.2);
 }
 
 .top {
-  background-color: var(--light-gray);
-  border-bottom: solid var(--gray) 2px;
+  background-color: white;
   width: 100%;
   height: 52px;
+  z-index: 10;
+}
+
+.top button {
+  background-color: transparent;
+  border: transparent;
+  height: 100%;
+  padding: 0 20px;
+  margin: 0 12px;
+}
+
+.top button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.gate-menu {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+  left: 0;
+  top: 52px;
+  width: 20vw;
+  height: 100%;
+  padding: 12px;
+  background-color: var(--gray);
+}
+
+.gate-menu .search {
+  border-radius: 5px;
+  border: #a5a9ae 1px solid;
+  width: calc(20vw - 13px);
+  height: 18px;
+  padding: 6px;
+}
+
+.search:focus {
+  outline: #3590ff 1px solid;
+  box-shadow: 0 0 4px #3590ff7e;
+}
+
+.accordion-button {
+  z-index: 5;
+  width: 100%;
+  height: 30px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(105, 105, 105, 0.16);
+  border: none;
+  border-radius: 5px;
+}
+
+.accordion-gate {
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  background-color: #dfe1e4;
+  padding: 6px;
+  padding-top: 10px;
+  margin-top: -12px;
+  border-radius: 0 0 11px 11px
+}
+
+.accordion-gate button {
+  overflow: hidden;
+  text-align: center;
+  font-size: 12px;
+  background-color: white;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(105, 105, 105, 0.16);
 }
 
 .properties {
-  background-color: var(--light-gray);
-  border: solid var(--gray) 2px;;
+  background-color: white;
+  border-radius: 10px;
   position: fixed;
   right: 30px;
   bottom: 30px;
@@ -39,10 +115,24 @@ button {
   padding: 1em;
 }
 
-.delete {
-  position: fixed;
+.controls {
+  position: absolute;
   right: 30px;
-  top: 60px;
+  top: 72px;
+}
+
+.controls button {
+  margin-left: 8px;
+  background-color: white;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  transition-duration: 300ms;
+}
+
+.controls button:hover {
+  transform: translateY(-2px);
 }
 
 #selecting {

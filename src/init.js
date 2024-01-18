@@ -8,7 +8,8 @@ function getContainerHeight() {
 var containerWidth = getContainerWidth();
 var containerHeight = getContainerHeight();
 
-const DEBUG = 1;
+const DEBUG = 0;
+const DEBUG_2 = 0;
 const NODE_HOVERING_RADIUS = 10;
 
 var mod = (a, b) => ((a % b) + b) % b;
@@ -47,4 +48,23 @@ function filterObject(obj, condition) {
             result[key] = obj[key];
             return result;
         }, {});
+}
+
+function hoveringOnDiv(e) {
+    let divIds = ['selecting-div', 'button-delete']
+    for (let i in divIds) {
+        let div = document.getElementById(divIds[i]);
+        let offsets = div.getBoundingClientRect();
+        let top = offsets.top;
+        let left = offsets.left;
+        let height = div.clientHeight;
+        let width = div.clientWidth;
+        if (mouseY > top &&
+            mouseY < top + height &&
+            mouseX > left &&
+            mouseX < left + width) {
+            return true;
+        }
+    }
+    return false;
 }

@@ -27,8 +27,7 @@ function grid() {
     push();
     noStroke();
     
-    fill(218);
-    stroke(218);
+    stroke('#e7e9eb');
     strokeWeight(1);
     let startX = floor((-view.x - roundedWidth / 2) / 20 / zoom) * 20;
     let startY = floor((-view.y - roundedHeight / 2) / 20 / zoom) * 20 ;
@@ -48,7 +47,7 @@ function grid() {
 
 function timingDiagram(xPos, yPos) {
     let nodes = circuit.getNodes();
-    xPos = 20;
+    xPos = 220;
     yPos = 600 - nodes.length * 15;
     push();
     fill(0);
@@ -72,7 +71,8 @@ function timingDiagram(xPos, yPos) {
         for (let t = 0; t <= 10; t += 0.2) {
             // console.log(x.getValue(t))
             let value = x.getValue(t);
-            stroke(State.color(value));
+            let color = value == null ? 255 : State.color(value);
+            stroke(color);
             value = (value >= 0) ? value : 0;
             beginShape();
             vertex(xPos + t * 20 + 50, yPos + 15 * i + value * -5 - 20);
@@ -86,7 +86,7 @@ function timingDiagram(xPos, yPos) {
 function draw() {
     mouseUpdate();
 
-    background(242);
+    background('#fbfcfc');
 
     // let w = 40 * ceil(containerWidth / 40);
     // let h = 40 * ceil(containerHeight / 40);
@@ -161,10 +161,9 @@ function objectsPress() {
 }
 
 var released = false;
-
 function touchStarted(e) {
+    if (hoveringOnDiv(e)) return;
     released = false;
-    
     if (controlMode == 'edit') {
         let pressedOnObject = objectsPress();
         if (pressedObject.id != 0) {
@@ -172,7 +171,7 @@ function touchStarted(e) {
         }
         if (!pressedOnObject) {
             if (mouseButton == LEFT) {
-                // selectedObject = { id: 0 };
+                selectedObject = { id: 0 };
             }
             if (mouseButton == CENTER) {
                 Controls.move(controls).pressed(e);
@@ -186,6 +185,7 @@ function touchStarted(e) {
 }
 
 function touchMoved(e) {
+    if (hoveringOnDiv(e)) return;
     if (controlMode == 'edit') {
         let pressedOnObject = false;
         for (let i = circuit.modules.length - 1; i >= 0; i--) {

@@ -8,6 +8,7 @@ class Wire {
         this.isHovering = false;
     }
     hovering() {
+        if (hoveringOnDiv()) return false;
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();
         let destinationX = this.destination.getCanvasX();
@@ -41,7 +42,7 @@ class Wire {
     }
     render() {
         if (!this.rendered) return;
-        if (this.isSubModuleWire) return;
+        if (this.isSubModuleWire && !DEBUG_2) return;
 
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();

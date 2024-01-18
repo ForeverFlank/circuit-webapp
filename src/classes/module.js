@@ -16,7 +16,7 @@ class Module {
         this.displayName = '';
         this.inputs = [];
         this.outputs = [];
-        this.linkedOutputNode = null;
+        this.linkedNode = null;
         this.isSubModule = false;
         this.isDragging = false;
         this.mouseDown = false;
@@ -25,6 +25,7 @@ class Module {
         this.offsetX = null; this.offsetY = null;
     }
     hovering() {
+        if (hoveringOnDiv()) return false;
         let hoveringNode = false;
         this.inputs.forEach((x) => { hoveringNode ||= x.hovering() });
         this.outputs.forEach((x) => { hoveringNode ||= x.hovering() });
@@ -290,7 +291,14 @@ function setInput(time) {
 class Output extends Module {
     constructor(name) {
         super(name, 2, 2);
+        this.inputValue = State.highZ;
         this.inputs = [new InputNode(this, 'in1', 0, 1, State.highZ)];
+    }
+    evaluate(time) {
+        super.evaluate(time);
+        if (this.linkedNode != null) {
+            this.linkedNode.setValue(this.inputValue);
+        }
     }
     render() {
         let char;
