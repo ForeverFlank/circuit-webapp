@@ -226,10 +226,11 @@ class ModuleNode {
         } else if (this.isDragging) {
         } else {
         }
-        stroke(0);
-        strokeWeight(2);
+        // stroke(0);
+        // strokeWeight(2);
+        noStroke()
         fill(State.color(this.value));
-        circle(netX, netY, this.hovering() ? 14 : 10);
+        circle(netX, netY, this.hovering() ? 9 : 6);
         if (DEBUG) {
             push();
             // text(this.name, netX, netY - 12);

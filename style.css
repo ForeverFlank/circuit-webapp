@@ -3,11 +3,13 @@
 :root {
   --light-gray: rgb(250, 250, 250);
   --gray: #bec3c8;
+  --dark-gray: #585a60;
 }
 
 * {
   user-select: none;
   font-family: 'Inter', sans-serif;
+  color: black;
 }
 
 html,
@@ -28,22 +30,58 @@ button {
 }
 
 .top {
+  z-index: 15;
   background-color: white;
   width: 100%;
   height: 52px;
-  z-index: 10;
 }
 
-.top button {
+.top-button {
   background-color: transparent;
   border: transparent;
-  height: 100%;
+  height: 52px;
   padding: 0 20px;
   margin: 0 12px;
 }
 
-.top button:hover {
+.top-button:hover {
   background-color: rgba(0, 0, 0, 0.05);
+}
+
+.top-accordion {
+  z-index: 10;
+  position: fixed;
+  left: 12px;
+  top: 52px;
+  background-color: white;
+  width: 10em;
+  border-radius: 5px;
+}
+
+.top-accordion button {
+  background-color: transparent;
+  border: none;
+}
+
+.top-accordion button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.top-name {
+  position: absolute;
+  z-index: 10;
+  top: 26px;
+  right: 50px;
+  transform: translateY(-50%);
+  padding: 6px;
+  height: 24px;
+  border: transparent 1px solid;
+  border-radius: 5px;
+}
+
+.top-name:hover {
+  border: #a5a9ae 1px solid;
+  border-radius: 5px;
 }
 
 .gate-menu {
@@ -53,7 +91,7 @@ button {
   row-gap: 8px;
   left: 0;
   top: 52px;
-  width: 20vw;
+  width: 160px;
   height: 100%;
   padding: 12px;
   background-color: var(--gray);
@@ -62,12 +100,11 @@ button {
 .gate-menu .search {
   border-radius: 5px;
   border: #a5a9ae 1px solid;
-  width: calc(20vw - 13px);
   height: 18px;
   padding: 6px;
 }
 
-.search:focus {
+.search:focus, .top-name:focus{
   outline: #3590ff 1px solid;
   box-shadow: 0 0 4px #3590ff7e;
 }
@@ -133,6 +170,29 @@ button {
 
 .controls button:hover {
   transform: translateY(-2px);
+}
+
+.menu {
+  z-index: 20;
+  position: absolute;
+  width: 60vw;
+  height: 60vh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 10px;
+}
+
+.background-blur {
+  z-index: 10;
+  position: absolute;
+  top: -3vw;
+  left: -3vw;
+  width: 106vw;
+  height: 106vh;
+  background-color: #00000080;
+  backdrop-filter: blur(2px);
 }
 
 #selecting {

@@ -34,9 +34,22 @@ class State {
         return State.or([p, q]);
     }
     static color(s) {
-        if (s == State.err) return color(128, 0, 0);
-        if (s == State.highZ) return color(128, 128, 128);
-        if (s == State.low) return color(255, 0, 0);
-        if (s == State.high) return color(0, 255, 0);
+        if (s == State.err) return color('#990000');
+        if (s == State.highZ) return color('#a0a0a0');
+        if (s == State.low) return color('#ed2525');
+        if (s == State.high) return color('#4fe52d');
+    }
+    static char(s) {
+        let char;
+        if (s == State.low) {
+            char = '0';
+        } else if (s == State.high) {
+            char = '1';
+        } else if (s == State.highZ) {
+            char = 'Z';
+        } else {
+            char = 'X';
+        }
+        return char
     }
 }

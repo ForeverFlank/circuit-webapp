@@ -115,28 +115,40 @@ class Module {
     remove() {
         circuit.removeModule(this);
     }
-    render(name = this.displayName) {
+    render(label = this.displayName, labelSize = 12, labelOffsetX = 0, labelOffsetY = 0, src) {
         // let hovering = this.isHovering();
+        push();
         if (this.isDragging) {
             fill(160);
+            tint(160);
         } else if (this.hovering()) {
             fill(220);
+            tint(220);
         } else {
             fill(255);
+            tint(255);
         }
-        stroke(0);
-        strokeWeight(2);
-        rect(this.x, this.y, this.width * 20, this.height * 20);
+        if (src != null) {
+            image(sprites[src], this.x, this.y, 60, 40)
+        } else {
+            stroke(0);
+            strokeWeight(2);
+            rect(this.x, this.y, this.width * 20, this.height * 20);
+        }
         noStroke();
         fill(0);
         textAlign(CENTER, CENTER);
-        text(name, this.width * 20 / 2 + this.x, this.height * 20 / 2 + this.y);
+        textSize(labelSize)
+        text(label,
+            this.width * 20 / 2 + this.x + labelOffsetX,
+            this.height * 20 / 2 + this.y + labelOffsetY);
         if (DEBUG) {
             push();
             // text(this.id.slice(0, 10), this.x, this.y + 40);
             // text(this.name, this.x + this.width * 10, this.y + 52);
             pop();
         }
+        pop();
     }
     pressed() {
         this.isHovering = this.hovering();
@@ -248,9 +260,9 @@ class WireNode extends Module {
 
 class Input extends Module {
     constructor(name) {
-        super(name, 2, 2);
+        super(name, 3, 2);
         this.outputValue = State.low;
-        this.outputs = [new OutputNode(this, 'out1', 2, 1, State.low, 0)];
+        this.outputs = [new OutputNode(this, 'out1', 3, 1, State.low, 0)];
         this.isSubmoduleIO = false;
     }
     setInput(value, time = 0) {
@@ -261,17 +273,8 @@ class Input extends Module {
         super.evaluate(time);
     }
     render() {
-        let char;
-        if (this.outputValue == State.low) {
-            char = '0';
-        } else if (this.outputValue == State.high) {
-            char = '1';
-        } else if (this.outputValue == State.highZ) {
-            char = 'Z';
-        } else {
-            char = 'X';
-        }
-        super.render(char);
+        let char = State.char(this.outputValue);
+        super.render(char, 12, -10, 0, 'input');
     }
     released() {
         super.released();

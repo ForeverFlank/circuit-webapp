@@ -68,3 +68,9 @@ function hoveringOnDiv(e) {
     }
     return false;
 }
+
+let sprites = {};
+function preload() {
+    sprites['not'] = loadImage('sprites/not.png');
+    sprites['input'] = loadImage('sprites/input.png');
+}

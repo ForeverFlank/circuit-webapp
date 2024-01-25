@@ -90,6 +90,7 @@ function draw() {
 
     // let w = 40 * ceil(containerWidth / 40);
     // let h = 40 * ceil(containerHeight / 40);
+
     push();
     translate(width / 2, height / 2);
     translate(controls.view.x, controls.view.y);
@@ -240,6 +241,7 @@ function touchEnded(e) {
     pressedObject = { id: 0 };
     released = true;
     // return false;
+    // console.log(circuit)
 }
 
 // new p5(sketch);

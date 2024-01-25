@@ -136,7 +136,7 @@ class Circuit extends Module {
                                     x.connections.forEach(w => {
                                         let d = w.destination;
                                         stack2.push(d);
-                                    })
+                                    });
                                 }
                             }
                             traversed.delete(outputNode.id);
@@ -212,51 +212,47 @@ class Circuit extends Module {
             });
         if (iter >= 1000) console.log('flowover')
     }
-    toModule(width) {
+    toModule() {
+        let newModule = new Circuit();
+        newModule.modules = this.modules;
+        newModule.inputModules = this.inputModules;
+        newModule.outputModules = this.outputModules;
+        newModule.name = this.name;
+        newModule.id = unique(this.name);
+        newModule.displayName = this.name;
+        let width = this.width;
+        newModule.width = width;
+        newModule.height = max(this.inputModules.length, this.outputModules.length) + 1;
+
         gridNodeLookup = {};
-        let inputs = this.inputModules;
-        let outputs = this.outputModules;
+        let inputs = newModule.inputModules;
+        let outputs = newModule.outputModules;
         for (let i in inputs) {
-            let newNode = new ModuleNode(this, 'input' + i,
+            let newNode = new ModuleNode(newModule, 'input' + i,
                                          parseInt(0), parseInt(i));
             let [wire1, wire2] = newNode.connect(inputs[i].outputs[0]);
             wire1.isSubModuleWire = true;
             wire2.isSubModuleWire = true;
-            // newNode.linkModule(inputs[i]);
-            this.inputs.push(newNode);
-            // this.inputs.push(inputs[i].outputs[0]);
-            // this.inputs[i].owner = this;
-            // this.inputs[i].nodeType = 'node';
-            // this.inputs[i].relativeX = parseInt(0);
-            // this.inputs[i].relativeY = parseInt(i);
-            // this.modules = this.modules.filter(x => x.id != inputs[i].id);
-            // this.inputModules = this.inputModules.filter(x => x.id != inputs[i].id);
+            newModule.inputs.push(newNode);
         }
         for (let i in outputs) {
-            let newNode = new ModuleNode(this, 'output' + i,
+            let newNode = new ModuleNode(newModule, 'output' + i,
                                          parseInt(width), parseInt(i));
-            // newNode.linkModule(outputs[i]);
             let [wire1, wire2] = newNode.connect(outputs[i].inputs[0]);
             wire1.isSubModuleWire = true;
             wire2.isSubModuleWire = true;
-            this.outputs.push(newNode);
-            // this.outputs.push(outputs[i].inputs[0]);
-            // this.outputs[i].owner = this;
-            // this.outputs[i].nodeType = 'node';
-            // this.outputs[i].relativeX = parseInt(width);
-            // this.outputs[i].relativeY = parseInt(i);
-            // this.modules = this.modules.filter(x => x.id != outputs[i].id);
-            // this.outputModules = this.outputModules.filter(x => x.id != outputs[i].id);
+            newModule.outputs.push(newNode);
         }
-        this.inputs.concat(this.outputs).forEach(x => {
+        newModule.inputs.concat(newModule.outputs).forEach(x => {
             x.connections.forEach(wire => {
                 wire.isSubModuleWire = true;
             });
         });
-        // this.inputs = this.inputModules.map(x => x.outputs[0]);
-        // this.outputs = this.outputModules.map(x => x.inputs[0]);
-        this.isSubModule = true;
-        return this;
+        newModule.isSubModule = true;
+        return newModule;
+    }
+    add() {
+        circuit.addModule(this.toModule());
     }
 }
 
@@ -264,7 +260,7 @@ let nameID = 0;
 var circuit = new Circuit('Circuit');
 var customModules = {};
 
-function saveModule() {
+function toSubModule() {
     let name = 'MODULE' + nameID;
     // let newModule = Object.assign(Object.create(Object.getPrototypeOf(circuit)), circuit);
     let newModule = circuit;
@@ -275,16 +271,19 @@ function saveModule() {
     newModule.displayName = name;
     newModule.width = width;
     newModule.height = max(newModule.inputModules.length, newModule.outputModules.length) + 1;
-    customModules[name] = newModule.toModule(width);
+    customModules[name] = newModule;
     // console.log(customModules[name]);
 
     circuit = new Circuit('Circuit');
 
     let button = document.createElement('button');
     button.textContent = name;
-    button.addEventListener('click', () => circuit.addModule(customModules[name]));
+    button.addEventListener('click', () => {
+        customModules[name].add(width);
+        console.log('>>', circuit);
+    });
     document.getElementById('module-button-container').appendChild(button);
 
-    console.log(customModules[name])
+    
     nameID++;
 }

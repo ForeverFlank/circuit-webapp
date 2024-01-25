@@ -1,9 +1,12 @@
 class NotGate extends Module {
     constructor(name) {
-        super(name, 2, 2);
+        super(name, 3, 2);
         this.inputs = [new InputNode(this, 'Input 1', 0, 1)];
-        this.outputs = [new OutputNode(this, 'Output', 2, 1)];
+        this.outputs = [new OutputNode(this, 'Output', 3, 1)];
         this.displayName = 'NOT';
+    }
+    render() {
+        super.render(this.displayName, 8, -8, 0, 'not')
     }
     evaluate(time) {
         super.evaluate(time);

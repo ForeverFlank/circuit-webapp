@@ -9,7 +9,14 @@
   </head>
   <body oncontextmenu="return false">
     <div class="top shadow">
-      <button>Circuits</button>
+      <div>
+        <button class="top-button" onclick="openMenu('menu-circuits', 'grid')">Circuits</button>
+        <div class="top-accordion shadow" id="menu-circuits" style="display: none;">
+          <button onclick="openSaveMenu()">Save</button>
+          <button onclick="openLoadMenu()">Load/Import</button>
+        </div>
+      </div>
+      <input class="top-name" type="text" placeholder="Untitled">
     </div>
     
     <div id="canvas-container"></div>
@@ -17,7 +24,7 @@
     <div class="gate-menu">
       <input class="search" type="text" placeholder="Search">
 
-      <button class="accordion-button" onclick="openGateMenu('gate-basic', 'grid')">Basic</button>
+      <button class="accordion-button" onclick="openMenu('gate-basic', 'grid')">Basic</button>
       <div class="accordion-gate" id="gate-basic" style="display: none;">
         <button onclick="Input.add()">INPUT</button>
         <button onclick="Output.add()">OUTPUT</button>
@@ -32,12 +39,12 @@
         <button onclick="TriStateBuffer.add()">Tri-State Buffer</button>
       </div>
       
-      <button class="accordion-button" onclick="openGateMenu('gate-latches', 'grid')">Latches</button>
+      <button class="accordion-button" onclick="openMenu('gate-latches', 'grid')">Latches</button>
       <div class="accordion-gate" id="gate-latches" style="display: none;">
         <button onclick="SRLatch.add()">SR Latch</button>
       </div>
       <div id="module-button-container">
-        <button onclick="saveModule()">Make Module</button>
+        <button onclick="toSubModule()">Make Module</button>
       </div>
     </div>
 
@@ -53,7 +60,12 @@
       <input style="display: none;" type="range" min="-1" max="1" value="0" step="1" id="input-value" oninput="setInput()">
     </div>
 
-    <p id="fps-counter" style="position: fixed; left: 80%; top: 0%;">0</p>
+    <div id="background-blur" class="background-blur" style="display: none;""></div>
+    <div id="save-menu" class="menu shadow" style="display: none;">
+
+    </div>
+
+    <p id="fps-counter" style="position: fixed; left: 89%; top: 16%;">0</p>
     
     <script src="src/p5.min.js"></script>
     <script src="src/init.js"></script>

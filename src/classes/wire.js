@@ -53,12 +53,13 @@ class Wire {
         let angle = atan2(destinationY - sourceY, destinationX - sourceX);
 
         push();
-        stroke(0);
-        strokeWeight(2);
+        // stroke(0);
+        // strokeWeight(2);
+        noStroke();
         fill(State.color(this.source.value));
         translate((destinationX + sourceX) / 2, (destinationY + sourceY) / 2);
         rotate(angle);
-        let width = this.hovering() ? 10 : 6;
+        let width = this.hovering() ? 6 : 4;
         rect(-length / 2, -width / 2, length, width);
         pop();
         if (!((this.source.value == State.highZ ||
@@ -75,7 +76,7 @@ class Wire {
                 let t = (speed * Date.now() / (length * dotDistance) + i / dotCount) % 1;
                 let deltaX = destinationX - sourceX;
                 let deltaY = destinationY - sourceY;
-                circle(sourceX + deltaX * t, sourceY + deltaY * t, 5);
+                circle(sourceX + deltaX * t, sourceY + deltaY * t, 4);
             }
             pop();
         }
