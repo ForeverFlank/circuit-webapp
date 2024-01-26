@@ -8,6 +8,7 @@ class Wire {
         this.isHovering = false;
     }
     hovering() {
+        if (controlMode == 'pan') return false;
         if (hoveringOnDiv()) return false;
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();

@@ -209,6 +209,7 @@ class ModuleNode {
         }
     }
     hovering() {
+        if (controlMode == 'pan') return false;
         if (hoveringOnDiv()) return false;
         let result =
             (mouseCanvasX - this.getCanvasX()) ** 2 +
@@ -231,6 +232,9 @@ class ModuleNode {
         noStroke()
         fill(State.color(this.value));
         circle(netX, netY, this.hovering() ? 9 : 6);
+        if (this.hovering()) {
+            hoveringNode = this;
+        }
         if (DEBUG) {
             push();
             // text(this.name, netX, netY - 12);

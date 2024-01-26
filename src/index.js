@@ -9,6 +9,7 @@ var canvas;
 function setup() {
     canvas = createCanvas(containerWidth, containerHeight);
     canvas.parent('canvas-container');
+    textFont(fontRegular);
 }
 
 function windowResized() {
@@ -83,8 +84,26 @@ function timingDiagram(xPos, yPos) {
     pop();
 }
 
+function nodeHint() {
+    push();
+    let x = hoveringNode.relativeX * 20 + hoveringNode.owner.x;
+    let y = hoveringNode.relativeY * 20 + hoveringNode.owner.y;
+    let margin = 3;
+    textAlign(CENTER, CENTER);
+    let bbox = fontRegular.textBounds(hoveringNode.name, x, y - 16);
+    fill(240);
+    rect(bbox.x - margin, bbox.y - margin,
+        bbox.w + margin * 2, bbox.h + margin * 2);
+    fill(0);
+    text(hoveringNode.name, x, y - 16);
+    pop();
+}
+
 function draw() {
     mouseUpdate();
+    placeX = -Math.round(controls.view.x / 20 / controls.view.zoom) * 20;
+    placeY = -Math.round(controls.view.y / 20 / controls.view.zoom) * 20;
+    hoveringNode = {};
 
     background('#fbfcfc');
 
@@ -110,10 +129,15 @@ function draw() {
     circuit.modules.forEach((x) => { x.render() });
     wires.forEach((x) => x.render());
     nodes.forEach((x) => x.render());
+
+    if (Object.keys(hoveringNode).length != 0) {
+        nodeHint();
+    }
+
     pop();
 
     timingDiagram();
-    
+
     let fps = frameRate();
     document.getElementById('fps-counter').innerText = fps.toFixed(2);
 }

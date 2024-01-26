@@ -12,8 +12,15 @@
       <div>
         <button class="top-button" onclick="openMenu('menu-circuits', 'grid')">Circuits</button>
         <div class="top-accordion shadow" id="menu-circuits" style="display: none;">
-          <button onclick="openSaveMenu()">Save</button>
-          <button onclick="openLoadMenu()">Load/Import</button>
+          <button onclick="openSaveMenu()"><span>
+            Save
+          </span></button>
+          <button onclick="openSaveMenu()"><span>
+            Save As
+          </span></button>
+          <button onclick="openLoadMenu()"><span>
+            Load/Import
+          </span></button>
         </div>
       </div>
       <input class="top-name" type="text" placeholder="Untitled">
@@ -62,7 +69,6 @@
 
     <div id="background-blur" class="background-blur" style="display: none;""></div>
     <div id="save-menu" class="menu shadow" style="display: none;">
-
     </div>
 
     <p id="fps-counter" style="position: fixed; left: 89%; top: 16%;">0</p>

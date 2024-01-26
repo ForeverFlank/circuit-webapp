@@ -6,7 +6,8 @@ class NotGate extends Module {
         this.displayName = 'NOT';
     }
     render() {
-        super.render(this.displayName, 8, -8, 0, 'not')
+        super.render(this.displayName, 8, -8, 0,
+            'basic/not')
     }
     evaluate(time) {
         super.evaluate(time);
@@ -20,12 +21,16 @@ class NotGate extends Module {
 
 class AndGate extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 4, 3);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
-        this.outputs = [new OutputNode(this, 'Output', 3, 1)];
+        this.outputs = [new OutputNode(this, 'Output', 4, 1)];
         this.displayName = 'AND';
+    }
+    render() {
+        super.render(this.displayName, 12, -5, -10,
+            'basic/and', 0, -20, 80, 80)
     }
     evaluate(time) {
         super.evaluate(time);
@@ -41,12 +46,16 @@ class AndGate extends Module {
 
 class OrGate extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 4, 3);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
-        this.outputs = [new OutputNode(this, 'Output', 3, 1)];
+        this.outputs = [new OutputNode(this, 'Output', 4, 1)];
         this.displayName = 'OR';
+    }
+    render() {
+        super.render(this.displayName, 12, -5, -10,
+            'basic/or', 0, -20, 80, 80)
     }
     evaluate(time) {
         super.evaluate(time);
@@ -62,12 +71,16 @@ class OrGate extends Module {
 
 class NandGate extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 4, 3);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
-        this.outputs = [new OutputNode(this, 'Output', 3, 1)];
+        this.outputs = [new OutputNode(this, 'Output', 4, 1)];
         this.displayName = 'NAND';
+    }
+    render() {
+        super.render(this.displayName, 12, -5, -10,
+            'basic/nand', 0, -20, 80, 80)
     }
     evaluate(time) {
         super.evaluate(time);
@@ -84,12 +97,16 @@ class NandGate extends Module {
 
 class NorGate extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 4, 3);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
-        this.outputs = [new OutputNode(this, 'Output', 3, 1)];
+        this.outputs = [new OutputNode(this, 'Output', 4, 1)];
         this.displayName = 'NOR';
+    }
+    render() {
+        super.render(this.displayName, 12, -5, -10,
+            'basic/nor', 0, -20, 80, 80)
     }
     evaluate(time) {
         super.evaluate(time);
@@ -106,12 +123,16 @@ class NorGate extends Module {
 
 class XorGate extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 4, 3);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
-        this.outputs = [new OutputNode(this, 'Output', 3, 1)];
+        this.outputs = [new OutputNode(this, 'Output', 4, 1)];
         this.displayName = 'XOR';
+    }
+    render() {
+        super.render(this.displayName, 12, -5, -10,
+            'basic/xor', 0, -20, 80, 80)
     }
     evaluate(time) {
         super.evaluate(time);
@@ -127,12 +148,16 @@ class XorGate extends Module {
 
 class XnorGate extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 4, 3);
         this.inputs = [
             new InputNode(this, 'Input 1', 0, 0),
             new InputNode(this, 'Input 2', 0, 2)];
-        this.outputs = [new OutputNode(this, 'Output', 3, 1)];
+        this.outputs = [new OutputNode(this, 'Output', 4, 1)];
         this.displayName = 'XNOR';
+    }
+    render() {
+        super.render(this.displayName, 12, -5, -10,
+            'basic/xnor', 0, -20, 80, 80)
     }
     evaluate(time) {
         super.evaluate(time);

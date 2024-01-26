@@ -30,6 +30,7 @@ function setClickedNode(node) {
 var gridNodeLookup = {};
 var pressedObject = { id: 0 };
 var selectedObject = {};
+var hoveringNode = {};
 
 var placeX = 0;
 var placeY = 0;
@@ -69,8 +70,28 @@ function hoveringOnDiv(e) {
     return false;
 }
 
-let sprites = {};
+var sprites = {};
+var fontRegular;
+let spritesList = { 'basic': ['input', 'output', 'not', 'and', 'or', 'xor', 'nand', 'nor', 'xnor'] }
 function preload() {
+    
+    Object.keys(spritesList).forEach((key) => {
+        spritesList[key].forEach((item) => {
+            sprites[`${key}/${item}`] = loadImage(`sprites/${key}/${item}.png`);
+        });
+    });
+    /*
     sprites['not'] = loadImage('sprites/not.png');
     sprites['input'] = loadImage('sprites/input.png');
+    sprites['output'] = loadImage('sprites/output.png');
+    sprites['and'] = loadImage('sprites/and.png');
+    sprites['nand'] = loadImage('sprites/nand.png');
+    sprites['or'] = loadImage('sprites/or.png');
+    sprites['nor'] = loadImage('sprites/nor.png');
+    sprites['xor'] = loadImage('sprites/xor.png');
+    sprites['xnor'] = loadImage('sprites/xnor.png');
+    */
+
+    fontRegular = loadFont('Inter-Regular.ttf');
+
 }

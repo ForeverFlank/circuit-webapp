@@ -25,15 +25,16 @@ class Module {
         this.offsetX = null; this.offsetY = null;
     }
     hovering() {
+        if (controlMode == 'pan') return false;
         if (hoveringOnDiv()) return false;
-        let hoveringNode = false;
-        this.inputs.forEach((x) => { hoveringNode ||= x.hovering() });
-        this.outputs.forEach((x) => { hoveringNode ||= x.hovering() });
+        let isHoveringNode = false;
+        this.inputs.forEach((x) => { isHoveringNode ||= x.hovering() });
+        this.outputs.forEach((x) => { isHoveringNode ||= x.hovering() });
         let hovering = mouseCanvasX > this.x &&
             mouseCanvasX < this.x + this.width * 20 &&
             mouseCanvasY > this.y &&
             mouseCanvasY < this.y + this.height * 20 &&
-            !hoveringNode;
+            !isHoveringNode;
         return hovering;
     }
     evaluate(time, checkDisconnectedInput = true, evaluated = new Set()) {
@@ -115,7 +116,7 @@ class Module {
     remove() {
         circuit.removeModule(this);
     }
-    render(label = this.displayName, labelSize = 12, labelOffsetX = 0, labelOffsetY = 0, src) {
+    render(label = this.displayName, labelSize = 12, labelOffsetX = 0, labelOffsetY = 0, src, imageOffsetX = 0, imageOffsetY = 0, imageWidth = this.width * 20, imageHeight = this.height * 20) {
         // let hovering = this.isHovering();
         push();
         if (this.isDragging) {
@@ -129,19 +130,19 @@ class Module {
             tint(255);
         }
         if (src != null) {
-            image(sprites[src], this.x, this.y, 60, 40)
+            image(sprites[src], this.x + imageOffsetX, this.y + imageOffsetY, imageWidth, imageHeight);
         } else {
             stroke(0);
             strokeWeight(2);
-            rect(this.x, this.y, this.width * 20, this.height * 20);
+            rect(this.x + imageOffsetX, this.y + imageOffsetY, this.width * 20, this.height * 20);
         }
         noStroke();
         fill(0);
         textAlign(CENTER, CENTER);
-        textSize(labelSize)
+        textSize(labelSize);
         text(label,
             this.width * 20 / 2 + this.x + labelOffsetX,
-            this.height * 20 / 2 + this.y + labelOffsetY);
+            this.height * 20 / 2 + this.y + labelOffsetY - textSize() * 0.2);
         if (DEBUG) {
             push();
             // text(this.id.slice(0, 10), this.x, this.y + 40);
@@ -260,9 +261,9 @@ class WireNode extends Module {
 
 class Input extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 2, 2);
         this.outputValue = State.low;
-        this.outputs = [new OutputNode(this, 'out1', 3, 1, State.low, 0)];
+        this.outputs = [new OutputNode(this, 'out1', 2, 1, State.low, 0)];
         this.isSubmoduleIO = false;
     }
     setInput(value, time = 0) {
@@ -274,7 +275,7 @@ class Input extends Module {
     }
     render() {
         let char = State.char(this.outputValue);
-        super.render(char, 12, -10, 0, 'input');
+        super.render(char, 12, -5, 0, 'basic/input');
     }
     released() {
         super.released();
@@ -304,18 +305,8 @@ class Output extends Module {
         }
     }
     render() {
-        let char;
-        let value = this.inputs[0].value;
-        if (value == State.low) {
-            char = '0';
-        } else if (value == State.high) {
-            char = '1';
-        } else if (value == State.highZ) {
-            char = 'Z';
-        } else {
-            char = 'X';
-        }
-        super.render(char);
+        let char = State.char(this.inputValue);
+        super.render(char, 12, 0, 0, 'basic/output');
     }
     static add() {
         let module = new Output('Output');

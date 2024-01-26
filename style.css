@@ -61,6 +61,11 @@ button {
 .top-accordion button {
   background-color: transparent;
   border: none;
+  text-align: left;
+}
+
+.top-accordion button span {
+  margin-left: 1em;
 }
 
 .top-accordion button:hover {
@@ -146,7 +151,7 @@ button {
   border-radius: 10px;
   position: fixed;
   right: 30px;
-  bottom: 30px;
+  top: 128px;
   width: 200px;
   height: 200px;
   padding: 1em;
