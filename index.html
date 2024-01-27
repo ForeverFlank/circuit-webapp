@@ -50,6 +50,12 @@
       <div class="accordion-gate" id="gate-latches" style="display: none;">
         <button onclick="SRLatch.add()">SR Latch</button>
       </div>
+
+      <button class="accordion-button" onclick="openMenu('gate-nbit', 'grid')">N-Bit</button>
+      <div class="accordion-gate" id="gate-nbit" style="display: none;">
+        <button onclick="NBitInput.add()">N-bit Input</button>
+      </div>
+
       <div id="module-button-container">
         <button onclick="toSubModule()">Make Module</button>
       </div>

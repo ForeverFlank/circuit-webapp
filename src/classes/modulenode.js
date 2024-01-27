@@ -110,7 +110,7 @@ class ModuleNode {
             this.owner.inputValue = value;
             if (this.owner.linkedNode != null) {
                 console.log('hit out')
-                this.owner.linkedNode.setValue(value, time);
+                this.owner.linkedNode.setValue(value, index, time);
             }
         }
         if (this.linkedModule != null) {
@@ -119,18 +119,23 @@ class ModuleNode {
                 this.linkedModule.setInput(value, time);
             }
         }
-        
 
         this.connections.forEach((wire) => {
             let dest = wire.destination;
             if (!traversed.has(dest.id)) {
-                if (!this.isHighZ || this.value != State.highZ) {
+                if (!this.isHighZz || this.value != State.highZ) {
                     dest.setValue(this.value, time, false, false, inputDelay, traversed.add(this.id));
                 }
                 if (dest.nodeType != 'output') {
                     // dest.owner.evaluate();
                 }
             }
+        });
+    }
+    setValues(value, time, evaluate = true, setByModule = false, inputDelay = 0, traversed = new Set()) {
+        Object.entries(value.value).forEach((x) => {
+            let index = x[0];
+            this.setValuesetValue(value, index, time, evaluate, setByModule, inputDelay, traversed);
         });
     }
     getCanvasX() {
