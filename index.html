@@ -1,101 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>My Website</title>
-    <link rel="stylesheet" href="./style.css">
-  </head>
-  <body oncontextmenu="return false">
-    <div class="top shadow">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>My Website</title>
+  <link rel="stylesheet" href="./output.css" />
+</head>
+
+<body oncontextmenu="return false">
+  <div class="flex sticky top-0 h-14 shadow-md z-20 bg-white">
+    <div>
+      <button class="h-full left-3 mx-3 my-0 px-4 py-0 top-button" onclick="openMenu('menu-circuits', 'grid')">
+        Circuits
+      </button>
+      <div class="top-accordion top-14 left-3 shadow" id="menu-circuits" style="display: none">
+        <button onclick="openSaveMenu()">
+          <span> Save </span>
+        </button>
+        <button onclick="openSaveMenu()">
+          <span> Save As </span>
+        </button>
+        <button onclick="openLoadMenu()">
+          <span> Load/Import </span>
+        </button>
+      </div>
+    </div>
+
+    <input class="top-name" type="text" placeholder="Untitled" />
+  </div>
+
+  <div id="canvas-container"></div>
+  <!--canvas id="c" width="500" height="400" style="border: 1px solid black"></canvas-->
+  <div class="z-20 absolute flex flex-col gap-y-2 left-0 top-14 w-3/12 h-full p-3 bg-gray-200 shadow-lg">
+    <input class="p-2 h-6 text-sm rounded-md focus-outline" type="text" placeholder="Search" />
+
+    <button class="z-20 h-6 text-sm bg-white" onclick="openMenu('gate-basic', 'grid')">
+      Basic
+    </button>
+    <div class="accordion-gate" id="gate-basic" style="display: none">
+      <button class="text-xs" onclick="Input.add()">INPUT</button>
+      <button class="text-xs" onclick="Output.add()">OUTPUT</button>
+      <button class="text-xs" onclick="NotGate.add()">NOT</button>
+      <button class="text-xs" onclick="AndGate.add()">AND</button>
+      <button class="text-xs" onclick="OrGate.add()">OR</button>
+      <button class="text-xs" onclick="NandGate.add()">NAND</button>
+      <button class="text-xs" onclick="NorGate.add()">NOR</button>
+      <button class="text-xs" onclick="XorGate.add()">XOR</button>
+      <button class="text-xs" onclick="XnorGate.add()">XNOR</button>
+      <button class="text-xs" onclick="HalfAdder.add()">
+        Half Adder
+      </button>
+      <button class="text-xs" onclick="FullAdder.add()">
+        Full Adder
+      </button>
+      <button class="text-xs" onclick="TriStateBuffer.add()">
+        Tri-State Buffer
+      </button>
+    </div>
+
+    <button class="z-20 h-6 text-sm bg-white" onclick="openMenu('gate-latches', 'grid')">
+      Latches
+    </button>
+    <div class="accordion-gate" id="gate-latches" style="display: none">
+      <button class="text-xs" onclick="SRLatch.add()">
+        SR Latch
+      </button>
+      <button class="text-xs" onclick="DLatch.add()">D Latch</button>
+    </div>
+
+    <button class="z-20 h-6 text-sm bg-white" onclick="openMenu('gate-nbit', 'grid')">
+      N-Bit
+    </button>
+    <div class="accordion-gate" id="gate-nbit" style="display: none">
+      <button class="text-xs" onclick="Splitter.add()">
+        Splitter
+      </button>
+      <button class="text-xs" onclick="NBitInput.add()">
+        N-bit Input
+      </button>
+    </div>
+
+    <div id="module-button-container">
+      <button onclick="toSubModule()">Make Module</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="shadow-sm text-sm" onclick="setControlMode('edit')">
+      Edit
+    </button>
+    <button class="shadow-sm" onclick="setControlMode('pan')">
+      Pan
+    </button>
+    <button class="shadow-sm" id="button-delete" onclick="removePressedObject()">
+      Delete
+    </button>
+  </div>
+
+  <div id="selecting-div" class="fixed right-8 top-32 w-48 p-4 rounded-xl bg-white shadow-md" style="display: none">
+    <h3 id="selecting-name" class="font-bold">Properties</h3>
+    <div id="selecting-input" style="display: none">
+      <input type="range" min="-1" max="1" id="input-value" value="0" step="1" oninput="setInput()" />
+    </div>
+    <div id="selecting-splitter" style="display: none">
+      <div class="flex justify-between">
+        <p class="text-sm">Bit Width</p>
+        <input class="border p-1 h-5 w-12 rounded-sm text-sm focus-outline" type="number" min="1" value="1"
+          oninput="setSplitter()" />
+      </div>
       <div>
-        <button class="top-button" onclick="openMenu('menu-circuits', 'grid')">Circuits</button>
-        <div class="top-accordion shadow" id="menu-circuits" style="display: none;">
-          <button onclick="openSaveMenu()"><span>
-            Save
-          </span></button>
-          <button onclick="openSaveMenu()"><span>
-            Save As
-          </span></button>
-          <button onclick="openLoadMenu()"><span>
-            Load/Import
-          </span></button>
-        </div>
-      </div>
-      <input class="top-name" type="text" placeholder="Untitled">
-    </div>
-    
-    <div id="canvas-container"></div>
-    <!--canvas id="c" width="500" height="400" style="border: 1px solid black"></canvas-->
-    <div class="gate-menu">
-      <input class="search" type="text" placeholder="Search">
-
-      <button class="accordion-button" onclick="openMenu('gate-basic', 'grid')">Basic</button>
-      <div class="accordion-gate" id="gate-basic" style="display: none;">
-        <button onclick="Input.add()">INPUT</button>
-        <button onclick="Output.add()">OUTPUT</button>
-        <button onclick="NotGate.add()">NOT</button>
-        <button onclick="AndGate.add()">AND</button>
-        <button onclick="OrGate.add()">OR</button>
-        <button onclick="NandGate.add()">NAND</button>
-        <button onclick="NorGate.add()">NOR</button>
-        <button onclick="XorGate.add()">XOR</button>
-        <button onclick="XnorGate.add()">XNOR</button>
-        <button onclick="FullAdder.add()">Full Adder</button>
-        <button onclick="TriStateBuffer.add()">Tri-State Buffer</button>
-      </div>
-      
-      <button class="accordion-button" onclick="openMenu('gate-latches', 'grid')">Latches</button>
-      <div class="accordion-gate" id="gate-latches" style="display: none;">
-        <button onclick="SRLatch.add()">SR Latch</button>
-      </div>
-
-      <button class="accordion-button" onclick="openMenu('gate-nbit', 'grid')">N-Bit</button>
-      <div class="accordion-gate" id="gate-nbit" style="display: none;">
-        <button onclick="NBitInput.add()">N-bit Input</button>
-      </div>
-
-      <div id="module-button-container">
-        <button onclick="toSubModule()">Make Module</button>
+        <p class="text-sm">Bit Split</p>
+        <input class="border p-1 h-5 w-full rounded-sm text-sm focus-outline" type="number" min="1" value="1"
+          oninput="setSplitter()" />
       </div>
     </div>
+  </div>
 
-    <div class="controls">
-      <button class="shadow" onclick="setControlMode('edit')">Edit</button>
-      <button class="shadow" onclick="setControlMode('pan')">Pan</button>
-      <button class="shadow" id="button-delete" onclick="removePressedObject()">Delete</button>
-    </div>
-    
-    
-    <div id="selecting-div" class="properties shadow">
-      <h3 id="selecting"></h3>
-      <input style="display: none;" type="range" min="-1" max="1" value="0" step="1" id="input-value" oninput="setInput()">
-    </div>
+  <div id="background-blur" class="background-blur" style="display: none"></div>
+  <div id="save-menu" class="menu shadow" style="display: none"></div>
 
-    <div id="background-blur" class="background-blur" style="display: none;""></div>
-    <div id="save-menu" class="menu shadow" style="display: none;">
-    </div>
+  <p id="fps-counter" style="position: fixed; left: 89%; top: 16%">0</p>
 
-    <p id="fps-counter" style="position: fixed; left: 89%; top: 16%;">0</p>
-    
-    <script src="src/p5.min.js"></script>
-    <script src="src/init.js"></script>
-    <script src="src/camera.js"></script>
-    <script src="src/classes/state.js"></script>
-    <script src="src/classes/wire.js"></script>
-    <script src="src/classes/modulenode.js"></script>
-    <script src="src/classes/module.js"></script>
-    <script src="src/classes/circuit.js"></script>
-    <script src="src/gates/basic.js"></script>
-    <script src="src/gates/latches.js"></script>
-    <!--
+  <script src="src/p5.min.js"></script>
+  <script src="src/init.js"></script>
+  <script src="src/camera.js"></script>
+  <script src="src/classes/state.js"></script>
+  <script src="src/classes/wire.js"></script>
+  <script src="src/classes/modulenode.js"></script>
+  <script src="src/classes/module.js"></script>
+  <script src="src/classes/circuit.js"></script>
+  <script src="src/gates/basic.js"></script>
+  <script src="src/gates/latches.js"></script>
+  <script src="src/gates/nbit.js"></script>
+  <!--
       <script src="lib/fabric.min.js"></script>
       <script src="gate-data.js"></script>
       <script src="gate.js"></script>
       <script src="mouse.js"></script>
     -->
-    <script src="src/ui.js"></script>
-    <script src="src/index.js"></script>
-  </body>
+  <script src="src/ui.js"></script>
+  <script src="src/index.js"></script>
+</body>
+
 </html>

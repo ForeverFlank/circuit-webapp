@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
 :root {
@@ -36,13 +39,14 @@ button {
   height: 52px;
 }
 
+/*
 .top-button {
   background-color: transparent;
   border: transparent;
-  height: 52px;
-  padding: 0 20px;
+  padding: 0 18px;
   margin: 0 12px;
 }
+*/
 
 .top-button:hover {
   background-color: rgba(0, 0, 0, 0.05);
@@ -52,7 +56,6 @@ button {
   z-index: 10;
   position: fixed;
   left: 12px;
-  top: 52px;
   background-color: white;
   width: 10em;
   border-radius: 5px;
@@ -109,7 +112,14 @@ button {
   padding: 6px;
 }
 
+/*
 .search:focus, .top-name:focus{
+  outline: #3590ff 1px solid;
+  box-shadow: 0 0 4px #3590ff7e;
+}
+*/
+
+.focus-outline:focus {
   outline: #3590ff 1px solid;
   box-shadow: 0 0 4px #3590ff7e;
 }
@@ -129,7 +139,7 @@ button {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 6px;
-  background-color: #dfe1e4;
+  /* background-color: #dfe1e4; */
   padding: 6px;
   padding-top: 10px;
   margin-top: -12px;
@@ -139,22 +149,10 @@ button {
 .accordion-gate button {
   overflow: hidden;
   text-align: center;
-  font-size: 12px;
   background-color: white;
   border: none;
   border-radius: 5px;
   box-shadow: 0 2px 8px rgba(105, 105, 105, 0.16);
-}
-
-.properties {
-  background-color: white;
-  border-radius: 10px;
-  position: fixed;
-  right: 30px;
-  top: 128px;
-  width: 200px;
-  height: 200px;
-  padding: 1em;
 }
 
 .controls {

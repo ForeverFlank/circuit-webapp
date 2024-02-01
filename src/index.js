@@ -1,6 +1,6 @@
 p5.disableFriendlyErrors = true;
 
-var controlMode = 'edit';
+var controlMode = "edit";
 function setControlMode(mode) {
     controlMode = mode;
 }
@@ -8,7 +8,7 @@ function setControlMode(mode) {
 var canvas;
 function setup() {
     canvas = createCanvas(containerWidth, containerHeight);
-    canvas.parent('canvas-container');
+    canvas.parent("canvas-container");
     textFont(fontRegular);
 }
 
@@ -21,17 +21,17 @@ function windowResized() {
 function grid() {
     let view = controls.view;
     let width = containerWidth;
-    let height = containerHeight
+    let height = containerHeight;
     let roundedWidth = 40 * ceil(width / 40);
     let roundedHeight = 40 * ceil(height / 40);
     let zoom = view.zoom;
     push();
     noStroke();
-    
-    stroke('#e7e9eb');
+
+    stroke("#e7e9eb");
     strokeWeight(1);
     let startX = floor((-view.x - roundedWidth / 2) / 20 / zoom) * 20;
-    let startY = floor((-view.y - roundedHeight / 2) / 20 / zoom) * 20 ;
+    let startY = floor((-view.y - roundedHeight / 2) / 20 / zoom) * 20;
     let endX = ceil((-view.x + roundedWidth / 2) / 20 / zoom) * 20;
     let endY = ceil((-view.y + roundedHeight / 2) / 20 / zoom) * 20;
     for (let x = startX; x <= endX; x += 20) {
@@ -56,31 +56,31 @@ function timingDiagram(xPos, yPos) {
 
     fill(255);
     for (let i = 0; i <= 10; i += 1) {
-        text(i, 50 + xPos + 20 * i, yPos + 30 + nodes.length * 15)
+        text(i, 50 + xPos + 20 * i, yPos + 30 + nodes.length * 15);
     }
 
     let i = 1;
-    nodes.forEach(x => {
+    nodes.forEach((x) => {
         fill(255);
         noStroke();
-        text(x.name, xPos + 5, yPos + (15 * i++));
+        text(x.name, xPos + 5, yPos + 15 * i++);
         noFill();
         stroke(255);
         strokeWeight(1);
         line(xPos + 45, yPos + 15 * i - 20, xPos + 45, yPos + 15 * i - 25);
-        
+
         for (let t = 0; t <= 10; t += 0.2) {
             // console.log(x.getValue(t))
             let value = x.getValue(t);
             let color = value == null ? 255 : State.color(value);
             stroke(color);
-            value = (value >= 0) ? value : 0;
+            value = value >= 0 ? value : 0;
             beginShape();
             vertex(xPos + t * 20 + 50, yPos + 15 * i + value * -5 - 20);
             vertex(xPos + t * 20 + 54, yPos + 15 * i + value * -5 - 20);
             endShape();
         }
-    })
+    });
     pop();
 }
 
@@ -92,8 +92,12 @@ function nodeHint() {
     textAlign(CENTER, CENTER);
     let bbox = fontRegular.textBounds(hoveringNode.name, x, y - 16);
     fill(240);
-    rect(bbox.x - margin, bbox.y - margin,
-        bbox.w + margin * 2, bbox.h + margin * 2);
+    rect(
+        bbox.x - margin,
+        bbox.y - margin,
+        bbox.w + margin * 2,
+        bbox.h + margin * 2
+    );
     fill(0);
     text(hoveringNode.name, x, y - 16);
     pop();
@@ -105,7 +109,7 @@ function draw() {
     placeY = -Math.round(controls.view.y / 20 / controls.view.zoom) * 20;
     hoveringNode = {};
 
-    background('#fbfcfc');
+    background("#fbfcfc");
 
     // let w = 40 * ceil(containerWidth / 40);
     // let h = 40 * ceil(containerHeight / 40);
@@ -126,7 +130,9 @@ function draw() {
         wires = wires.concat(x.connections);
     });
 
-    circuit.modules.forEach((x) => { x.render() });
+    circuit.modules.forEach((x) => {
+        x.render();
+    });
     wires.forEach((x) => x.render());
     nodes.forEach((x) => x.render());
 
@@ -139,14 +145,19 @@ function draw() {
     timingDiagram();
 
     let fps = frameRate();
-    document.getElementById('fps-counter').innerText = fps.toFixed(2);
+    document.getElementById("fps-counter").innerText = fps.toFixed(2);
 }
 
 function selectedObjectUI() {
     let name = selectedObject.name;
-    name = (name == null) ? '' : name;
-    document.getElementById('selecting').innerText = name;
-    document.getElementById('input-value').style.display = (selectedObject.name == 'Input') ? 'block' : 'none';
+    name = name == null ? "" : name;
+    document.getElementById("selecting-div").style.display =
+        name != "" ? "block" : "none";
+    document.getElementById("selecting-name").innerText = name;
+    document.getElementById("selecting-input").style.display =
+        selectedObject.name == "Input" ? "block" : "none";
+    document.getElementById("selecting-splitter").style.display =
+        selectedObject.name == "Splitter" ? "block" : "none";
 }
 
 function removePressedObject() {
@@ -189,7 +200,7 @@ var released = false;
 function touchStarted(e) {
     if (hoveringOnDiv(e)) return;
     released = false;
-    if (controlMode == 'edit') {
+    if (controlMode == "edit") {
         let pressedOnObject = objectsPress();
         if (pressedObject.id != 0) {
             selectedObject = pressedObject;
@@ -204,14 +215,14 @@ function touchStarted(e) {
         }
         selectedObjectUI();
     }
-    if (controlMode == 'pan' || mouseButton == CENTER) {
+    if (controlMode == "pan" || mouseButton == LEFT) {
         Controls.move(controls).pressed(e);
     }
 }
 
 function touchMoved(e) {
     if (hoveringOnDiv(e)) return;
-    if (controlMode == 'edit') {
+    if (controlMode == "edit") {
         let pressedOnObject = false;
         for (let i = circuit.modules.length - 1; i >= 0; i--) {
             let module = circuit.modules[i];
@@ -236,7 +247,7 @@ function touchMoved(e) {
         }
         if (pressedObject.id != 0) selectedObject = pressedObject;
     }
-    if (controlMode == 'pan' || mouseButton == CENTER) {
+    if (controlMode == "pan" || mouseButton == CENTER) {
         Controls.move(controls).dragged(e);
     }
 }

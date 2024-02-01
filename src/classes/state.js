@@ -11,11 +11,11 @@ class State {
     }
     static fromChar(char) {
         let state;
-        if (char == '0') {
+        if (char == "0") {
             state = State.low;
-        } else if (char == '1') {
+        } else if (char == "1") {
             state = State.high;
-        } else if (char == 'Z') {
+        } else if (char == "Z") {
             state = State.highZ;
         } else {
             state = State.err;
@@ -28,15 +28,13 @@ class State {
         return State.high;
     }
     static and(b) {
-        for (let i in b)
-            if (b[i] == State.low) return State.low;
+        for (let i in b) if (b[i] == State.low) return State.low;
         for (let i in b)
             if (b[i] == State.err || b[i] == State.highZ) return State.err;
         return State.high;
     }
     static or(b) {
-        for (let i in b)
-            if (b[i] == State.high) return State.high;
+        for (let i in b) if (b[i] == State.high) return State.high;
         for (let i in b)
             if (b[i] == State.err || b[i] == State.highZ) return State.err;
         return State.low;
@@ -47,22 +45,26 @@ class State {
         return State.or([p, q]);
     }
     static color(b) {
-        if (b == State.err) return color('#990000');
-        if (b == State.highZ) return color('#a0a0a0');
-        if (b == State.low) return color('#ed2525');
-        if (b == State.high) return color('#4fe52d');
+        if (b == State.err) return color("#990000");
+        if (b == State.highZ) return color("#a0a0a0");
+        if (b == State.low) return color("#ed2525");
+        if (b == State.high) return color("#4fe52d");
+        return color("#0000ff");
     }
     static char(b) {
         let char;
         if (b == State.low) {
-            char = '0';
+            char = "0";
         } else if (b == State.high) {
-            char = '1';
+            char = "1";
         } else if (b == State.highZ) {
-            char = 'Z';
+            char = "Z";
         } else {
-            char = 'X';
+            char = "X";
         }
         return char;
+    }
+    static toString(array) {
+        return array.join("");
     }
 }
