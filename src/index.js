@@ -156,6 +156,8 @@ function selectedObjectUI() {
     document.getElementById("selecting-name").innerText = name;
     document.getElementById("selecting-input").style.display =
         selectedObject.name == "Input" ? "block" : "none";
+    document.getElementById("selecting-nbitinput").style.display =
+        selectedObject.name == "N-bit Input" ? "block" : "none";
     document.getElementById("selecting-splitter").style.display =
         selectedObject.name == "Splitter" ? "block" : "none";
 }

@@ -102,6 +102,8 @@ class Module {
             });
         });
 
+        
+
         this.outputs.forEach((node) => {
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
@@ -122,7 +124,7 @@ class Module {
                                 wire.setDirection(src, dest);
                             }
                             if (
-                                this.inputs.some((node) => node.id == dest.id)
+                                this.inputs.some((node) => node.id == dest.id) && !sequentialModuleList.some(name => name == dest.owner.name)
                             ) {
                                 this.isDragging = false;
                                 this.isHovering = false;
@@ -337,7 +339,7 @@ class Input extends Module {
 }
 
 function setInput(time) {
-    let value = document.getElementById("input-value").value;
+    let value = document.getElementById("selecting-input-value").value;
     selectedObject.setInput(State.fromNumber(value), time);
     circuit.evaluateAll(false);
 }

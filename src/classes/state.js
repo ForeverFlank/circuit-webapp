@@ -64,7 +64,16 @@ class State {
         }
         return char;
     }
+    static fromString(string) {
+        if (string.length < 1) return [State.err];
+        let result = [];
+        for (let i in string) {
+            let char = string[string.length - i - 1];
+            result[i] = State.fromChar(char);
+        }
+        return result
+    }
     static toString(array) {
-        return array.join("");
+        return array.slice().reverse().join("");
     }
 }

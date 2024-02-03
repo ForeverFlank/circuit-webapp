@@ -37,6 +37,8 @@ var hoveringNode = {};
 var placeX = 0;
 var placeY = 0;
 
+let sequentialModuleList = ["SR Latch", "D Latch"];
+
 var uniqueNumber = 0;
 
 function unique(str = "") {

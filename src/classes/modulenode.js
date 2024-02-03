@@ -173,8 +173,11 @@ class ModuleNode {
         evaluate = true,
         setByModule = false,
         inputDelay = 0,
-        traversed = new Set()
+        changeWidth = false
     ) {
+        if (changeWidth) {
+            this.value = this.value.slice(0, value.length)
+        }
         Object.entries(value).forEach((x) => {
             console.log('g', x);
             let index = parseInt(x[0]);
@@ -184,8 +187,7 @@ class ModuleNode {
                 time,
                 evaluate,
                 setByModule,
-                inputDelay,
-                traversed
+                inputDelay
             );
         });
     }
@@ -382,4 +384,45 @@ class OutputNode extends ModuleNode {
         super(owner, name, relativeX, relativeY, value, delay);
         this.nodeType = "output";
     }
+}
+
+class SplitterNode extends ModuleNode {
+    constructor(
+        owner,
+        name,
+        relativeX = 0,
+        relativeY = 0,
+        value = [State.highZ],
+        splitterType
+    ) {
+        super(owner, name, relativeX, relativeY, value, 0, );
+        this.nodeType = "node";
+        this.splitterType = "splitterType";
+        this.indices = [0];
+        this.linkedNodes = [];
+    }
+    /*
+    setValue(
+        value,
+        index,
+        time,
+        evaluate = true,
+        setByModule = false,
+        inputDelay = 0,
+        traversed = new Set()
+    ) {
+        super(
+            value,
+            index,
+            time,
+            evaluate = true,
+            setByModule = false,
+            inputDelay = 0,
+            traversed = new Set()
+        );
+        this.indices.forEach((index) => {
+
+        });
+    }
+    */
 }

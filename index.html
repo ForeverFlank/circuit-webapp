@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <title>My Website</title>
+  <title>Circuit Simulator</title>
   <link rel="stylesheet" href="./output.css" />
 </head>
 
@@ -15,7 +15,7 @@
       <button class="h-full left-3 mx-3 my-0 px-4 py-0 top-button" onclick="openMenu('menu-circuits', 'grid')">
         Circuits
       </button>
-      <div class="top-accordion top-14 left-3 shadow" id="menu-circuits" style="display: none">
+      <div class="top-accordion top-14 left-3 shadow z-20" id="menu-circuits" style="display: none">
         <button onclick="openSaveMenu()">
           <span> Save </span>
         </button>
@@ -33,7 +33,7 @@
 
   <div id="canvas-container"></div>
   <!--canvas id="c" width="500" height="400" style="border: 1px solid black"></canvas-->
-  <div class="z-20 absolute flex flex-col gap-y-2 left-0 top-14 w-3/12 h-full p-3 bg-gray-200 shadow-lg">
+  <div class="z-10 absolute flex flex-col gap-y-2 left-0 top-14 w-3/12 max-w-48 h-full p-3 bg-gray-200 shadow-lg">
     <input class="p-2 h-6 text-sm rounded-md focus-outline" type="text" placeholder="Search" />
 
     <button class="z-20 h-6 text-sm bg-white" onclick="openMenu('gate-basic', 'grid')">
@@ -71,7 +71,7 @@
     </div>
 
     <button class="z-20 h-6 text-sm bg-white" onclick="openMenu('gate-nbit', 'grid')">
-      N-Bit
+      N-bit
     </button>
     <div class="accordion-gate" id="gate-nbit" style="display: none">
       <button class="text-xs" onclick="Splitter.add()">
@@ -99,23 +99,34 @@
     </button>
   </div>
 
-  <div id="selecting-div" class="fixed right-8 top-32 w-48 p-4 rounded-xl bg-white shadow-md" style="display: none">
+  <div id="selecting-div" class="fixed right-8 top-32 w-48 p-4 rounded-xl bg-white shadow-md" style="display: nne">
     <h3 id="selecting-name" class="font-bold">Properties</h3>
+
     <div id="selecting-input" style="display: none">
-      <input type="range" min="-1" max="1" id="input-value" value="0" step="1" oninput="setInput()" />
+      <input type="range" min="-1" max="1" id="selecting-input-value" value="0" step="1" oninput="setInput()" />
     </div>
+
+    <div id="selecting-nbitinput" style="display: nne">
+      <div>
+        <p class="text-sm">Value</p>
+        <input id="selecting-nbitinput-value" class="border p-1 h-5 w-full rounded-sm text-sm focus-outline" type="text" value="0"
+          oninput="setNBitInput()" />
+      </div>
+    </div>
+
     <div id="selecting-splitter" style="display: none">
       <div class="flex justify-between">
         <p class="text-sm">Bit Width</p>
-        <input class="border p-1 h-5 w-12 rounded-sm text-sm focus-outline" type="number" min="1" value="1"
+        <input id="selecting-bitwidth" class="border p-1 h-5 w-12 rounded-sm text-sm focus-outline" type="number" min="1" value="1"
           oninput="setSplitter()" />
       </div>
       <div>
         <p class="text-sm">Bit Split</p>
-        <input class="border p-1 h-5 w-full rounded-sm text-sm focus-outline" type="number" min="1" value="1"
+        <input id="selecting-bitsplit" class="border p-1 h-5 w-full rounded-sm text-sm focus-outline" type="text" placeholder="0 1 2:7"
           oninput="setSplitter()" />
       </div>
     </div>
+
   </div>
 
   <div id="background-blur" class="background-blur" style="display: none"></div>
