@@ -107,14 +107,16 @@ class Circuit extends Module {
                 });
             });
         });
+
         startingNodes.forEach((node) => {
             node.totalDelay = [0];
             let stack = [];
             let traversed = new Set();
             let marked = new Set();
+            let queue = [];
             stack.push(node);
             let iter = 0;
-            while (stack.length > 0 && iter <= 1000) {
+            while (stack.length > 0 && iter <= 10000) {
                 let src = stack.pop();
 
                 console.log(
@@ -173,32 +175,8 @@ class Circuit extends Module {
                             ];
                             stack.push(outputNode);
                         });
-                    } /* else if (src.owner.isSubModule) {
-                        // node is submodule's I/O
-                        console.log('a', src)
-                        if (src.linkedModule != null) {
-                            if (src.linkedModule.name == 'Input') {
-                                src.linkedModule.outputs[0].totalDelay = src.linkedModule.outputs[0].totalDelay.concat(src.totalDelay);
-                                src.linkedModule.outputs[0].totalDelay = [...new Set(src.linkedModule.outputs[0].totalDelay)];
-                                stack.push(src.linkedModule.outputs[0]);
-                            }
-                            if (src.linkedModule.name == 'Output') {
-                                console.log('a2', src)
-                            }
-                            // stack.push(src.linkModule)
-                        }
-                    } else if (src.owner.name == 'Output') {
-                        console.log('b', src)
-                        if (src.owner.linkedNode != null) {
-                            console.log(src.owner.linkedNode)
-                            src.owner.linkedNode.totalDelay = src.owner.linkedNode.totalDelay.concat(src.totalDelay);
-                            src.owner.linkedNode.totalDelay = [...new Set(src.owner.linkedNode.totalDelay)];
-                            stack.push(src.owner.linkedNode);
-                        }
-                    } else {
-                        console.log('c', src);
                     }
-                    */
+                    queue.push();
                 }
                 iter++;
             }
