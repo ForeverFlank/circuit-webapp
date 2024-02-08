@@ -18,6 +18,7 @@ class ModuleNode {
         this.isHighZ = Object.entries(value).map((x) => x[1] == State.highZ);
         this.connections = [];
         this.nodeType = "node";
+        this.isSplitter = false;
         this.relativeX = relativeX;
         this.relativeY = relativeY;
         this.isDragging = false;
@@ -107,30 +108,42 @@ class ModuleNode {
             "->",
             this.name,
             "set",
-            value, evaluate, setByModule,
+            value,
+            evaluate,
+            setByModule,
             "to index",
             index,
             "at time",
             time
         );
 
-        // console.log('set ' + this.name + ' to ' + value)
-        // if (this.isHighZ && this.nodeType == 'output') return;
-
         if (setByModule) {
             this.isHighZ[index] = value == State.highZ;
-            if (!this.isHighZ[index] ||
-                this.connectedToOutput(index).outputsCount == 0) {
-                this.value[index] = value;
+            if (
+                !this.isHighZ[index] ||
+                this.connectedToOutput(index).outputsCount == 0
+            ) {
+                let newValue = [...this.value];
+                newValue[index] = value;
+                this.value = newValue;
             }
         } else {
-            this.value[index] = value;
+            let newValue = [...this.value];
+            newValue[index] = value;
+            this.value = newValue;
         }
 
         this.valueAtTime[time] = this.value;
 
+        console.log(
+            "a",
+            Object.entries(this.valueAtTime)
+                .map((x) => x[0] + ":" + x[1])
+                .join(" ")
+        );
+
         if (evaluate) {
-            this.owner.evaluate(time);
+            // this.owner.evaluate(time);
         }
         if (this.owner.name == "Output") {
             console.log("oooo");
@@ -146,11 +159,23 @@ class ModuleNode {
                 this.linkedModule.setInput(value, time);
             }
         }
-        console.log('it is now', this.value)
+        console.log("it is now", this.value, this.valueAtTime);
         this.connections.forEach((wire) => {
             let dest = wire.destination;
-            if (!traversed.has(dest.id)) {
-                if (!this.isHighZ[index] || this.value[index] != State.highZ) {
+            if (traversed.has(dest.id)) return;
+            if (!this.isHighZ[index] || this.value[index] != State.highZ) {
+                if (this.isSplitter && dest.isSplitter) {
+                    let destIndex = dest.indices.indexOf(index);
+                    dest.setValue(
+                        this.value[index],
+                        destIndex,
+                        time,
+                        false,
+                        false,
+                        inputDelay,
+                        traversed.add(this.id)
+                    );
+                } else {
                     dest.setValue(
                         this.value[index],
                         index,
@@ -161,9 +186,9 @@ class ModuleNode {
                         traversed.add(this.id)
                     );
                 }
-                if (dest.nodeType != "output") {
-                    // dest.owner.evaluate();
-                }
+            }
+            if (dest.nodeType != "output") {
+                // dest.owner.evaluate();
             }
         });
     }
@@ -176,19 +201,12 @@ class ModuleNode {
         changeWidth = false
     ) {
         if (changeWidth) {
-            this.value = this.value.slice(0, value.length)
+            this.value = this.value.slice(0, value.length);
         }
         Object.entries(value).forEach((x) => {
-            console.log('g', x);
+            console.log("g", x);
             let index = parseInt(x[0]);
-            this.setValue(
-                x[1],
-                index,
-                time,
-                evaluate,
-                setByModule,
-                inputDelay
-            );
+            this.setValue(x[1], index, time, evaluate, setByModule, inputDelay);
         });
     }
     getCanvasX() {
@@ -271,7 +289,7 @@ class ModuleNode {
         if (hoveringOnDiv()) return false;
         let result =
             (mouseCanvasX - this.getCanvasX()) ** 2 +
-            (mouseCanvasY - this.getCanvasY()) ** 2 <=
+                (mouseCanvasY - this.getCanvasY()) ** 2 <=
             NODE_HOVERING_RADIUS ** 2;
         return result;
     }
@@ -386,43 +404,18 @@ class OutputNode extends ModuleNode {
     }
 }
 
+// todo; use splitter as  a separated separator and combiner instead
 class SplitterNode extends ModuleNode {
     constructor(
         owner,
         name,
         relativeX = 0,
         relativeY = 0,
-        value = [State.highZ],
-        splitterType
+        value = [State.highZ]
     ) {
-        super(owner, name, relativeX, relativeY, value, 0, );
+        super(owner, name, relativeX, relativeY, value, 0);
         this.nodeType = "node";
-        this.splitterType = "splitterType";
-        this.indices = [0];
-        this.linkedNodes = [];
+        this.isSplitter = true;
+        this.indices = [];
     }
-    /*
-    setValue(
-        value,
-        index,
-        time,
-        evaluate = true,
-        setByModule = false,
-        inputDelay = 0,
-        traversed = new Set()
-    ) {
-        super(
-            value,
-            index,
-            time,
-            evaluate = true,
-            setByModule = false,
-            inputDelay = 0,
-            traversed = new Set()
-        );
-        this.indices.forEach((index) => {
-
-        });
-    }
-    */
 }

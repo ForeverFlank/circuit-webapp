@@ -580,12 +580,12 @@ video {
   top: 8rem;
 }
 
-.z-20 {
-  z-index: 20;
-}
-
 .z-10 {
   z-index: 10;
+}
+
+.z-20 {
+  z-index: 20;
 }
 
 .mx-3 {
@@ -622,20 +622,24 @@ video {
   height: 100%;
 }
 
+.w-1\/5 {
+  width: 20%;
+}
+
 .w-12 {
   width: 3rem;
 }
 
-.w-3\/12 {
-  width: 25%;
+.w-48 {
+  width: 12rem;
 }
 
 .w-full {
   width: 100%;
 }
 
-.w-48 {
-  width: 12rem;
+.w-2\/5 {
+  width: 40%;
 }
 
 .max-w-48 {

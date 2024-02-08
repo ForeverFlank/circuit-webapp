@@ -71,12 +71,13 @@ class Module {
                 }
                 while (stack.length > 0) {
                     let src = stack.pop();
-                    if (!traversed.has(src.id)) {
-                        traversed.add(src.id);
-                        src.connections.forEach((wire) => {
-                            evaluateWire(wire);
-                        });
+                    if (traversed.has(src.id)) {
+                        continue;
                     }
+                    traversed.add(src.id);
+                    src.connections.forEach((wire) => {
+                        evaluateWire(wire);
+                    });
                 }
 
                 if (!isConnectedToOutput) {
@@ -102,8 +103,6 @@ class Module {
             });
         });
 
-        
-
         this.outputs.forEach((node) => {
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
@@ -114,25 +113,26 @@ class Module {
                 stack.push(node);
                 while (stack.length > 0) {
                     let src = stack.pop();
-                    if (!traversed.has(src.id)) {
-                        traversed.add(src.id);
-                        marked.add(src.id);
-                        src.connections.forEach((wire) => {
-                            let dest = wire.destination;
-                            stack.push(dest);
-                            if (!marked.has(dest.id)) {
-                                wire.setDirection(src, dest);
-                            }
-                            if (
-                                this.inputs.some((node) => node.id == dest.id) && !sequentialModuleList.some(name => name == dest.owner.name)
-                            ) {
-                                this.isDragging = false;
-                                this.isHovering = false;
-                                throw new Error("Circular Loop!");
-                            }
-                            marked.add(dest.id);
-                        });
+                    if (traversed.has(src.id)) {
+                        continue;
                     }
+                    traversed.add(src.id);
+                    marked.add(src.id);
+                    src.connections.forEach((wire) => {
+                        let dest = wire.destination;
+                        stack.push(dest);
+                        if (!marked.has(dest.id)) {
+                            wire.setDirection(src, dest);
+                        }
+                        if (
+                            this.inputs.some((node) => node.id == dest.id) && !sequentialModuleList.some(name => name == dest.owner.name)
+                        ) {
+                            this.isDragging = false;
+                            this.isHovering = false;
+                            throw new Error("Circular Loop!");
+                        }
+                        marked.add(dest.id);
+                    });
                 }
             });
         });
@@ -175,10 +175,10 @@ class Module {
             stroke(0);
             strokeWeight(2);
             rect(
-                this.x + imageOffsetX,
-                this.y + imageOffsetY,
-                this.width * 20,
-                this.height * 20
+                this.x + 10,
+                this.y + 10,
+                this.width * 20 - 20,
+                this.height * 20 - 20
             );
         }
         noStroke();
@@ -302,7 +302,7 @@ class WireNode extends Module {
         return false;
     }
     render() {
-        super.render();
+        return;
     }
     static add(x, y) {
         let module = new WireNode("", x, y);

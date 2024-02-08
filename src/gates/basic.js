@@ -272,14 +272,14 @@ class XnorGate extends Module {
 
 class HalfAdder extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 4, 3);
         this.inputs = [
-            new InputNode(this, "Input 1", 0, 0),
-            new InputNode(this, "Input 2", 0, 1),
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 2),
         ];
         this.outputs = [
-            new OutputNode(this, "Sum", 3, 0),
-            new OutputNode(this, "Carry Out", 3, 1),
+            new OutputNode(this, "Sum", 4, 1),
+            new OutputNode(this, "Carry Out", 4, 2),
         ];
         this.displayName = "Half\nAdder";
     }
@@ -311,15 +311,15 @@ class HalfAdder extends Module {
 
 class FullAdder extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 4, 4);
         this.inputs = [
-            new InputNode(this, "Input 1", 0, 0),
-            new InputNode(this, "Input 2", 0, 1),
-            new InputNode(this, "Carry In", 0, 2),
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 2),
+            new InputNode(this, "Carry In", 0, 3),
         ];
         this.outputs = [
-            new OutputNode(this, "Sum", 3, 0),
-            new OutputNode(this, "Carry Out", 3, 1),
+            new OutputNode(this, "Sum", 4, 1),
+            new OutputNode(this, "Carry Out", 4, 2),
         ];
         this.displayName = "Full\nAdder";
     }

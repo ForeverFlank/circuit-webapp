@@ -73,6 +73,12 @@ class State {
         }
         return result
     }
+    static changeWidth(input, width, fill = State.highZ) {
+        width = parseInt(width)
+        if (input.length == width) return input;
+        if (input.length < width) return input.slice(0, width)
+        return input.concat(Array(width - input.length).fill(fill));
+    }
     static toString(array) {
         return array.slice().reverse().join("");
     }

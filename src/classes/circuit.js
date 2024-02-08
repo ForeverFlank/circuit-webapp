@@ -108,6 +108,76 @@ class Circuit extends Module {
             });
         });
 
+        let evalQueue = [];
+        startingNodes.forEach((node) => {
+            node.value.forEach((value, index) => {
+                evalQueue.push([0, index, node]);
+            });
+        });
+        console.log('pre1', this.getNodes())
+        startingNodes.forEach((node) => {
+            node.setValues(node.valueAtTime[0], 0, false);
+        });
+        console.log('pre2', this.getNodes())
+        let traversed = new Set();
+        function currentItemToString(time, index, nodeId) {
+            return `t${time}i${index}n${nodeId}`;
+        }
+        let iteration = 0;
+        while (iteration < 10 && evalQueue.length > 0) {
+            evalQueue.sort((a, b) => a[0] - b[0]);
+            let item = evalQueue.shift();
+            // console.log("queue", evalQueue, "traversed", traversed);
+            let currentTime = item[0];
+            let currentIndex = item[1];
+            let currentNode = item[2];
+            console.log('item', item, currentTime)
+            let currentModule = currentNode.owner;
+            let itemString = currentItemToString(
+                currentTime,
+                currentIndex,
+                currentNode.id
+            );
+            if (traversed.has(itemString)) {
+                // console.log('!cont')
+                continue;
+            }
+            traversed.add(itemString);
+            currentNode.connections.forEach((wire) => {
+                let dest = wire.destination;
+                if (currentNode.isSplitter && dest.isSplitter) {
+                    let destIndex = dest.indices.indexOf(currentIndex);
+                    evalQueue.push([currentTime, destIndex, dest]);
+                }
+                else {
+                    evalQueue.push([currentTime, currentIndex, dest]);
+                }
+                // console.log('pushing', [currentTime, currentIndex, dest])
+            });
+            if (currentNode.nodeType == "input") {
+                currentModule.outputs.forEach((node) => {
+                    console.log('D', node.delay)
+                    evalQueue.push([
+                        currentTime + node.delay,
+                        currentIndex,
+                        node,
+                    ]);
+                });
+                currentModule.evaluate(currentTime, true)
+            }
+            if (currentNode.nodeType == "node") {
+            } else if (currentNode.nodeType == "input") {
+                // currentModule.evaluate(currentTime - currentNode.delay, true);
+            }
+            // console.log(currentNode.name);
+
+            iteration++;
+        }
+        if (iteration >= 10) {
+            console.error("Iteration limit exceeded!");
+        }
+        console.log("eeeeeeeeeeeee");
+        /*
         startingNodes.forEach((node) => {
             node.totalDelay = [0];
             let stack = [];
@@ -141,7 +211,9 @@ class Circuit extends Module {
                         dest.totalDelay = [...new Set(dest.totalDelay)];
                         stack.push(dest);
                     });
+
                     // fix below when the gate is output inside a submodule
+                    
                     if (
                         src.nodeType == "input" &&
                         !src.owner.isSubModule &&
@@ -176,7 +248,7 @@ class Circuit extends Module {
                             stack.push(outputNode);
                         });
                     }
-                    queue.push();
+                    
                 }
                 iter++;
             }
@@ -184,6 +256,9 @@ class Circuit extends Module {
                 console.log("overflow 1");
             }
         });
+
+        */
+        /*
         console.log("start", startingNodes);
         let queue = [];
         let nodes = this.getNodes();
@@ -215,6 +290,7 @@ class Circuit extends Module {
                 iter++;
             });
         if (iter >= 10000) console.log("overflow 2");
+        */
     }
     toModule() {
         let newModule = new Circuit();

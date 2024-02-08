@@ -1,17 +1,29 @@
 class Splitter extends Module {
     constructor(name) {
         super(name, 1, 2);
+        this.inputNode = new SplitterNode(this, "Input", 0, 0, [State.highZ, State.highZ]);
         this.inputs = [
-            new InputNode(this, "Input", 0, 0,
-                [State.highZ, State.highZ]),
-            new InputNode(this, "Split 1", 1, 0),
-            new InputNode(this, "Split 2", 1, 1),];
+            this.inputNode,
+        ];
         this.outputs = [];
         this.splitArray = [[0], [1]];
+        this.setSplitter(this.splitArray);
         this.displayName = "";
     }
-    setSplitter(split) {
-
+    setSplitter(splitArray) {
+        this.splitArray = splitArray;
+        for (let i in this.inputs) {
+            if (i == 0) continue;
+            circuit.removeModule(this.inputs[i]);
+        }
+        let i = 0;
+        splitArray.forEach((array) => {
+            let newNode = new SplitterNode(this, "Split" + (i + 1), 1, i);
+            newNode.indices = array;
+            this.inputs.push(newNode);
+            this.inputNode.connect(newNode)
+            i++;
+        });
     }
     evaluate(time) {
         super.evaluate(time);
@@ -37,6 +49,18 @@ class Splitter extends Module {
         */
     }
     render() {
+        push();
+        noFill();
+        stroke(0);
+        strokeWeight(6);
+        strokeCap(PROJECT);
+        line(
+            this.x + 10,
+            this.y,
+            this.x + 10,
+            this.y + this.splitArray.length * 20 - 20
+        );
+        pop();
         super.render();
     }
     released() {
@@ -65,6 +89,9 @@ function setSplitter() {
             return [parseInt(x)];
         }
     });
+    selectedObject.inputNode.value = State.changeWidth( selectedObject.inputNode.value, width);
+    console.log(selectedObject)
+    selectedObject.indices = Array(width).fill(0).map((x, y) => x + y);
     selectedObject.setSplitter(splitArray);
 }
 

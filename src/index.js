@@ -49,7 +49,7 @@ function grid() {
 function timingDiagram(xPos, yPos) {
     let nodes = circuit.getNodes();
     xPos = 220;
-    yPos = 600 - nodes.length * 15;
+    yPos = 500 - nodes.length * 15;
     push();
     fill(0);
     rect(xPos, yPos, 400, 30 + nodes.length * 15);

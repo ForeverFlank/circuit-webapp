@@ -1,13 +1,13 @@
 class SRLatch extends Module {
     constructor(name) {
-        super(name, 2, 2);
+        super(name, 3, 4);
         this.inputs = [
-            new InputNode(this, "Set", 0, 2),
-            new InputNode(this, "Reset", 0, 0),
+            new InputNode(this, "Set", 0, 3),
+            new InputNode(this, "Reset", 0, 1),
         ];
         this.outputs = [
-            new OutputNode(this, "Q", 2, 2),
-            new OutputNode(this, "Q'", 2, 0),
+            new OutputNode(this, "Q", 3, 3),
+            new OutputNode(this, "Q'", 3, 1),
         ];
         this.displayName = "SR";
         this.latchValue = State.low;
