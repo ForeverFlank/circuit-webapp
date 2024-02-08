@@ -71,15 +71,19 @@ class State {
             let char = string[string.length - i - 1];
             result[i] = State.fromChar(char);
         }
-        return result
+        return result;
     }
     static changeWidth(input, width, fill = State.highZ) {
-        width = parseInt(width)
+        width = parseInt(width);
         if (input.length == width) return input;
-        if (input.length < width) return input.slice(0, width)
+        if (input.length < width) return input.slice(0, width);
         return input.concat(Array(width - input.length).fill(fill));
     }
     static toString(array) {
-        return array.slice().reverse().join("");
+        return array
+            .slice()
+            .map((x) => State.char(x))
+            .reverse()
+            .join("");
     }
 }

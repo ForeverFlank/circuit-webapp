@@ -1,52 +1,71 @@
 class Splitter extends Module {
     constructor(name) {
         super(name, 1, 2);
-        this.inputNode = new SplitterNode(this, "Input", 0, 0, [State.highZ, State.highZ]);
-        this.inputs = [
-            this.inputNode,
-        ];
+        this.inputNode = new SplitterNode(this, "Input", 0, 0, [
+            State.highZ,
+            State.highZ,
+        ]);
+        this.inputs = [this.inputNode];
         this.outputs = [];
         this.splitArray = [[0], [1]];
         this.setSplitter(this.splitArray);
         this.displayName = "";
     }
-    setSplitter(splitArray) {
+    setSplitter(splitArray = this.splitArray) {
+        function splitArrayLength(array) {
+            return array
+                .map((arr) => arr.length)
+                .reduce((sum, a) => sum + a, 0);
+        }
+
+        let newWidth = splitArrayLength(splitArray);
+        if (newWidth > splitArrayLength(this.splitArray)) {
+            let maxIndex = Math.max(splitArray.flat());
+            splitArray.concat(
+                Array(newWidth - maxIndex - 1).fill(maxIndex + 1).map((x, y) => x + y)
+            );
+        }
         this.splitArray = splitArray;
+        console.log('AAAA', splitArray)
+        this.inputNode.indices = Array(newWidth)
+            .fill(0)
+            .map((x, y) => x + y);
         for (let i in this.inputs) {
             if (i == 0) continue;
-            circuit.removeModule(this.inputs[i]);
+            this.inputs[i].disconnectAll();
         }
+        this.inputs = [this.inputNode];
         let i = 0;
         splitArray.forEach((array) => {
-            let newNode = new SplitterNode(this, "Split" + (i + 1), 1, i);
+            let newNode = new SplitterNode(
+                this,
+                "Split" + (i + 1),
+                1,
+                i,
+                Array(array.length).fill(State.highZ)
+            );
             newNode.indices = array;
             this.inputs.push(newNode);
-            this.inputNode.connect(newNode)
+            this.inputNode.connect(newNode);
+            console.log(newNode)
             i++;
         });
+        this.inputs.forEach((node) => {
+            node.connections.forEach((wire) => {
+                if (wire.destination.isSplitter) {
+                    wire.rendered = false;
+                }
+            })
+        })
+    }
+    getSplitArrayString() {
+        return this.splitArray.map((arr) => {
+            if (arr.length == 1) return arr[0].toString();
+            return Math.min(...arr) + ':' + Math.max(...arr)
+        }).join(' ');
     }
     evaluate(time) {
         super.evaluate(time);
-        /*
-        let inputValue = this.inputs[0].value;
-        let splitValues = this.inputs.slice(1).map((x) => x.value);
-        let value = [];
-        console.log('!!! SPLIT !!!')
-        console.log(splitValues)
-        for (let i in this.splitArray) {
-            for (let j in this.splitArray[i]) {
-                let index = this.splitArray[i][j];
-                value[index] = splitValues[i][j];
-            }
-        }
-        console.log(value)
-        this.inputs[0].setValues(
-            value,
-            time,
-            false,
-            true
-        );
-        */
     }
     render() {
         push();
@@ -89,9 +108,11 @@ function setSplitter() {
             return [parseInt(x)];
         }
     });
-    selectedObject.inputNode.value = State.changeWidth( selectedObject.inputNode.value, width);
-    console.log(selectedObject)
-    selectedObject.indices = Array(width).fill(0).map((x, y) => x + y);
+    selectedObject.inputNode.value = State.changeWidth(
+        selectedObject.inputNode.value,
+        width
+    );
+    console.log('AAAAAAAA', splitArray)
     selectedObject.setSplitter(splitArray);
 }
 

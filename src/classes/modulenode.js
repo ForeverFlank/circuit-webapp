@@ -160,21 +160,30 @@ class ModuleNode {
             }
         }
         console.log("it is now", this.value, this.valueAtTime);
+        function currentItemToString(index, nodeId) {
+            return `i${index}n${nodeId}`;
+        }
         this.connections.forEach((wire) => {
             let dest = wire.destination;
-            if (traversed.has(dest.id)) return;
+            if (traversed.has(currentItemToString(index, dest.id))) return;
             if (!this.isHighZ[index] || this.value[index] != State.highZ) {
                 if (this.isSplitter && dest.isSplitter) {
-                    let destIndex = dest.indices.indexOf(index);
-                    dest.setValue(
-                        this.value[index],
-                        destIndex,
-                        time,
-                        false,
-                        false,
-                        inputDelay,
-                        traversed.add(this.id)
+                    let destIndex = dest.indices.indexOf(
+                        index + Math.min(...this.indices)
                     );
+
+                    console.log(this.name, "index", index, "->", destIndex);
+                    if (destIndex != -1) {
+                        dest.setValue(
+                            this.value[index],
+                            destIndex,
+                            time,
+                            false,
+                            false,
+                            inputDelay,
+                            traversed.add(currentItemToString(destIndex, this.id))
+                        );
+                    }
                 } else {
                     dest.setValue(
                         this.value[index],
@@ -183,7 +192,7 @@ class ModuleNode {
                         false,
                         false,
                         inputDelay,
-                        traversed.add(this.id)
+                        traversed.add(currentItemToString(index, this.id))
                     );
                 }
             }
@@ -319,15 +328,18 @@ class ModuleNode {
             noStroke();
             fill(0);
             textSize(15);
-            let str = typeof this.value == "object" ? "obj: " : "";
-            text(str + this.value, netX, netY - 16);
-            // text(this.delay, netX + 5, netY - 15);
-            // text(this.totalDelay, netX + 5, netY + 15);
             text(
                 this.connections.map((x) => x.destination.name),
                 netX + 5,
                 netY + 35
             );
+            textSize(9);
+            if (this.isSplitter) text(this.indices, netX, netY - 16);
+            // let str = typeof this.value == "object" ? "obj: " : "";
+            // text(str + this.value, netX, netY - 16);
+            // text(this.delay, netX + 5, netY - 15);
+            // text(this.totalDelay, netX + 5, netY + 15);
+
             pop();
         }
     }

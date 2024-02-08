@@ -146,8 +146,11 @@ class Circuit extends Module {
             currentNode.connections.forEach((wire) => {
                 let dest = wire.destination;
                 if (currentNode.isSplitter && dest.isSplitter) {
-                    let destIndex = dest.indices.indexOf(currentIndex);
-                    evalQueue.push([currentTime, destIndex, dest]);
+                    let destIndex = dest.indices.indexOf(currentIndex + Math.min(...currentNode.indices));
+                    console.log(currentIndex + '->' + destIndex)
+                    if (destIndex != -1) {
+                        evalQueue.push([currentTime, destIndex, dest]);
+                    }
                 }
                 else {
                     evalQueue.push([currentTime, currentIndex, dest]);

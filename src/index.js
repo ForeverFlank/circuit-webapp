@@ -160,6 +160,10 @@ function selectedObjectUI() {
         selectedObject.name == "N-bit Input" ? "block" : "none";
     document.getElementById("selecting-splitter").style.display =
         selectedObject.name == "Splitter" ? "block" : "none";
+    
+    if (selectedObject.name == "Splitter") {
+        document.getElementById("selecting-bitwidth").setAttribute("value", selectedObject.inputNode.value.length)
+    }
 }
 
 function removePressedObject() {
