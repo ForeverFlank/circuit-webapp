@@ -238,7 +238,7 @@ class Module {
 }
 
 class WireNode extends Module {
-    constructor(name, x, y) {
+    constructor(name, x, y, value) {
         super(name, 0, 0, x, y);
         this.inputs = [new ModuleNode(this, "node", 0, 0, [State.highZ])];
     }
@@ -304,8 +304,8 @@ class WireNode extends Module {
     render() {
         return;
     }
-    static add(x, y) {
-        let module = new WireNode("", x, y);
+    static add(x, y, value) {
+        let module = new WireNode("", x, y, value);
         circuit.addModule(module);
         return module;
     }

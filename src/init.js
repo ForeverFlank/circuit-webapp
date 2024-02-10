@@ -12,6 +12,10 @@ const DEBUG = 1;
 const DEBUG_2 = 0;
 const NODE_HOVERING_RADIUS = 10;
 
+function isInputModule(m) {
+    return ["Input", "N-bit Input"].includes(m.name);
+}
+
 var mod = (a, b) => ((a % b) + b) % b;
 
 var mouseCanvasX;

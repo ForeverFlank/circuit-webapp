@@ -58,6 +58,9 @@ class ModuleNode {
                 src.connections.forEach((wire) => {
                     let dest = wire.destination;
                     stack.push(dest);
+                    if (src.isSplitter && dest.isSplitter) {
+                        index = dest.indices.indexOf(index + Math.min(...src.indices));
+                    }
                     if (dest.nodeType == "output") {
                         isConnectedToOutput ||= true;
                         if (!dest.isHighZ[index] && !marked.has(dest.id)) {
@@ -171,7 +174,7 @@ class ModuleNode {
                     let destIndex = dest.indices.indexOf(
                         index + Math.min(...this.indices)
                     );
-
+                    console.log("dest indices", dest.indices, "this indices", this.indices);
                     console.log(this.name, "index", index, "->", destIndex);
                     if (destIndex != -1) {
                         dest.setValue(
@@ -181,7 +184,9 @@ class ModuleNode {
                             false,
                             false,
                             inputDelay,
-                            traversed.add(currentItemToString(destIndex, this.id))
+                            traversed.add(
+                                currentItemToString(destIndex, this.id)
+                            )
                         );
                     }
                 } else {
@@ -224,7 +229,7 @@ class ModuleNode {
     getCanvasY() {
         return this.owner.y + this.relativeY * 20;
     }
-    connect(node) {
+    connect(node, evaluate = true) {
         if (this.id == node.id) return;
         if (this.connections.indexOf(new Wire(this, node)) >= 0) return;
         let outgoingWire = new Wire(this, node);
@@ -232,7 +237,9 @@ class ModuleNode {
         this.connections.push(outgoingWire);
         node.connections.push(incomingWire);
 
-        circuit.evaluateAll();
+        if (evaluate) {
+            circuit.evaluateAll();
+        }
 
         return [incomingWire, outgoingWire];
     }
@@ -247,7 +254,7 @@ class ModuleNode {
 
         return [incomingWire, outgoingWire];
     }
-    disconnect(node) {
+    disconnect(node, evaluate = true) {
         let [incomingWire, outgoingWire] = this.getWire(node);
         // wire = node.connections.find((x) => (
         //     x.source.id == node.id &&
@@ -261,12 +268,17 @@ class ModuleNode {
 
         // node.owner.evaluate();
         // this.owner.evaluate();
-        circuit.evaluateAll();
 
-        if (node.connections.length == 0 && node.nodeType == "node")
+        if (node.connections.length == 0 && node.nodeType == "node") {
             circuit.removeModule(node.owner);
-        if (this.connections.length == 0 && this.nodeType == "node")
+        }
+        if (this.connections.length == 0 && this.nodeType == "node") {
             circuit.removeModule(this.owner);
+        }
+
+        if (evaluate) {
+            circuit.evaluateAll();
+        }
     }
     disconnectAll() {
         this.connections.forEach((x) => {
@@ -335,11 +347,12 @@ class ModuleNode {
             );
             textSize(9);
             if (this.isSplitter) text(this.indices, netX, netY - 16);
-            // let str = typeof this.value == "object" ? "obj: " : "";
-            // text(str + this.value, netX, netY - 16);
+            let str = typeof this.value == "object" ? "obj: " : "";
+            text(str + this.value, netX + 16, netY - 36);
             // text(this.delay, netX + 5, netY - 15);
             // text(this.totalDelay, netX + 5, netY + 15);
-
+            if (this.isSplitter)
+                text(this.indices, netX + 16, netY - 26);
             pop();
         }
     }
@@ -378,7 +391,8 @@ class ModuleNode {
     addWireNode() {
         let x = Math.round(mouseCanvasX / 20) * 20;
         let y = Math.round(mouseCanvasY / 20) * 20;
-        let dest = WireNode.add(x, y);
+        let value = [...this.value].fill(State.highZ);
+        let dest = WireNode.add(x, y, value);
         clickedNode.connect(dest.inputs[0]);
         clickedNode = null;
         return dest;
@@ -416,7 +430,6 @@ class OutputNode extends ModuleNode {
     }
 }
 
-// todo; use splitter as  a separated separator and combiner instead
 class SplitterNode extends ModuleNode {
     constructor(
         owner,

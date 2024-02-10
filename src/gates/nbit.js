@@ -17,16 +17,16 @@ class Splitter extends Module {
                 .map((arr) => arr.length)
                 .reduce((sum, a) => sum + a, 0);
         }
-
         let newWidth = splitArrayLength(splitArray);
         if (newWidth > splitArrayLength(this.splitArray)) {
             let maxIndex = Math.max(splitArray.flat());
             splitArray.concat(
                 Array(newWidth - maxIndex - 1).fill(maxIndex + 1).map((x, y) => x + y)
-            );
-        }
+                );
+            }
         this.splitArray = splitArray;
         console.log('AAAA', splitArray)
+        
         this.inputNode.indices = Array(newWidth)
             .fill(0)
             .map((x, y) => x + y);
@@ -34,15 +34,17 @@ class Splitter extends Module {
             if (i == 0) continue;
             this.inputs[i].disconnectAll();
         }
+        
         this.inputs = [this.inputNode];
         let i = 0;
-        splitArray.forEach((array) => {
+        
+        [...splitArray].forEach((array) => {
             let newNode = new SplitterNode(
                 this,
                 "Split" + (i + 1),
                 1,
                 i,
-                Array(array.length).fill(State.highZ)
+                [...array].fill(State.highZ)
             );
             newNode.indices = array;
             this.inputs.push(newNode);
@@ -57,6 +59,7 @@ class Splitter extends Module {
                 }
             })
         })
+        
     }
     getSplitArrayString() {
         return this.splitArray.map((arr) => {

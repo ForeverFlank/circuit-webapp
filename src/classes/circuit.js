@@ -70,7 +70,7 @@ class Circuit extends Module {
             m.inputs.concat(m.outputs).forEach((node) => {
                 node.valueAtTime = {};
             });
-            if (m.name == "Input") {
+            if (isInputModule(m)) {
                 m.setInput(m.outputValue);
                 startingNodes.push(m.outputs[0]);
             } else {
@@ -127,7 +127,7 @@ class Circuit extends Module {
         while (iteration < 10 && evalQueue.length > 0) {
             evalQueue.sort((a, b) => a[0] - b[0]);
             let item = evalQueue.shift();
-            // console.log("queue", evalQueue, "traversed", traversed);
+            console.log("queue", evalQueue, "traversed", traversed);
             let currentTime = item[0];
             let currentIndex = item[1];
             let currentNode = item[2];
