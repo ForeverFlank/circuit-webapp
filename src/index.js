@@ -172,7 +172,9 @@ function removePressedObject() {
 }
 
 function mouseWheel(e) {
-    Controls.zoom(controls).worldZoom(e);
+    if (!hoveringOnDiv()) {
+        Controls.zoom(controls).worldZoom(e);
+    }
 }
 
 function objectsPress() {

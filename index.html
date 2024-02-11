@@ -10,7 +10,7 @@
 </head>
 
 <body oncontextmenu="return false">
-  <div class="flex sticky top-0 h-14 shadow-md z-20 bg-white">
+  <div class="flex sticky top-0 h-14 z-20 bg-white border-b border-zinc-200">
     <div>
       <button class="h-full left-3 mx-3 my-0 px-4 py-0 top-button" onclick="openMenu('menu-circuits', 'grid')">
         Circuits
@@ -33,73 +33,83 @@
 
   <div id="canvas-container"></div>
   <!--canvas id="c" width="500" height="400" style="border: 1px solid black"></canvas-->
-  <div id="gate-menu"
-    class="z-10 absolute flex flex-col gap-y-3 left-0 top-14 w-2/5 max-w-60 h-full p-4 bg-zinc-700 shadow-lg">
-    <input class="p-2 h-8 rounded-md focus-outline" type="text" placeholder="Search" />
+  <div class="flex flex-row">
+    <div id="gate-menu"
+      class="z-10 flex flex-col gap-y-3 left-0 top-14 w-2/5 max-w-60 h-screen p-4 bg-zinc-700 shadow-lg">
+      <input class="p-2 h-8 rounded-md focus-outline" type="text" placeholder="Search" />
 
-    <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-basic', 'grid')">
-      Gates
-    </button>
-    <div class="accordion-gate" id="gate-basic" style="display: none">
-      <button class="text-xs" onclick="Input.add()">INPUT</button>
-      <button class="text-xs" onclick="Output.add()">OUTPUT</button>
-      <button class="text-xs" onclick="NotGate.add()">NOT</button>
-      <button class="text-xs" onclick="AndGate.add()">AND</button>
-      <button class="text-xs" onclick="OrGate.add()">OR</button>
-      <button class="text-xs" onclick="NandGate.add()">NAND</button>
-      <button class="text-xs" onclick="NorGate.add()">NOR</button>
-      <button class="text-xs" onclick="XorGate.add()">XOR</button>
-      <button class="text-xs" onclick="XnorGate.add()">XNOR</button>
-      <button class="text-xs" onclick="HalfAdder.add()">
-        Half Adder
+      <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-io', 'grid')">
+        Input/Output
       </button>
-      <button class="text-xs" onclick="FullAdder.add()">
-        Full Adder
+      <div class="accordion-gate" id="gate-io" style="display: none">
+        <button class="text-xs" onclick="Input.add()">INPUT</button>
+        <button class="text-xs" onclick="Output.add()">OUTPUT</button>
+      </div>
+
+      <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-basic', 'grid')">
+        Gates
       </button>
-      <button class="text-xs" onclick="TriStateBuffer.add()">
-        Tri-State Buffer
+      <div class="accordion-gate" id="gate-basic" style="display: none">
+        <button class="text-xs" onclick="NotGate.add()">NOT</button>
+        <button class="text-xs" onclick="AndGate.add()">AND</button>
+        <button class="text-xs" onclick="OrGate.add()">OR</button>
+        <button class="text-xs" onclick="NandGate.add()">NAND</button>
+        <button class="text-xs" onclick="NorGate.add()">NOR</button>
+        <button class="text-xs" onclick="XorGate.add()">XOR</button>
+        <button class="text-xs" onclick="XnorGate.add()">XNOR</button>
+        <button class="text-xs" onclick="HalfAdder.add()">
+          Half Adder
+        </button>
+        <button class="text-xs" onclick="FullAdder.add()">
+          Full Adder
+        </button>
+        <button class="text-xs" onclick="TriStateBuffer.add()">
+          Tri-State Buffer
+        </button>
+      </div>
+
+      <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-latches', 'grid')">
+        Latches
       </button>
+      <div class="accordion-gate" id="gate-latches" style="display: none">
+        <button class="text-xs" onclick="SRLatch.add()">
+          SR Latch
+        </button>
+        <button class="text-xs" onclick="DLatch.add()">D Latch</button>
+      </div>
+
+      <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-nbit', 'grid')">
+        N-bit
+      </button>
+      <div class="accordion-gate" id="gate-nbit" style="display: none">
+        <button class="text-xs" onclick="Splitter.add()">
+          Splitter
+        </button>
+        <button class="text-xs" onclick="NBitInput.add()">
+          N-bit Input
+        </button>
+      </div>
+
+      <div id="module-button-container">
+        <button onclick="toSubModule()">Make Module</button>
+      </div>
     </div>
 
-    <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-latches', 'grid')">
-      Latches
-    </button>
-    <div class="accordion-gate" id="gate-latches" style="display: none">
-      <button class="text-xs" onclick="SRLatch.add()">
-        SR Latch
-      </button>
-      <button class="text-xs" onclick="DLatch.add()">D Latch</button>
-    </div>
-
-    <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-nbit', 'grid')">
-      N-bit
-    </button>
-    <div class="accordion-gate" id="gate-nbit" style="display: none">
-      <button class="text-xs" onclick="Splitter.add()">
-        Splitter
-      </button>
-      <button class="text-xs" onclick="NBitInput.add()">
-        N-bit Input
-      </button>
-    </div>
-
-    <div id="module-button-container">
-      <button onclick="toSubModule()">Make Module</button>
+    <div class="flex items-center h-10 gap-x-1 grow bg-white border-b border-zinc-200">
+      <div class="flex items-center h-10 gap-x-0 left-4">
+        <button class="bg-white px-2 h-6 text-sm border border-zinc-200 rounded-l-md" onclick="setControlMode('edit')">
+          Edit
+        </button>
+        <button class="bg-white px-2 h-6 text-sm border-y border-zinc-200" onclick="setControlMode('pan')">
+          Pan
+        </button>
+        <button class="bg-white px-2 h-6 text-sm border border-zinc-200 rounded-r-md" id="button-delete"
+          onclick="removePressedObject()">
+          Delete
+        </button>
+      </div>
     </div>
   </div>
-
-  <div class="controls">
-    <button class="bg-white px-2 border border-zinc-300 rounded-md text-md" onclick="setControlMode('edit')">
-      Edit
-    </button>
-    <button class="bg-white px-2 border border-zinc-300 rounded-md text-md" onclick="setControlMode('pan')">
-      Pan
-    </button>
-    <button class="bg-white px-2 border border-zinc-300 rounded-md text-md" id="button-delete" onclick="removePressedObject()">
-      Delete
-    </button>
-  </div>
-
   <div id="selecting-div" class="fixed right-8 top-32 w-48 p-4 rounded-xl bg-white shadow-md" style="display: nne">
     <h3 id="selecting-name" class="font-bold">Properties</h3>
 
