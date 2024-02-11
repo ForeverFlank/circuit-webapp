@@ -269,10 +269,10 @@ class ModuleNode {
         // node.owner.evaluate();
         // this.owner.evaluate();
 
-        if (node.connections.length == 0 && node.nodeType == "node") {
+        if (node.connections.length == 0 && node.nodeType == "node" && !node.isSplitter) {
             circuit.removeModule(node.owner);
         }
-        if (this.connections.length == 0 && this.nodeType == "node") {
+        if (this.connections.length == 0 && this.nodeType == "node" && !this.isSplitter) {
             circuit.removeModule(this.owner);
         }
 

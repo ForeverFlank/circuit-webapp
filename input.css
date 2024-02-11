@@ -78,11 +78,11 @@ button {
 .top-name {
   position: absolute;
   z-index: 10;
-  top: 26px;
+  top: 28px;
   right: 50px;
   transform: translateY(-50%);
-  padding: 6px;
-  height: 24px;
+  padding: 10px;
+  height: 32px;
   border: transparent 1px solid;
   border-radius: 5px;
 }
@@ -90,26 +90,6 @@ button {
 .top-name:hover {
   border: #a5a9ae 1px solid;
   border-radius: 5px;
-}
-
-.gate-menu {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  row-gap: 8px;
-  left: 0;
-  top: 52px;
-  width: 160px;
-  height: 100%;
-  padding: 12px;
-  background-color: var(--gray);
-}
-
-.gate-menu .search {
-  border-radius: 5px;
-  border: #a5a9ae 1px solid;
-  height: 18px;
-  padding: 6px;
 }
 
 /*
@@ -159,20 +139,6 @@ button {
   position: absolute;
   right: 30px;
   top: 72px;
-}
-
-.controls button {
-  margin-left: 8px;
-  background-color: white;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 50%;
-  transition-duration: 300ms;
-}
-
-.controls button:hover {
-  transform: translateY(-2px);
 }
 
 .menu {

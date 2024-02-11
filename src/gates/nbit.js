@@ -18,15 +18,22 @@ class Splitter extends Module {
                 .reduce((sum, a) => sum + a, 0);
         }
         let newWidth = splitArrayLength(splitArray);
-        if (newWidth > splitArrayLength(this.splitArray)) {
+        if (false && newWidth > splitArrayLength(this.splitArray)) {
             let maxIndex = Math.max(splitArray.flat());
-            splitArray.concat(
-                Array(newWidth - maxIndex - 1).fill(maxIndex + 1).map((x, y) => x + y)
-                );
-            }
+            let newArray = Array(newWidth - maxIndex)
+                .fill(maxIndex + 1)
+                .map((x, y) => x + y);
+            console.log("AAAA1s", newArray.toString());
+            splitArray.concat(newArray);
+        }
+        if (false && newWidth < splitArrayLength(this.splitArray)) {
+            splitArray
+                .map((arr) => arr.filter((x) => x < newWidth))
+                .filter((arr) => arr.length > 0);
+        }
         this.splitArray = splitArray;
-        console.log('AAAA', splitArray)
-        
+        console.log("AAAA2s", splitArray.toString());
+
         this.inputNode.indices = Array(newWidth)
             .fill(0)
             .map((x, y) => x + y);
@@ -34,10 +41,10 @@ class Splitter extends Module {
             if (i == 0) continue;
             this.inputs[i].disconnectAll();
         }
-        
+
         this.inputs = [this.inputNode];
         let i = 0;
-        
+
         [...splitArray].forEach((array) => {
             let newNode = new SplitterNode(
                 this,
@@ -49,7 +56,7 @@ class Splitter extends Module {
             newNode.indices = array;
             this.inputs.push(newNode);
             this.inputNode.connect(newNode);
-            console.log(newNode)
+            console.log(newNode);
             i++;
         });
         this.inputs.forEach((node) => {
@@ -57,15 +64,18 @@ class Splitter extends Module {
                 if (wire.destination.isSplitter) {
                     wire.rendered = false;
                 }
-            })
-        })
-        
+            });
+        });
+        console.log(this);
+        console.log(circuit);
     }
     getSplitArrayString() {
-        return this.splitArray.map((arr) => {
-            if (arr.length == 1) return arr[0].toString();
-            return Math.min(...arr) + ':' + Math.max(...arr)
-        }).join(' ');
+        return this.splitArray
+            .map((arr) => {
+                if (arr.length == 1) return arr[0].toString();
+                return Math.min(...arr) + ":" + Math.max(...arr);
+            })
+            .join(" ");
     }
     evaluate(time) {
         super.evaluate(time);
@@ -96,7 +106,10 @@ class Splitter extends Module {
 function setSplitter() {
     let width = document.getElementById("selecting-bitwidth").value;
     let splitString = document.getElementById("selecting-bitsplit").value;
+
+    splitString = splitString.replace(/\s+/g, " ").trim();
     let splitArray = splitString.split(" ");
+
     splitArray = splitArray.map((x) => {
         if (x.includes(":")) {
             let range = x.split(":").map((y) => parseInt(y));
@@ -111,11 +124,23 @@ function setSplitter() {
             return [parseInt(x)];
         }
     });
+
+    let flattedArray = splitArray.flat();
+    width = flattedArray.length;
+
+    if (width == 0) return false;
+    if (flattedArray[0] != 0) return false;
+    for (let i = 1; i < flattedArray.length; i++) {
+        if (flattedArray[i] != flattedArray[i - 1] + 1) {
+            return false;
+        }
+    }
+
     selectedObject.inputNode.value = State.changeWidth(
         selectedObject.inputNode.value,
         width
     );
-    console.log('AAAAAAAA', splitArray)
+    console.log("AAAAAAAA", splitArray);
     selectedObject.setSplitter(splitArray);
 }
 

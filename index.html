@@ -28,16 +28,17 @@
       </div>
     </div>
 
-    <input class="top-name" type="text" placeholder="Untitled" />
+    <input class="top-name focus-outline" type="text" placeholder="Untitled" />
   </div>
 
   <div id="canvas-container"></div>
   <!--canvas id="c" width="500" height="400" style="border: 1px solid black"></canvas-->
-  <div id="gate-menu" class="z-10 absolute flex flex-col gap-y-2 left-0 top-14 w-2/5 max-w-48 h-full p-3 bg-gray-200 shadow-lg">
-    <input class="p-2 h-6 text-sm rounded-md focus-outline" type="text" placeholder="Search" />
+  <div id="gate-menu"
+    class="z-10 absolute flex flex-col gap-y-3 left-0 top-14 w-2/5 max-w-60 h-full p-4 bg-zinc-700 shadow-lg">
+    <input class="p-2 h-8 rounded-md focus-outline" type="text" placeholder="Search" />
 
-    <button class="z-20 h-6 text-sm bg-white" onclick="openMenu('gate-basic', 'grid')">
-      Basic
+    <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-basic', 'grid')">
+      Gates
     </button>
     <div class="accordion-gate" id="gate-basic" style="display: none">
       <button class="text-xs" onclick="Input.add()">INPUT</button>
@@ -60,7 +61,7 @@
       </button>
     </div>
 
-    <button class="z-20 h-6 text-sm bg-white" onclick="openMenu('gate-latches', 'grid')">
+    <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-latches', 'grid')">
       Latches
     </button>
     <div class="accordion-gate" id="gate-latches" style="display: none">
@@ -70,7 +71,7 @@
       <button class="text-xs" onclick="DLatch.add()">D Latch</button>
     </div>
 
-    <button class="z-20 h-6 text-sm bg-white" onclick="openMenu('gate-nbit', 'grid')">
+    <button class="z-20 h-6 text-white bg-transparent text-left px-2" onclick="openMenu('gate-nbit', 'grid')">
       N-bit
     </button>
     <div class="accordion-gate" id="gate-nbit" style="display: none">
@@ -88,13 +89,13 @@
   </div>
 
   <div class="controls">
-    <button class="shadow-sm text-sm" onclick="setControlMode('edit')">
+    <button class="bg-white px-2 border border-zinc-300 rounded-md text-md" onclick="setControlMode('edit')">
       Edit
     </button>
-    <button class="shadow-sm" onclick="setControlMode('pan')">
+    <button class="bg-white px-2 border border-zinc-300 rounded-md text-md" onclick="setControlMode('pan')">
       Pan
     </button>
-    <button class="shadow-sm" id="button-delete" onclick="removePressedObject()">
+    <button class="bg-white px-2 border border-zinc-300 rounded-md text-md" id="button-delete" onclick="removePressedObject()">
       Delete
     </button>
   </div>
@@ -109,21 +110,21 @@
     <div id="selecting-nbitinput" style="display: nne">
       <div>
         <p class="text-sm">Value</p>
-        <input id="selecting-nbitinput-value" class="border p-1 h-5 w-full rounded-sm text-sm focus-outline" type="text" value="0"
-          oninput="setNBitInput()" />
+        <input id="selecting-nbitinput-value" class="border p-1 h-5 w-full rounded-sm text-sm focus-outline" type="text"
+          value="0" oninput="setNBitInput()" />
       </div>
     </div>
 
     <div id="selecting-splitter" style="display: none">
       <div class="flex justify-between">
         <p class="text-sm">Bit Width</p>
-        <input id="selecting-bitwidth" class="border p-1 h-5 w-12 rounded-sm text-sm focus-outline" type="number" min="1" value="1"
-          oninput="setSplitter()" />
+        <input id="selecting-bitwidth" class="border p-1 h-5 w-12 rounded-sm text-sm focus-outline" type="number"
+          min="1" value="1" oninput="setSplitter()" />
       </div>
       <div>
         <p class="text-sm">Bit Split</p>
-        <input id="selecting-bitsplit" class="border p-1 h-5 w-full rounded-sm text-sm focus-outline" type="text" placeholder="0 1 2:7"
-          oninput="setSplitter()" />
+        <input id="selecting-bitsplit" class="border p-1 h-5 w-full rounded-sm text-sm focus-outline" type="text"
+          placeholder="0 1 2:7" oninput="setSplitter()" />
       </div>
     </div>
 
