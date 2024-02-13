@@ -149,7 +149,6 @@ button {
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: white;
-  border-radius: 10px;
 }
 
 .background-blur {

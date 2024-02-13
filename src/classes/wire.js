@@ -6,6 +6,7 @@ class Wire {
         this.isSubModuleWire = false;
         this.id = unique(name);
         this.isHovering = false;
+        this.objectType = "wire";
     }
     hovering() {
         if (controlMode == "pan") return false;
@@ -43,6 +44,7 @@ class Wire {
         return abs(sin(angle(ab, bc))) * mag(bc) <= radius / 2;
     }
     setDirection(from, to) {
+        if (!this.rendered) return;
         this.rendered = from.id == this.source.id;
         let hiddenWire = to.connections.find(
             (x) => x.destination.id == from.id
@@ -91,6 +93,8 @@ class Wire {
         rect(-length / 2, -width / 2, length, width);
         pop();
 
+        textSize(6)
+        text("src", sourceX, sourceY)
         if (
             !(
                 (this.source.value == State.highZ ||

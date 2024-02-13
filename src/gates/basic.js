@@ -1,12 +1,12 @@
 class NotGate extends Module {
     constructor(name) {
-        super(name, 3, 2);
+        super(name, 4, 2);
         this.inputs = [new InputNode(this, "Input", 0, 1)];
-        this.outputs = [new OutputNode(this, "Output", 3, 1)];
+        this.outputs = [new OutputNode(this, "Output", 4, 1)];
         this.displayName = "NOT";
     }
     render() {
-        super.render(this.displayName, 8, -8, 0, "basic/not");
+        super.render(this.displayName, 10, -6, 0, "basic/not");
     }
     evaluate(time) {
         super.evaluate(time);
@@ -353,19 +353,22 @@ class FullAdder extends Module {
 
 class TriStateBuffer extends Module {
     constructor(name) {
-        super(name, 2, 2);
+        super(name, 4, 2);
         this.inputs = [
             new InputNode(this, "Input", 0, 1),
-            new InputNode(this, "Control", 1, 0),
+            new InputNode(this, "Control", 2, 0),
         ];
-        this.outputs = [new OutputNode(this, "Output", 2, 1)];
+        this.outputs = [new OutputNode(this, "Output", 4, 1)];
         this.displayName = "";
+    }
+    render() {
+        super.render("", 12, -8, 0, "basic/tristatebuffer");
     }
     evaluate(time) {
         super.evaluate(time);
         let input = this.inputs[0].getValue(time)[0];
         let control = this.inputs[1].getValue(time)[0];
-        if (control == State.high)
+        if (control == State.high) {
             this.outputs[0].setValue(
                 input,
                 0,
@@ -373,7 +376,7 @@ class TriStateBuffer extends Module {
                 false,
                 true
             );
-        else if (control == State.low)
+        } else if (control == State.low) {
             this.outputs[0].setValue(
                 State.highZ,
                 0,
@@ -381,7 +384,7 @@ class TriStateBuffer extends Module {
                 false,
                 true
             );
-        else
+        } else {
             this.outputs[0].setValue(
                 State.err,
                 0,
@@ -389,6 +392,7 @@ class TriStateBuffer extends Module {
                 false,
                 true
             );
+        }
     }
     static add() {
         circuit.addModule(

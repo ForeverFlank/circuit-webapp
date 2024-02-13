@@ -25,6 +25,7 @@ class Module {
         this.rawY = null;
         this.offsetX = null;
         this.offsetY = null;
+        this.objectType = "module";
     }
     hovering() {
         if (controlMode == "pan") return false;
@@ -45,8 +46,8 @@ class Module {
         return hovering;
     }
     evaluate(time, checkDisconnectedInput = true, evaluated = new Set()) {
-        // console.log('called from', this.id, checkDisconnectedInput);
         this.inputs.concat(this.outputs).forEach((node) => {
+            node.icto = []
             if (!checkDisconnectedInput) return;
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
@@ -55,7 +56,7 @@ class Module {
                 let marked = new Set();
                 stack.push(node);
                 let isConnectedToOutput = node.isOutputNode();
-                let outputsCount = 0;
+                let activeOutputsCount = 0;
 
                 function evaluateWire(wire) {
                     let src = wire.source;
@@ -69,7 +70,7 @@ class Module {
                     if (dest.isOutputNode()) {
                         isConnectedToOutput ||= true;
                         if (!dest.isHighZ[index] && !marked.has(dest.id)) {
-                            outputsCount++;
+                            activeOutputsCount++;
                             marked.add(dest.id);
                         }
                     }
@@ -84,9 +85,9 @@ class Module {
                         evaluateWire(wire);
                     });
                 }
-
-                console.log('called from', node.id, outputsCount)
-                if (!isConnectedToOutput) {
+                
+                node.icto[index] = isConnectedToOutput;
+                if (activeOutputsCount == 0) {
                     node.value[index] = State.highZ;
                     node.isHighZ[index] = true;
                     node.connections.forEach((adjNode) => {
@@ -100,7 +101,7 @@ class Module {
                         }
                     });
                 } else {
-                    if (outputsCount >= 2) {
+                    if (activeOutputsCount >= 2) {
                         this.isDragging = false;
                         this.isHovering = false;
                         // throw new Error('Shortage');
@@ -109,6 +110,7 @@ class Module {
             });
         });
 
+        /*
         this.outputs.forEach((node) => {
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
@@ -148,6 +150,7 @@ class Module {
                 }
             });
         });
+        */
     }
     remove() {
         circuit.removeModule(this);
@@ -339,7 +342,7 @@ class Input extends Module {
     }
     render() {
         let char = State.char(this.outputValue);
-        super.render(char, 12, -5, 0, "basic/input");
+        super.render(char, 12, 0, 0, "basic/input");
     }
     released() {
         super.released();
@@ -364,9 +367,11 @@ class Output extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
+        /*
         if (this.linkedNode != null) {
             this.linkedNode.setValue(this.inputValue);
         }
+        */
     }
     render() {
         let char = State.char(this.inputValue);

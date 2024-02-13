@@ -1,12 +1,17 @@
 let bg = document.getElementById("background-blur");
 bg.addEventListener("click", closeMenu);
 
-function openMenu(id, mode) {
+function openAccordionMenu(id, mode, arrowId = null) {
     let div = document.getElementById(id);
     if (div.style.display == mode) {
         div.style.display = "none";
     } else {
         div.style.display = mode;
+    }
+    if (arrowId != null) {
+        let rotation =
+            div.style.display == mode ? "rotate(180deg)" : "rotate(0)";
+        document.getElementById(arrowId).style.transform = rotation;
     }
 }
 
@@ -24,18 +29,21 @@ function closeMenu() {
     bg.style.display = "none";
 }
 
-var controlMode = "edit";
+var controlMode;
 const controlModes = ["edit", "pan", "delete"];
 function setControlMode(mode) {
     controlMode = mode;
     controlModes.forEach((item) => {
         if (item == mode) {
             let color = item == "delete" ? "#ef4444" : "#3b82f6";
-            document.getElementById(`control-${item}`).style.backgroundColor = color;
+            document.getElementById(`control-${item}`).style.backgroundColor =
+                color;
             document.getElementById(`control-${item}`).style.color = "white";
         } else {
-            document.getElementById(`control-${item}`).style.backgroundColor = "white";
+            document.getElementById(`control-${item}`).style.backgroundColor =
+                "white";
             document.getElementById(`control-${item}`).style.color = "black";
         }
     });
 }
+setControlMode("edit");

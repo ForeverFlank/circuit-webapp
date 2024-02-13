@@ -44,16 +44,15 @@ class Splitter extends Module {
             );
             newNode.indices = array;
             this.inputs.push(newNode);
-            this.inputNode.connect(newNode);
+            let [wire1, wire2] = this.inputNode.connect(newNode);
+            wire1.rendered = wire2.rendered = false;
             console.log(newNode);
             i++;
         });
-        this.inputs.forEach((node) => {
-            node.connections.forEach((wire) => {
-                if (wire.destination.isSplitterNode()) {
-                    wire.rendered = false;
-                }
-            });
+        this.inputNode.connections.forEach((wire) => {
+            if (wire.isSplitterConnection()) {
+                wire.rendered = false;
+            }
         });
         console.log(this);
         console.log(circuit);

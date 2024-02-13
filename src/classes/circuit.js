@@ -82,8 +82,7 @@ class Circuit extends Module {
                 m.inputs.forEach((node) => {
                     Object.entries(node.value).forEach((x) => {
                         let index = x[0];
-                        if (node.connectedToOutput(index).isConnectedToOutput) {
-                        } else {
+                        if (node.connectedToOutput(index).activeOutputsCount != 0) {
                             startingNodes.push([0, index, node]);
                         }
                         if (node.isGenericNode() || reset) {
@@ -104,7 +103,7 @@ class Circuit extends Module {
             m.inputs.forEach((node) => {
                 Object.entries(node.value).forEach((x) => {
                     let index = x[0];
-                    if (node.connectedToOutput(index).outputsCount == 0) {
+                    if (node.connectedToOutput(index).activeOutputsCount == 0) {
                         node.isHighZ[index] = true;
                         node.value[index] = State.highZ;
                         node.valueAtTime[0] = node.value;
@@ -137,7 +136,7 @@ class Circuit extends Module {
         while (iteration < 100 && evalQueue.length > 0) {
             evalQueue.sort((a, b) => a[0] - b[0]);
             let item = evalQueue.shift();
-            console.log("queue", evalQueue, "traversed", traversed);
+            // console.log("queue", evalQueue, "traversed", traversed);
             let currentTime = item[0];
             let currentIndex = item[1];
             let currentNode = item[2];
@@ -160,6 +159,13 @@ class Circuit extends Module {
             traversed.add(itemString);
             currentNode.connections.forEach((wire) => {
                 let dest = wire.destination;
+                if (traversed.has(currentItemToString(
+                    currentTime,
+                    currentIndex,
+                    dest.id
+                ))) {
+                    return;
+                }
                 wire.setDirection(currentNode, dest)
                 if (wire.isSplitterConnection()) {
                     let destIndex = dest.indices.indexOf(
@@ -196,7 +202,6 @@ class Circuit extends Module {
             iteration++;
         }
         if (iteration >= 100) {
-            console.error("Iteration limit exceeded!");
         }
     }
     toModule() {

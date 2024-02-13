@@ -100,14 +100,39 @@ let spritesList = {
         "nand",
         "nor",
         "xnor",
+        "tristatebuffer"
     ],
 };
 function preload() {
     Object.keys(spritesList).forEach((key) => {
         spritesList[key].forEach((item) => {
-            sprites[`${key}/${item}`] = loadImage(`sprites/${key}/${item}.png`);
+            sprites[`${key}/${item}`] = loadImage(
+                `sprites/${key}/${item}.png`
+            );
         });
     });
 
     fontRegular = loadFont("Inter-Regular.ttf");
+}
+
+function pushAlert(level, message) {
+    let container = document.getElementById("alert-container");
+    let element;
+    if (level == "error") {
+        element = document.getElementById("alert-error");
+    }
+    let clone = element.cloneNode(true);
+    clone.innerText = message;
+    clone.style.display = "block";
+    container.appendChild(clone);
+
+    setTimeout(() => {
+        clone.animate([{ opacity: 1 }, { opacity: 0 }], {
+            duration: 1000,
+        });
+    }, 3000);
+
+    setTimeout(() => {
+        clone.remove();
+    }, 4000);
 }

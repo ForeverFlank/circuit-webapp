@@ -1,7 +1,5 @@
 p5.disableFriendlyErrors = true;
 
-
-
 var canvas;
 function setup() {
     canvas = createCanvas(containerWidth, containerHeight);
