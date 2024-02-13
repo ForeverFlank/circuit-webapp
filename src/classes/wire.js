@@ -49,6 +49,12 @@ class Wire {
         );
         hiddenWire.rendered = !(from.id == this.source.id);
     }
+    isSplitterConnection() {
+        if (!this.source.isSplitterNode()) return false;
+        if (!this.destination.isSplitterNode()) return false;
+        if (this.source.isSplitterInput == this.destination.isSplitterInput) return false;
+        return true;
+    }
     render() {
         if (!this.rendered) return;
         if (this.isSubModuleWire && !DEBUG_2) return;
@@ -68,7 +74,15 @@ class Wire {
         // strokeWeight(2);
 
         noStroke();
-        fill(State.color(this.source.value[0]));
+        if (this.source.value.length == 1) {
+            fill(State.color(this.source.value[0]));
+        } else {
+            if (this.source.value.every((x) => x == State.highZ)) {
+                fill(State.color(State.highZ))
+            } else {
+                fill(64);
+            }
+        }
 
         translate((destinationX + sourceX) / 2, (destinationY + sourceY) / 2);
         rotate(angle);
@@ -120,7 +134,10 @@ class Wire {
     }
     pressed() {
         this.isHovering = this.hovering();
-        if (!this.rendered) return;
+        
+        if (!this.rendered) {
+            return false;
+        }
         if (this.isHovering) {
             if (mouseButton == RIGHT) {
                 this.source.disconnect(this.destination);

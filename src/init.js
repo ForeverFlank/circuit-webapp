@@ -67,7 +67,7 @@ function filterObject(obj, condition) {
 }
 
 function hoveringOnDiv(e) {
-    let divIds = ["gate-menu", "selecting-div", "button-delete"];
+    let divIds = ["gate-menu", "selecting-div", "control-tab"];
     for (let i in divIds) {
         let div = document.getElementById(divIds[i]);
         let offsets = div.getBoundingClientRect();

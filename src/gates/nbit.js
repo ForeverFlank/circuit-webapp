@@ -1,7 +1,7 @@
 class Splitter extends Module {
     constructor(name) {
         super(name, 1, 2);
-        this.inputNode = new SplitterNode(this, "Input", 0, 0, [
+        this.inputNode = new SplitterNode(this, "Splitter Input", 0, 0, [
             State.highZ,
             State.highZ,
         ]);
@@ -18,20 +18,8 @@ class Splitter extends Module {
                 .reduce((sum, a) => sum + a, 0);
         }
         let newWidth = splitArrayLength(splitArray);
-        if (false && newWidth > splitArrayLength(this.splitArray)) {
-            let maxIndex = Math.max(splitArray.flat());
-            let newArray = Array(newWidth - maxIndex)
-                .fill(maxIndex + 1)
-                .map((x, y) => x + y);
-            console.log("AAAA1s", newArray.toString());
-            splitArray.concat(newArray);
-        }
-        if (false && newWidth < splitArrayLength(this.splitArray)) {
-            splitArray
-                .map((arr) => arr.filter((x) => x < newWidth))
-                .filter((arr) => arr.length > 0);
-        }
         this.splitArray = splitArray;
+
         console.log("AAAA2s", splitArray.toString());
 
         this.inputNode.indices = Array(newWidth)
@@ -41,6 +29,7 @@ class Splitter extends Module {
             if (i == 0) continue;
             this.inputs[i].disconnectAll();
         }
+        this.inputNode.isSplitterInput = true;
 
         this.inputs = [this.inputNode];
         let i = 0;
@@ -61,7 +50,7 @@ class Splitter extends Module {
         });
         this.inputs.forEach((node) => {
             node.connections.forEach((wire) => {
-                if (wire.destination.isSplitter) {
+                if (wire.destination.isSplitterNode()) {
                     wire.rendered = false;
                 }
             });
@@ -176,4 +165,30 @@ function setNBitInput(time) {
     let value = document.getElementById("selecting-nbitinput-value").value;
     selectedObject.setInput(State.fromString(value), time);
     circuit.evaluateAll(false);
+}
+
+class BitwiseNotGate extends Module {
+    constructor(name) {
+        super(name, 3, 2);
+        this.inputs = [new InputNode(this, "Input", 0, 1)];
+        this.outputs = [new OutputNode(this, "Output", 3, 1)];
+        this.displayName = "NOT";
+    }
+    render() {
+        super.render()
+        // super.render(this.displayName, 8, -8, 0, "basic/not");
+    }
+    evaluate(time) {
+        super.evaluate(time);
+        let result = this.inputs[0].getValue(time).map(x => State.not(x));
+        this.outputs[0].setValues(
+            result,
+            time + this.outputs[0].delay,
+            false,
+            true
+        );
+    }
+    static add() {
+        circuit.addModule(new BitwiseNotGate("Bitwise NOT Gate"));
+    }
 }

@@ -1,9 +1,6 @@
 p5.disableFriendlyErrors = true;
 
-var controlMode = "edit";
-function setControlMode(mode) {
-    controlMode = mode;
-}
+
 
 var canvas;
 function setup() {
@@ -28,7 +25,7 @@ function grid() {
     push();
     noStroke();
 
-    stroke("#e7e9eb");
+    stroke("#e4e4e7");
     strokeWeight(1);
     let startX = floor((-view.x - roundedWidth / 2) / 20 / zoom) * 20;
     let startY = floor((-view.y - roundedHeight / 2) / 20 / zoom) * 20;
@@ -109,7 +106,7 @@ function draw() {
     placeY = -Math.round(controls.view.y / 20 / controls.view.zoom) * 20;
     hoveringNode = {};
 
-    background("#fbfcfc");
+    background("#f4f4f5");
 
     // let w = 40 * ceil(containerWidth / 40);
     // let h = 40 * ceil(containerHeight / 40);
@@ -142,7 +139,7 @@ function draw() {
 
     pop();
 
-    timingDiagram();
+    // timingDiagram();
 
     let fps = frameRate();
     document.getElementById("fps-counter").innerText = fps.toFixed(2);

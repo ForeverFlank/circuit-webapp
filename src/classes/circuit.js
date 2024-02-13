@@ -72,16 +72,21 @@ class Circuit extends Module {
             });
             if (isInputModule(m)) {
                 m.setInput(m.outputValue);
-                startingNodes.push(m.outputs[0]);
+                [...m.outputs[0].value]
+                    .fill(0)
+                    .map((x, y) => x + y)
+                    .forEach((index) => {
+                        startingNodes.push([0, index, m.outputs[0]]);
+                    });
             } else {
                 m.inputs.forEach((node) => {
                     Object.entries(node.value).forEach((x) => {
                         let index = x[0];
                         if (node.connectedToOutput(index).isConnectedToOutput) {
                         } else {
-                            startingNodes.push(node);
+                            startingNodes.push([0, index, node]);
                         }
-                        if (node.nodeType == "node" || reset) {
+                        if (node.isGenericNode() || reset) {
                             node.isHighZ[index] = true;
                             node.value[index] = State.highZ;
                             node.valueAtTime[0] = node.value;
@@ -109,29 +114,39 @@ class Circuit extends Module {
         });
 
         let evalQueue = [];
+        /*
         startingNodes.forEach((node) => {
             node.value.forEach((value, index) => {
                 evalQueue.push([0, index, node]);
             });
         });
-        console.log('pre1', this.getNodes())
-        startingNodes.forEach((node) => {
+        */
+        startingNodes.forEach((item) => {
+            let node = item[2];
             node.setValues(node.valueAtTime[0], 0, false);
         });
-        console.log('pre2', this.getNodes())
+        evalQueue = startingNodes;
+
+        console.log(evalQueue.map((x) => x[2].owner.name));
+        // console.log('pre2', this.getNodes())
         let traversed = new Set();
         function currentItemToString(time, index, nodeId) {
             return `t${time}i${index}n${nodeId}`;
         }
         let iteration = 0;
-        while (iteration < 10 && evalQueue.length > 0) {
+        while (iteration < 100 && evalQueue.length > 0) {
             evalQueue.sort((a, b) => a[0] - b[0]);
             let item = evalQueue.shift();
             console.log("queue", evalQueue, "traversed", traversed);
             let currentTime = item[0];
             let currentIndex = item[1];
             let currentNode = item[2];
-            console.log('item', item, currentTime)
+            console.log(
+                currentNode.owner.name,
+                ".",
+                currentNode.name,
+                currentIndex
+            );
             let currentModule = currentNode.owner;
             let itemString = currentItemToString(
                 currentTime,
@@ -145,155 +160,44 @@ class Circuit extends Module {
             traversed.add(itemString);
             currentNode.connections.forEach((wire) => {
                 let dest = wire.destination;
-                if (currentNode.isSplitter && dest.isSplitter) {
-                    let destIndex = dest.indices.indexOf(currentIndex + Math.min(...currentNode.indices));
-                    console.log(currentIndex + '->' + destIndex)
+                wire.setDirection(currentNode, dest)
+                if (wire.isSplitterConnection()) {
+                    let destIndex = dest.indices.indexOf(
+                        currentIndex + Math.min(...currentNode.indices)
+                    );
+
                     if (destIndex != -1) {
+                        console.log(
+                            currentNode.name,
+                            currentIndex,
+                            "->",
+                            dest.name,
+                            destIndex
+                        );
                         evalQueue.push([currentTime, destIndex, dest]);
                     }
-                }
-                else {
+                } else {
                     evalQueue.push([currentTime, currentIndex, dest]);
                 }
                 // console.log('pushing', [currentTime, currentIndex, dest])
             });
-            if (currentNode.nodeType == "input") {
+            if (currentNode.isInputNode()) {
                 currentModule.outputs.forEach((node) => {
-                    console.log('D', node.delay)
+                    // console.log('D', node.delay)
                     evalQueue.push([
                         currentTime + node.delay,
                         currentIndex,
                         node,
                     ]);
                 });
-                currentModule.evaluate(currentTime, true)
+                currentModule.evaluate(currentTime, true);
             }
-            if (currentNode.nodeType == "node") {
-            } else if (currentNode.nodeType == "input") {
-                // currentModule.evaluate(currentTime - currentNode.delay, true);
-            }
-            // console.log(currentNode.name);
 
             iteration++;
         }
-        if (iteration >= 10) {
+        if (iteration >= 100) {
             console.error("Iteration limit exceeded!");
         }
-        console.log("eeeeeeeeeeeee");
-        /*
-        startingNodes.forEach((node) => {
-            node.totalDelay = [0];
-            let stack = [];
-            let traversed = new Set();
-            let marked = new Set();
-            let queue = [];
-            stack.push(node);
-            let iter = 0;
-            while (stack.length > 0 && iter <= 10000) {
-                let src = stack.pop();
-
-                console.log(
-                    "! Evaluating from source",
-                    src.owner.name,
-                    "->",
-                    src.name,
-                    "with connections to",
-                    src.connections.map(
-                        (x) =>
-                            x.destination.owner.name + " " + x.destination.name
-                    )
-                );
-
-                let srcDelay = src.totalDelay;
-                if (!traversed.has(src.id)) {
-                    traversed.add(src.id);
-                    src.connections.forEach((wire) => {
-                        let dest = wire.destination;
-                        let delay = srcDelay;
-                        dest.totalDelay = dest.totalDelay.concat(delay);
-                        dest.totalDelay = [...new Set(dest.totalDelay)];
-                        stack.push(dest);
-                    });
-
-                    // fix below when the gate is output inside a submodule
-                    
-                    if (
-                        src.nodeType == "input" &&
-                        !src.owner.isSubModule &&
-                        src.owner.linkedNode == null
-                    ) {
-                        console.log("aaa", src);
-                        let outputs = src.owner.outputs;
-                        outputs.forEach((outputNode) => {
-                            let stack2 = [];
-                            let traversed2 = new Set();
-                            stack2.push(outputNode);
-                            while (stack2.length > 0) {
-                                let x = stack2.pop();
-                                if (!traversed2.has(x.id)) {
-                                    traversed2.add(x.id);
-                                    traversed.delete(x.id);
-                                    x.connections.forEach((w) => {
-                                        let d = w.destination;
-                                        stack2.push(d);
-                                    });
-                                }
-                            }
-                            traversed.delete(outputNode.id);
-                            let delay = src.totalDelay.map(
-                                (x) => x + outputNode.delay
-                            );
-                            outputNode.totalDelay =
-                                outputNode.totalDelay.concat(delay);
-                            outputNode.totalDelay = [
-                                ...new Set(outputNode.totalDelay),
-                            ];
-                            stack.push(outputNode);
-                        });
-                    }
-                    
-                }
-                iter++;
-            }
-            if (iter >= 10000) {
-                console.log("overflow 1");
-            }
-        });
-
-        */
-        /*
-        console.log("start", startingNodes);
-        let queue = [];
-        let nodes = this.getNodes();
-        console.log(nodes);
-        nodes.forEach((node) => {
-            // console.log('!', node.name, node.totalDelay)
-            // node.totalDelay = [...new Set(node.totalDelay)];
-            // node.valueAtTime
-            node.totalDelay.sort();
-            node.setValues(node.valueAtTime[0], 0, false);
-            node.totalDelay.forEach((t) => {
-                queue.push([t, node]);
-            });
-        });
-        queue = queue.sort((a, b) => a[0] - b[0]);
-        console.log("q", queue);
-        let iter = 0;
-        queue
-            .filter((x) => x[1].nodeType == "input" || x[1].nodeType == "node")
-            .forEach((x) => {
-                if (iter > 10000) return;
-                console.log("-", x[1].owner.name, x[1].name);
-                // x[1].setValue(x[1].value, x[0], false);
-                // x[1].valueAtTime[x[0]] = x[1].value;
-                let isSubmoduleIO = false;
-                if (!isSubmoduleIO) {
-                    x[1].owner.evaluate(x[0], true);
-                }
-                iter++;
-            });
-        if (iter >= 10000) console.log("overflow 2");
-        */
     }
     toModule() {
         let newModule = new Circuit();

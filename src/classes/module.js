@@ -46,7 +46,6 @@ class Module {
     }
     evaluate(time, checkDisconnectedInput = true, evaluated = new Set()) {
         // console.log('called from', this.id, checkDisconnectedInput);
-
         this.inputs.concat(this.outputs).forEach((node) => {
             if (!checkDisconnectedInput) return;
             Object.entries(node.value).forEach((x) => {
@@ -55,13 +54,19 @@ class Module {
                 let traversed = new Set();
                 let marked = new Set();
                 stack.push(node);
-                let isConnectedToOutput = node.nodeType == "output";
+                let isConnectedToOutput = node.isOutputNode();
                 let outputsCount = 0;
 
                 function evaluateWire(wire) {
+                    let src = wire.source;
                     let dest = wire.destination;
                     stack.push(dest);
-                    if (dest.nodeType == "output") {
+                    if (wire.isSplitterConnection()) {
+                        index = dest.indices.indexOf(
+                            index + Math.min(...src.indices)
+                        );
+                    }
+                    if (dest.isOutputNode()) {
                         isConnectedToOutput ||= true;
                         if (!dest.isHighZ[index] && !marked.has(dest.id)) {
                             outputsCount++;
@@ -80,6 +85,7 @@ class Module {
                     });
                 }
 
+                console.log('called from', node.id, outputsCount)
                 if (!isConnectedToOutput) {
                     node.value[index] = State.highZ;
                     node.isHighZ[index] = true;
@@ -122,7 +128,13 @@ class Module {
                         let dest = wire.destination;
                         stack.push(dest);
                         if (!marked.has(dest.id)) {
+                            console.log('direction', src, dest)
                             wire.setDirection(src, dest);
+                        }
+                        if (wire.isSplitterConnection()) {
+                            index = dest.indices.indexOf(
+                                index + Math.min(...src.indices)
+                            );
                         }
                         if (
                             this.inputs.some((node) => node.id == dest.id) && !sequentialModuleList.some(name => name == dest.owner.name)
@@ -238,9 +250,9 @@ class Module {
 }
 
 class WireNode extends Module {
-    constructor(name, x, y, value) {
+    constructor(name, x, y, value = [State.highZ]) {
         super(name, 0, 0, x, y);
-        this.inputs = [new ModuleNode(this, "node", 0, 0, [State.highZ])];
+        this.inputs = [new ModuleNode(this, "node", 0, 0, value)];
     }
     hovering() {
         return this.inputs[0].hovering();
@@ -259,7 +271,7 @@ class WireNode extends Module {
                         src.connections.forEach((wire) => {
                             let dest = wire.destination;
                             stack.push(dest);
-                            if (dest.nodeType == "output") {
+                            if (dest.isOutputNode()) {
                                 connectedToOutput ||= true;
                             }
                         });
@@ -305,7 +317,7 @@ class WireNode extends Module {
         return;
     }
     static add(x, y, value) {
-        let module = new WireNode("", x, y, value);
+        let module = new WireNode("Node", x, y, value);
         circuit.addModule(module);
         return module;
     }
@@ -315,7 +327,7 @@ class Input extends Module {
     constructor(name) {
         super(name, 2, 2);
         this.outputValue = State.low;
-        this.outputs = [new OutputNode(this, "out1", 2, 1, [State.low], 0)];
+        this.outputs = [new OutputNode(this, "Output", 2, 1, [State.low], 0)];
         this.isSubmoduleIO = false;
     }
     setInput(value, time = 0) {
@@ -348,7 +360,7 @@ class Output extends Module {
     constructor(name) {
         super(name, 2, 2);
         this.inputValue = State.highZ;
-        this.inputs = [new InputNode(this, "in1", 0, 1, [State.highZ])];
+        this.inputs = [new InputNode(this, "Input", 0, 1, [State.highZ])];
     }
     evaluate(time) {
         super.evaluate(time);

@@ -19,6 +19,7 @@ class ModuleNode {
         this.connections = [];
         this.nodeType = "node";
         this.isSplitter = false;
+        this.isSplitterInput = false;
         this.relativeX = relativeX;
         this.relativeY = relativeY;
         this.isDragging = false;
@@ -58,10 +59,12 @@ class ModuleNode {
                 src.connections.forEach((wire) => {
                     let dest = wire.destination;
                     stack.push(dest);
-                    if (src.isSplitter && dest.isSplitter) {
-                        index = dest.indices.indexOf(index + Math.min(...src.indices));
+                    if (wire.isSplitterConnection()) {
+                        index = dest.indices.indexOf(
+                            index + Math.min(...src.indices)
+                        );
                     }
-                    if (dest.nodeType == "output") {
+                    if (dest.isOutputNode()) {
                         isConnectedToOutput ||= true;
                         if (!dest.isHighZ[index] && !marked.has(dest.id)) {
                             outputsCount++;
@@ -106,7 +109,7 @@ class ModuleNode {
         inputDelay = 0,
         traversed = new Set()
     ) {
-        console.log(
+        /* console.log(
             this.owner.name,
             "->",
             this.name,
@@ -119,6 +122,7 @@ class ModuleNode {
             "at time",
             time
         );
+        */
 
         if (setByModule) {
             this.isHighZ[index] = value == State.highZ;
@@ -138,12 +142,13 @@ class ModuleNode {
 
         this.valueAtTime[time] = this.value;
 
-        console.log(
+        /* console.log(
             "a",
             Object.entries(this.valueAtTime)
                 .map((x) => x[0] + ":" + x[1])
                 .join(" ")
         );
+        */
 
         if (evaluate) {
             // this.owner.evaluate(time);
@@ -162,7 +167,7 @@ class ModuleNode {
                 this.linkedModule.setInput(value, time);
             }
         }
-        console.log("it is now", this.value, this.valueAtTime);
+        // console.log("it is now", this.value, this.valueAtTime);
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
         }
@@ -170,12 +175,12 @@ class ModuleNode {
             let dest = wire.destination;
             if (traversed.has(currentItemToString(index, dest.id))) return;
             if (!this.isHighZ[index] || this.value[index] != State.highZ) {
-                if (this.isSplitter && dest.isSplitter) {
+                if (wire.isSplitterConnection()) {
                     let destIndex = dest.indices.indexOf(
                         index + Math.min(...this.indices)
                     );
-                    console.log("dest indices", dest.indices, "this indices", this.indices);
-                    console.log(this.name, "index", index, "->", destIndex);
+                    // console.log("dest indices", dest.indices, "this indices", this.indices);
+                    // console.log(this.name, "index", index, "->", destIndex);
                     if (destIndex != -1) {
                         dest.setValue(
                             this.value[index],
@@ -201,7 +206,7 @@ class ModuleNode {
                     );
                 }
             }
-            if (dest.nodeType != "output") {
+            if (!dest.isOutputNode()) {
                 // dest.owner.evaluate();
             }
         });
@@ -218,7 +223,7 @@ class ModuleNode {
             this.value = this.value.slice(0, value.length);
         }
         Object.entries(value).forEach((x) => {
-            console.log("g", x);
+            // console.log("g", x);
             let index = parseInt(x[0]);
             this.setValue(x[1], index, time, evaluate, setByModule, inputDelay);
         });
@@ -231,7 +236,12 @@ class ModuleNode {
     }
     connect(node, evaluate = true) {
         if (this.id == node.id) return;
-        if (this.connections.indexOf(new Wire(this, node)) >= 0) return;
+        if (this.connections.some((wire) =>
+            (wire.source.id == this.id &&
+             wire.destination.id == node.id) ||
+            (wire.source.id == node.id &&
+             wire.destination.id == this.id)
+        )) return;
         let outgoingWire = new Wire(this, node);
         let incomingWire = new Wire(node, this, false);
         this.connections.push(outgoingWire);
@@ -269,10 +279,18 @@ class ModuleNode {
         // node.owner.evaluate();
         // this.owner.evaluate();
 
-        if (node.connections.length == 0 && node.nodeType == "node" && !node.isSplitter) {
+        if (
+            node.connections.length == 0 &&
+            node.isGenericNode() &&
+            !node.isSplitterNode()
+        ) {
             circuit.removeModule(node.owner);
         }
-        if (this.connections.length == 0 && this.nodeType == "node" && !this.isSplitter) {
+        if (
+            this.connections.length == 0 &&
+            this.isGenericNode() &&
+            !this.isSplitterNode()
+        ) {
             circuit.removeModule(this.owner);
         }
 
@@ -280,9 +298,11 @@ class ModuleNode {
             circuit.evaluateAll();
         }
     }
-    disconnectAll() {
+    disconnectAll(disconnectSplitter = false) {
         this.connections.forEach((x) => {
-            x.source.disconnect(x.destination);
+            if (!x.destination.isSplitterNode() && !disconnectSplitter) {
+                x.source.disconnect(x.destination);
+            }
         });
     }
     connectByGrid() {
@@ -292,9 +312,9 @@ class ModuleNode {
         if (otherNode != null && otherNode.owner.id != thisNode.owner.id) {
             // console.log('aa')
             // console.log(thisNode, 'found', otherNode);
-            if (thisNode.nodeType != "node" && otherNode.nodeType != "node")
+            if (!(thisNode.isGenericNode() || otherNode.isGenericNode()))
                 return;
-            if (otherNode.nodeType == "node") {
+            if (otherNode.isGenericNode()) {
                 [thisNode, otherNode] = [otherNode, thisNode];
             }
             thisNode.connections.forEach((wire) => {
@@ -327,7 +347,15 @@ class ModuleNode {
 
         // console.log(this.value)
         noStroke();
-        fill(State.color(this.value[0]));
+        if (this.value.length == 1) {
+            fill(State.color(this.value[0]));
+        } else {
+            if (this.value.every((x) => x == State.highZ)) {
+                fill(State.color(State.highZ));
+            } else {
+                fill(64);
+            }
+        }
         circle(netX, netY, this.hovering() ? 9 : 6);
 
         if (this.hovering()) {
@@ -335,24 +363,25 @@ class ModuleNode {
         }
         if (DEBUG) {
             push();
+            textSize(5);
             // text(this.isHighZ, netX, netY - 22);
-            text(this.id.slice(0, 10), netX, netY - 7);
+            text(this.id.slice(0, 10), netX, netY - 3);
             noStroke();
             fill(0);
-            textSize(15);
+            
+            if (this.isSplitterNode()) text(this.indices, netX, netY - 8);
+            let str = typeof this.value == "object" ? ": " : "";
+            text(str + this.value, netX, netY - 13);
+            /*
             text(
                 this.connections.map((x) => x.destination.name),
-                netX + 5,
-                netY + 35
+                netX + 16,
+                netY - 16
             );
-            textSize(9);
-            if (this.isSplitter) text(this.indices, netX, netY - 16);
-            let str = typeof this.value == "object" ? "obj: " : "";
-            text(str + this.value, netX + 16, netY - 36);
+            */
             // text(this.delay, netX + 5, netY - 15);
             // text(this.totalDelay, netX + 5, netY + 15);
-            if (this.isSplitter)
-                text(this.indices, netX + 16, netY - 26);
+            if (this.isSplitterNode()) text(this.indices, netX + 16, netY - 26);
             pop();
         }
     }
@@ -387,6 +416,18 @@ class ModuleNode {
             }
         }
         this.isHovering = false;
+    }
+    isGenericNode() {
+        return this.nodeType == "node";
+    }
+    isInputNode() {
+        return this.nodeType == "input";
+    }
+    isOutputNode() {
+        return this.nodeType == "output";
+    }
+    isSplitterNode() {
+        return this.isSplitter;
     }
     addWireNode() {
         let x = Math.round(mouseCanvasX / 20) * 20;
