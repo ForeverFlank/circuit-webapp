@@ -475,8 +475,10 @@ class ModuleNode {
         this.isSplitterInput = data.isSplitterInput;
         this.relativeX = data.relativeX;
         this.relativeY = data.relativeY;
-        this.owner = owner;
-        this.connections = connections;
+        this.ownerId = data.ownerId;
+        this.connectionsId = data.connectionsId;
+        // this.owner = owner;
+        // this.connections = connections;
     }
     /*
     static deserialize(data, owner, connections) {

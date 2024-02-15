@@ -166,8 +166,10 @@ class Wire {
         newWire.objectType = data.objectType;
         newWire.rendered = data.rendered;
         newWire.isSubModuleWire = data.isSubModuleWire;
-        newWire.source = source;
-        newWire.destination = destination;
+        newWire.sourceId = data.sourceId;
+        newWire.destinationId = data.destinationId;
+        // newWire.source = source;
+        // newWire.destination = destination;
         return newWire;
     }
 }

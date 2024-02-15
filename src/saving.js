@@ -25,54 +25,90 @@ function importSerializedCircuit(string) {
     let importedNodes = importedData["nodes"];
     let importedWires = importedData["wires"];
 
-    console.log(importedModules, importedNodes, importedWires)
+    console.log(importedModules, importedNodes, importedWires);
 
-    importedWires = importedWires.map((wire) => {
-        let source = importedNodes.find((node) => wire.sourceId == node.id);
-        let destination = importedNodes.find(
+    /*
+    importedWires.forEach((wire) => {
+        wire.source = importedNodes.find((node) => wire.sourceId == node.id);
+        wire.destination = importedNodes.find(
             (node) => wire.destinationId == node.id
         );
         // console.log('sd', source, destination)
         delete wire.sourceId;
         delete wire.destinationId;
-        return Wire.deserialize(wire, source, destination);
+        // return Wire.deserialize(wire, source, destination);
     });
 
-    console.log(importedWires)
+    console.log(importedWires);
 
-    importedModules = importedModules.map((mod) => {
-        let inputs = mod.inputsId.map((id) =>
+    importedModules.forEach((mod) => {
+        mod.inputs = mod.inputsId.map((id) =>
             importedNodes.find((node) => id == node.id)
         );
-        let outputs = mod.outputsId.map((id) =>
+        mod.outputs = mod.outputsId.map((id) =>
             importedNodes.find((node) => id == node.id)
         );
-        console.log('io', inputs, outputs)
+        // console.log("io", inputs, outputs);
         delete mod.inputsId;
         delete mod.outputsId;
-        console.log(mod.name)
-        let newModule = getModuleClassByName(mod.name);
-        newModule.fromSerialized(mod, inputs, outputs);
-        return newModule;
+        // console.log(mod.name);
+        // let newModule = getModuleClassByName(mod.name);
+        // newModule.fromSerialized(mod, inputs, outputs);
+        // return newModule;
         // return Module.deserialize(mod, inputs, outputs);
     });
 
-    importedNodes = importedNodes.map((node) => {
-        let owner = importedModules.find((mod) => node.ownerId == mod.id);
-        let connections = node.connectionsId.map((id) =>
+    importedNodes.forEach((node) => {
+        node.owner = importedModules.find((mod) => node.ownerId == mod.id);
+        node.connections = node.connectionsId.map((id) =>
             importedWires.find((wire) => id == wire.id)
         );
         delete node.ownerId;
         delete node.connectionsId;
         // console.log('oc', owner, connections)
-        let newNode = getNodeClassByObject(node);
-        newNode.fromSerialized(node, owner, connections);
-        return newNode;
+        // let newNode = getNodeClassByObject(node);
+        // newNode.fromSerialized(node, owner, connections);
+        // return newNode;
         // return ModuleNode.deserialize(node, owner, connections);
     });
+    */
 
-    console.log(importedModules);
-    currentCircuit = Circuit.fromModulesArray(importedModules);
+    let newWires = importedWires.map((wire) => Wire.deserialize(wire));
+    let newNodes = importedNodes.map((node) => {
+        let newNode = getNodeClassByObject(node);
+        newNode.fromSerialized(node);
+        return newNode;
+    });
+    let newModules = importedModules.map((mod) => {
+        let newModule = getModuleClassByName(mod.name);
+        newModule.fromSerialized(mod);
+        return newModule;
+    });
+
+    newWires.forEach((wire) => {
+        wire.source = newNodes.find((node) => node.id == wire.sourceId);
+        wire.destination = newNodes.find(
+            (node) => node.id == wire.destinationId
+        );
+    });
+    newNodes.forEach((node) => {
+        node.owner = newModules.find((mod) => mod.id == node.ownerId);
+        node.connections = node.connectionsId.map((id) =>
+            newWires.find((wire) => wire.id == id)
+        );
+    });
+    newModules.forEach((mod) => {
+        mod.inputs = mod.inputsId.map((id) =>
+            newNodes.find((node) => node.id == id)
+        );
+        mod.outputs = mod.outputsId.map((id) =>
+            newNodes.find((node) => node.id == id)
+        );
+    });
+    console.log("new", newWires, newNodes, newModules);
+
+    // console.log(newModules);
+    currentCircuit = Circuit.fromModulesArray(newModules);
     // currentCircuit = new Circuit();
     // console.log(importedModules);
 }
@@ -92,7 +128,7 @@ function getModuleClassByName(name) {
 }
 
 function getNodeClassByObject(object) {
-    let defaultParameters = [null, null, 0, 0, [State.highZ], 0, false]
+    let defaultParameters = [null, null, 0, 0, [State.highZ], 0, false];
     if (object.nodeType == "input") {
         return new InputNode(...defaultParameters);
     }

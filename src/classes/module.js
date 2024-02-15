@@ -329,8 +329,10 @@ class Module {
         this.y = data.y;
         this.displayName = data.displayName;
         this.isSubModule = data.isSubModule;
-        this.inputs = inputs;
-        this.outputs = outputs;
+        this.inputsId = data.inputsId;
+        this.outputsId = data.outputsId;
+        // this.inputs = inputs;
+        // this.outputs = outputs;
     }
     /*
     static deserialize(data, inputs, outputs) {
