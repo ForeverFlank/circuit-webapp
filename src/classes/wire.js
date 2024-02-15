@@ -150,4 +150,14 @@ class Wire {
         }
         return false;
     }
+    serialize() {
+        return {
+            id: this.id,
+            objectType: this.objectType,
+            sourceId: this.source.id,
+            destinationId: this.destination.id,
+            rendered: this.rendered,
+            isSubmoduleWire: this.isSubModuleWire
+        }
+    }
 }

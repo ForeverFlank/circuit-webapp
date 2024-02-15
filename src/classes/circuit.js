@@ -80,9 +80,13 @@ class Circuit extends Module {
                     });
             } else {
                 m.inputs.forEach((node) => {
+                    console.log(node)
                     Object.entries(node.value).forEach((x) => {
                         let index = x[0];
-                        if (node.connectedToOutput(index).activeOutputsCount != 0) {
+                        if (
+                            node.connectedToOutput(index).activeOutputsCount ==
+                            0
+                        ) {
                             startingNodes.push([0, index, node]);
                         }
                         if (node.isGenericNode() || reset) {
@@ -126,26 +130,29 @@ class Circuit extends Module {
         });
         evalQueue = startingNodes;
 
-        console.log(evalQueue.map((x) => x[2].owner.name));
+        // console.log(evalQueue.map((x) => x[2].owner.name));
         // console.log('pre2', this.getNodes())
         let traversed = new Set();
         function currentItemToString(time, index, nodeId) {
             return `t${time}i${index}n${nodeId}`;
         }
         let iteration = 0;
-        while (iteration < 100 && evalQueue.length > 0) {
+        let maxIteration = 100
+        while (iteration < maxIteration && evalQueue.length > 0) {
             evalQueue.sort((a, b) => a[0] - b[0]);
             let item = evalQueue.shift();
             // console.log("queue", evalQueue, "traversed", traversed);
             let currentTime = item[0];
             let currentIndex = item[1];
             let currentNode = item[2];
+            /*
             console.log(
                 currentNode.owner.name,
                 ".",
                 currentNode.name,
                 currentIndex
             );
+            */
             let currentModule = currentNode.owner;
             let itemString = currentItemToString(
                 currentTime,
@@ -159,14 +166,14 @@ class Circuit extends Module {
             traversed.add(itemString);
             currentNode.connections.forEach((wire) => {
                 let dest = wire.destination;
-                if (traversed.has(currentItemToString(
-                    currentTime,
-                    currentIndex,
-                    dest.id
-                ))) {
+                if (
+                    traversed.has(
+                        currentItemToString(currentTime, currentIndex, dest.id)
+                    )
+                ) {
                     return;
                 }
-                wire.setDirection(currentNode, dest)
+                // wire.setDirection(currentNode, dest);
                 if (wire.isSplitterConnection()) {
                     let destIndex = dest.indices.indexOf(
                         currentIndex + Math.min(...currentNode.indices)
@@ -201,8 +208,17 @@ class Circuit extends Module {
 
             iteration++;
         }
-        if (iteration >= 100) {
+        if (iteration >= maxIteration) {
+            console.error("Error: Iteration limit exceeded! ");
+            pushAlert("error", "Error: Iteration limit exceeded!");
         }
+    }
+    serialize() {
+        let moduleData = super.serialize();
+        moduleData.modulesID = this.modules.map((m) => m.id);
+        moduleData.inputModulesID = this.inputModules.map((m) => m.id);
+        moduleData.outputModulesID = this.outputModules.map((m) => m.id);
+        return moduleData;
     }
     toModule() {
         let newModule = new Circuit();
@@ -253,18 +269,18 @@ class Circuit extends Module {
         return newModule;
     }
     add() {
-        circuit.addModule(this.toModule());
+        currentCircuit.addModule(this.toModule());
     }
 }
 
 let nameID = 0;
-var circuit = new Circuit("Circuit");
+var currentCircuit = new Circuit("Circuit");
 var customModules = {};
 
 function toSubModule() {
     let name = "MODULE" + nameID;
     // let newModule = Object.assign(Object.create(Object.getPrototypeOf(circuit)), circuit);
-    let newModule = circuit;
+    let newModule = currentCircuit;
     // console.log(newModule)
 
     let width = 3;
@@ -276,13 +292,13 @@ function toSubModule() {
     customModules[name] = newModule;
     // console.log(customModules[name]);
 
-    circuit = new Circuit("Circuit");
+    currentCircuit = new Circuit("Circuit");
 
     let button = document.createElement("button");
     button.textContent = name;
     button.addEventListener("click", () => {
         customModules[name].add(width);
-        console.log(">>", circuit);
+        console.log(">>", currentCircuit);
     });
     document.getElementById("module-button-container").appendChild(button);
 

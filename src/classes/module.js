@@ -46,22 +46,25 @@ class Module {
         return hovering;
     }
     evaluate(time, checkDisconnectedInput = true, evaluated = new Set()) {
+        function currentItemToString(index, nodeId) {
+            return `i${index}n${nodeId}`;
+        }
         this.inputs.concat(this.outputs).forEach((node) => {
-            node.icto = []
+            node.icto = [];
             if (!checkDisconnectedInput) return;
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
                 let stack = [];
                 let traversed = new Set();
                 let marked = new Set();
-                stack.push(node);
-                let isConnectedToOutput = node.isOutputNode();
+                stack.push([index, node]);
+                let isConnectedToOutput = false;
                 let activeOutputsCount = 0;
 
                 function evaluateWire(wire) {
                     let src = wire.source;
                     let dest = wire.destination;
-                    stack.push(dest);
+                    stack.push([index, dest]);
                     if (wire.isSplitterConnection()) {
                         index = dest.indices.indexOf(
                             index + Math.min(...src.indices)
@@ -69,27 +72,51 @@ class Module {
                     }
                     if (dest.isOutputNode()) {
                         isConnectedToOutput ||= true;
-                        if (!dest.isHighZ[index] && !marked.has(dest.id)) {
+                        if (
+                            !dest.isHighZ[index] &&
+                            !marked.has(currentItemToString(index, dest.id))
+                        ) {
                             activeOutputsCount++;
-                            marked.add(dest.id);
+                            marked.add(currentItemToString(index, dest.id));
                         }
                     }
                 }
                 while (stack.length > 0) {
-                    let src = stack.pop();
-                    if (traversed.has(src.id)) {
+                    let [index, src] = stack.pop();
+                    if (traversed.has(currentItemToString(index, src.id))) {
                         continue;
                     }
-                    traversed.add(src.id);
+                    traversed.add(currentItemToString(index, src.id));
                     src.connections.forEach((wire) => {
                         evaluateWire(wire);
                     });
                 }
-                
+
                 node.icto[index] = isConnectedToOutput;
                 if (activeOutputsCount == 0) {
-                    node.value[index] = State.highZ;
-                    node.isHighZ[index] = true;
+                    index = x[0];
+                    let stack2 = [];
+                    let traversed2 = new Set();
+                    stack2.push([index, node]);
+                    while (stack2.length > 0) {
+                        let [index, src] = stack2.pop();
+                        src.value[index] = State.highZ;
+                        src.isHighZ[index] = true;
+                        if (traversed2.has(currentItemToString(index, src.id))) {
+                            continue;
+                        }
+                        traversed2.add(currentItemToString(index, src.id));
+                        src.connections.forEach((wire) => {
+                            let dest = wire.destination;
+                            if (wire.isSplitterConnection()) {
+                                index = dest.indices.indexOf(
+                                    index + Math.min(...src.indices)
+                                );
+                            }
+                            stack2.push([index, dest]);
+                        });
+                    }
+                    /*
                     node.connections.forEach((adjNode) => {
                         adjNode.destination.value[index] = State.highZ;
                         if (!evaluated.has(this.id)) {
@@ -100,22 +127,23 @@ class Module {
                             );
                         }
                     });
+                    */
                 } else {
                     if (activeOutputsCount >= 2) {
                         this.isDragging = false;
                         this.isHovering = false;
-                        // throw new Error('Shortage');
+                        throw new Error("Shortage");
                     }
                 }
             });
         });
 
-        /*
         this.outputs.forEach((node) => {
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
                 if (node.isHighZ[index]) return;
                 let stack = [];
+                // console.log('a1')
                 let traversed = new Set();
                 let marked = new Set();
                 stack.push(node);
@@ -130,16 +158,22 @@ class Module {
                         let dest = wire.destination;
                         stack.push(dest);
                         if (!marked.has(dest.id)) {
-                            console.log('direction', src, dest)
+                            console.log("direction", src, dest);
                             wire.setDirection(src, dest);
                         }
                         if (wire.isSplitterConnection()) {
-                            index = dest.indices.indexOf(
+                            let newIndex = dest.indices.indexOf(
                                 index + Math.min(...src.indices)
                             );
+                            if (newIndex != -1) {
+                                index = newIndex;
+                            }
                         }
                         if (
-                            this.inputs.some((node) => node.id == dest.id) && !sequentialModuleList.some(name => name == dest.owner.name)
+                            this.inputs.some((node) => node.id == dest.id) &&
+                            !sequentialModuleList.some(
+                                (name) => name == dest.owner.name
+                            )
                         ) {
                             this.isDragging = false;
                             this.isHovering = false;
@@ -150,10 +184,9 @@ class Module {
                 }
             });
         });
-        */
     }
     remove() {
-        circuit.removeModule(this);
+        currentCircuit.removeModule(this);
     }
     render(
         label = this.displayName,
@@ -205,6 +238,13 @@ class Module {
             (this.width * 20) / 2 + this.x + labelOffsetX,
             (this.height * 20) / 2 + this.y + labelOffsetY - textSize() * 0.2
         );
+
+        if (selectedObject.id == this.id) {
+            push();
+
+            pop();
+        }
+
         if (DEBUG) {
             push();
             // text(this.id.slice(0, 10), this.x, this.y + 40);
@@ -218,6 +258,7 @@ class Module {
         if (this.isHovering && pressedObject.id == 0) {
             if (mouseButton == LEFT) {
                 pressedObject = this;
+                // this.selected();
                 this.mouseDown = true && !this.isDragging;
                 this.isDragging = true;
                 if (this.mouseDown) {
@@ -243,12 +284,28 @@ class Module {
         }
         return false;
     }
+    selected() {}
     released() {
         this.isDragging = false;
         this.isHovering = false;
         this.inputs.concat(this.outputs).forEach((x) => {
             x.connectByGrid();
         });
+    }
+    serialize() {
+        return {
+            name: this.name,
+            id: this.id,
+            objectType: this.objectType,
+            width: this.width,
+            height: this.height,
+            x: this.x,
+            y: this.y,
+            displayName: this.displayName,
+            inputsID: this.inputs.map((node) => node.id),
+            outputsID: this.outputs.map((node) => node.id),
+            isSubModule: this.isSubModule,
+        };
     }
 }
 
@@ -321,7 +378,7 @@ class WireNode extends Module {
     }
     static add(x, y, value) {
         let module = new WireNode("Node", x, y, value);
-        circuit.addModule(module);
+        currentCircuit.addModule(module);
         return module;
     }
 }
@@ -344,19 +401,20 @@ class Input extends Module {
         let char = State.char(this.outputValue);
         super.render(char, 12, 0, 0, "basic/input");
     }
-    released() {
-        super.released();
+    selected() {
+        super.selected();
+        document.getElementById("selecting-input").style.display = "flex";
     }
     static add() {
         let module = new Input("Input");
-        circuit.addInputModule(module);
+        currentCircuit.addInputModule(module);
     }
 }
 
 function setInput(time) {
     let value = document.getElementById("selecting-input-value").value;
     selectedObject.setInput(State.fromNumber(value), time);
-    circuit.evaluateAll(false);
+    currentCircuit.evaluateAll(false);
 }
 
 class Output extends Module {
@@ -379,6 +437,6 @@ class Output extends Module {
     }
     static add() {
         let module = new Output("Output");
-        circuit.addOutputModule(module);
+        currentCircuit.addOutputModule(module);
     }
 }

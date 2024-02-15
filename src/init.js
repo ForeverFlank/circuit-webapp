@@ -66,27 +66,6 @@ function filterObject(obj, condition) {
         }, {});
 }
 
-function hoveringOnDiv(e) {
-    let divIds = ["gate-menu", "selecting-div", "control-tab"];
-    for (let i in divIds) {
-        let div = document.getElementById(divIds[i]);
-        let offsets = div.getBoundingClientRect();
-        let top = offsets.top;
-        let left = offsets.left;
-        let height = div.clientHeight;
-        let width = div.clientWidth;
-        if (
-            mouseY > top &&
-            mouseY < top + height &&
-            mouseX > left &&
-            mouseX < left + width
-        ) {
-            return true;
-        }
-    }
-    return false;
-}
-
 var sprites = {};
 var fontRegular;
 let spritesList = {
@@ -120,6 +99,11 @@ function pushAlert(level, message) {
     let element;
     if (level == "error") {
         element = document.getElementById("alert-error");
+    } else if (level == "info") {
+        element = document.getElementById("alert-info");
+    }
+    else {
+        return false;
     }
     let clone = element.cloneNode(true);
     clone.innerText = message;
@@ -135,4 +119,44 @@ function pushAlert(level, message) {
     setTimeout(() => {
         clone.remove();
     }, 4000);
+}
+
+let bg = document.getElementById("background-blur");
+let modalMenu = document.getElementById("modal-menu");
+let modalTitle = document.getElementById("modal-title");
+let modalContainer = document.getElementById("modal-container");
+let selectingDiv = document.getElementById("selecting-div")
+
+function openModalMenu(title, html) {
+    modalTitle.innerText = title;
+    modalContainer.innerHTML = html;
+    modalMenu.style.display = "flex"
+    bg.style.display = "block";
+}
+
+function closeModalMenu() {
+    modalMenu.style.display = "none"
+    bg.style.display = "none";
+}
+
+function hoveringOnDiv(e) {
+    let divIds = ["top-tab", "gate-menu", "selecting-div", "control-tab"];
+    for (let i in divIds) {
+        let div = document.getElementById(divIds[i]);
+        let offsets = div.getBoundingClientRect();
+        let top = offsets.top;
+        let left = offsets.left;
+        let height = div.clientHeight;
+        let width = div.clientWidth;
+        if (
+            mouseY > top &&
+            mouseY < top + height &&
+            mouseX > left &&
+            mouseX < left + width
+        ) {
+            return true;
+        }
+    }
+    if (bg.style.display != "none") return true;
+    return false;
 }

@@ -42,7 +42,7 @@ function grid() {
 }
 
 function timingDiagram(xPos, yPos) {
-    let nodes = circuit.getNodes();
+    let nodes = currentCircuit.getNodes();
     xPos = 220;
     yPos = 500 - nodes.length * 15;
     push();
@@ -117,7 +117,7 @@ function draw() {
     grid();
 
     let nodes = [];
-    circuit.modules.forEach((x) => {
+    currentCircuit.modules.forEach((x) => {
         nodes = nodes.concat(x.inputs).concat(x.outputs);
     });
     let wires = [];
@@ -125,7 +125,7 @@ function draw() {
         wires = wires.concat(x.connections);
     });
 
-    circuit.modules.forEach((x) => {
+    currentCircuit.modules.forEach((x) => {
         x.render();
     });
     wires.forEach((x) => x.render());
@@ -143,24 +143,6 @@ function draw() {
     document.getElementById("fps-counter").innerText = fps.toFixed(2);
 }
 
-function selectedObjectUI() {
-    let name = selectedObject.name;
-    name = name == null ? "" : name;
-    document.getElementById("selecting-div").style.display =
-        name != "" ? "block" : "none";
-    document.getElementById("selecting-name").innerText = name;
-    document.getElementById("selecting-input").style.display =
-        selectedObject.name == "Input" ? "block" : "none";
-    document.getElementById("selecting-nbitinput").style.display =
-        selectedObject.name == "N-bit Input" ? "block" : "none";
-    document.getElementById("selecting-splitter").style.display =
-        selectedObject.name == "Splitter" ? "block" : "none";
-    
-    if (selectedObject.name == "Splitter") {
-        document.getElementById("selecting-bitwidth").setAttribute("value", selectedObject.inputNode.value.length)
-    }
-}
-
 function removePressedObject() {
     selectedObject.remove();
     selectedObjectUI();
@@ -175,8 +157,8 @@ function mouseWheel(e) {
 function objectsPress() {
     mouseUpdate();
     let pressedOnObject = false;
-    for (let i = circuit.modules.length - 1; i >= 0; i--) {
-        let module = circuit.modules[i];
+    for (let i = currentCircuit.modules.length - 1; i >= 0; i--) {
+        let module = currentCircuit.modules[i];
         let nodes = module.inputs.concat(module.outputs);
         for (let j = nodes.length - 1; j >= 0; j--) {
             if (nodes[j].pressed()) {
@@ -227,8 +209,8 @@ function touchMoved(e) {
     if (hoveringOnDiv(e)) return;
     if (controlMode == "edit") {
         let pressedOnObject = false;
-        for (let i = circuit.modules.length - 1; i >= 0; i--) {
-            let module = circuit.modules[i];
+        for (let i = currentCircuit.modules.length - 1; i >= 0; i--) {
+            let module = currentCircuit.modules[i];
             let nodes = module.inputs.concat(module.outputs);
             for (let j = nodes.length - 1; j >= 0; j--) {
                 if (nodes[j].pressed()) {
@@ -258,7 +240,7 @@ function touchMoved(e) {
 function touchEnded(e) {
     if (!released) {
         let releasedOnObject = false;
-        circuit.modules.forEach((x) => {
+        currentCircuit.modules.forEach((x) => {
             x.released();
             let nodes = x.inputs.concat(x.outputs);
             for (let i in nodes) {

@@ -14,7 +14,6 @@ class ModuleNode {
         this.delay = delay;
         this.totalDelay = [];
         this.valueAtTime = { 0: value };
-        // this.isHighZ = (value == State.highZ);
         this.isHighZ = Object.entries(value).map((x) => x[1] == State.highZ);
         this.connections = [];
         this.objectType = "node";
@@ -61,9 +60,12 @@ class ModuleNode {
                     let dest = wire.destination;
                     stack.push(dest);
                     if (wire.isSplitterConnection()) {
-                        index = dest.indices.indexOf(
+                        let newIndex = dest.indices.indexOf(
                             index + Math.min(...src.indices)
                         );
+                        if (newIndex != -1) {
+                            index = newIndex;
+                        }
                     }
                     if (dest.isOutputNode()) {
                         isConnectedToOutput ||= true;
@@ -109,6 +111,7 @@ class ModuleNode {
         inputDelay = 0,
         traversed = new Set()
     ) {
+        /*
         console.log(
             '----',
             this.owner.name,
@@ -123,7 +126,7 @@ class ModuleNode {
             "at time",
             time
         );
-        
+        */
 
         if (setByModule) {
             this.isHighZ[index] = value == State.highZ;
@@ -154,6 +157,7 @@ class ModuleNode {
         if (evaluate) {
             // this.owner.evaluate(time);
         }
+        /*
         if (this.owner.name == "Output") {
             console.log("oooo");
             this.owner.inputValue = value;
@@ -168,7 +172,8 @@ class ModuleNode {
                 this.linkedModule.setInput(value, time);
             }
         }
-        console.log("it is now", this.value, this.valueAtTime);
+        */
+        // console.log("it is now", this.value, this.valueAtTime);
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
         }
@@ -181,7 +186,7 @@ class ModuleNode {
                         index + Math.min(...this.indices)
                     );
                     // console.log("dest indices", dest.indices, "this indices", this.indices);
-                    console.log(this.name, "index", index, "->", destIndex);
+                    // console.log(this.name, "index", index, "->", destIndex);
                     if (destIndex != -1) {
                         dest.setValue(
                             this.value[index],
@@ -249,7 +254,7 @@ class ModuleNode {
         node.connections.push(incomingWire);
 
         if (evaluate) {
-            circuit.evaluateAll();
+            currentCircuit.evaluateAll();
         }
 
         return [incomingWire, outgoingWire];
@@ -267,36 +272,28 @@ class ModuleNode {
     }
     disconnect(node, evaluate = true) {
         let [incomingWire, outgoingWire] = this.getWire(node);
-        // wire = node.connections.find((x) => (
-        //     x.source.id == node.id &&
-        //     x.destination.id == this.id));
+
         node.connections = node.connections.filter((x) => x != incomingWire);
 
-        // wire = this.connections.find((x) => (
-        //     x.source.id == this.id &&
-        //     x.destination.id == node.id));
         this.connections = this.connections.filter((x) => x != outgoingWire);
-
-        // node.owner.evaluate();
-        // this.owner.evaluate();
 
         if (
             node.connections.length == 0 &&
             node.isGenericNode() &&
             !node.isSplitterNode()
         ) {
-            circuit.removeModule(node.owner);
+            currentCircuit.removeModule(node.owner);
         }
         if (
             this.connections.length == 0 &&
             this.isGenericNode() &&
             !this.isSplitterNode()
         ) {
-            circuit.removeModule(this.owner);
+            currentCircuit.removeModule(this.owner);
         }
 
         if (evaluate) {
-            circuit.evaluateAll();
+            currentCircuit.evaluateAll();
         }
     }
     disconnectAll(disconnectSplitter = false) {
@@ -323,7 +320,7 @@ class ModuleNode {
             }
             thisNode.connections.forEach((wire) => {
                 let destination = wire.destination;
-                circuit.removeModule(thisNode.owner);
+                currentCircuit.removeModule(thisNode.owner);
                 otherNode.connect(destination);
                 // console.log('replaced')
             });
@@ -334,7 +331,7 @@ class ModuleNode {
         if (hoveringOnDiv()) return false;
         let result =
             (mouseCanvasX - this.getCanvasX()) ** 2 +
-                (mouseCanvasY - this.getCanvasY()) ** 2 <=
+            (mouseCanvasY - this.getCanvasY()) ** 2 <=
             NODE_HOVERING_RADIUS ** 2;
         return result;
     }
@@ -423,7 +420,7 @@ class ModuleNode {
     }
     isGenericNode() {
         return this.nodeType == "node";
-    }s
+    }
     isInputNode() {
         return this.nodeType == "input";
     }
@@ -445,6 +442,21 @@ class ModuleNode {
     linkModule(module) {
         this.linkedModule = module;
         module.linkedNode = this;
+    }
+    serialize() {
+        return {
+            ownerID: this.owner.id,
+            name: this.name,
+            id: this.id,
+            objectType: this.objectType,
+            value: this.value,
+            delay: this.delay,
+            isHighZ: this.isHighZ,
+            connectionsID: this.connections.map(wire => wire.id),
+            nodeType: this.nodeType,
+            isSplitter: this.isSplitter,
+            isSplitterInput: this.isSplitterInput
+        }
     }
 }
 

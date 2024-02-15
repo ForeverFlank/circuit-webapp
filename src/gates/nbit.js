@@ -1,28 +1,23 @@
 class Splitter extends Module {
-    constructor(name) {
-        super(name, 1, 2);
-        this.inputNode = new SplitterNode(this, "Splitter Input", 0, 0, [
-            State.highZ,
-            State.highZ,
-        ]);
-        this.inputs = [this.inputNode];
-        this.outputs = [];
-        this.splitArray = [[0], [1]];
-        this.setSplitter(this.splitArray);
-        this.displayName = "";
-    }
-    setSplitter(splitArray = this.splitArray) {
+    constructor(name, splitArray = [[0], [1]]) {
         function splitArrayLength(array) {
             return array
                 .map((arr) => arr.length)
                 .reduce((sum, a) => sum + a, 0);
         }
-        let newWidth = splitArrayLength(splitArray);
+        let width = splitArrayLength(splitArray);
+
+        super(name, 1, width);
+        this.outputs = [];
+        this.splitArray = splitArray;
+        this.displayName = "";
+
+        this.inputNode = new SplitterNode(this, "Splitter Input", 0, 0, Array(width).fill(State.highZ));
+        this.inputs = [this.inputNode];
+
         this.splitArray = splitArray;
 
-        console.log("AAAA2s", splitArray.toString());
-
-        this.inputNode.indices = Array(newWidth)
+        this.inputNode.indices = Array(width)
             .fill(0)
             .map((x, y) => x + y);
         for (let i in this.inputs) {
@@ -30,6 +25,8 @@ class Splitter extends Module {
             this.inputs[i].disconnectAll();
         }
         this.inputNode.isSplitterInput = true;
+
+        // this.inputNode.value = State.changeWidth(this.inputNode.value, width);
 
         this.inputs = [this.inputNode];
         let i = 0;
@@ -54,8 +51,8 @@ class Splitter extends Module {
                 wire.rendered = false;
             }
         });
-        console.log(this);
-        console.log(circuit);
+        // console.log('ttt', this);
+        // console.log(circuit);
     }
     getSplitArrayString() {
         return this.splitArray
@@ -86,17 +83,28 @@ class Splitter extends Module {
     released() {
         super.released();
     }
-    static add() {
-        circuit.addModule(new Splitter("Splitter"));
+    static add(splitArray = [[0], [1]]) {
+        currentCircuit.addModule(new Splitter("Splitter", splitArray));
     }
 }
 
-function setSplitter() {
-    let width = document.getElementById("selecting-bitwidth").value;
-    let splitString = document.getElementById("selecting-bitsplit").value;
+function openSplitterMenu() {
+    let html = `
+    <div class="flex flex-col gap-y-2">
+        <p class="text-zinc-600 text-sm">Bit Split</p>
+        <input id="modal-add-bitsplit" class="border p-2 h-8 w-full rounded-sm focus-outline text-sm text-zinc-600"
+      type="text" placeholder="0 1 2 3 4:7" />
+    </div>
+    <div class="flex flex-row justify-end w-full gap-x-2">
+        <button id="modal-cancel" class="bg-white w-20 h-8 text-sm rounded border border-zinc-200" onclick="closeModalMenu()">Cancel</button>
+        <button id="modal-submit" class="bg-blue-500 w-20 h-8 text-sm text-white rounded" onclick="addSplitter()">OK</button>
+    </div>`;
+    openModalMenu("Add Splitter", html);
+}
 
-    splitString = splitString.replace(/\s+/g, " ").trim();
-    let splitArray = splitString.split(" ");
+function splitStringToSplitArray(string) {
+    string = string.replace(/\s+/g, " ").trim();
+    let splitArray = string.split(" ");
 
     splitArray = splitArray.map((x) => {
         if (x.includes(":")) {
@@ -114,22 +122,30 @@ function setSplitter() {
     });
 
     let flattedArray = splitArray.flat();
-    width = flattedArray.length;
 
-    if (width == 0) return false;
+    if (flattedArray.length == 0) return false;
     if (flattedArray[0] != 0) return false;
     for (let i = 1; i < flattedArray.length; i++) {
         if (flattedArray[i] != flattedArray[i - 1] + 1) {
             return false;
         }
     }
+    return splitArray;
+}
 
+function addSplitter() {
+    let string = document.getElementById("modal-add-bitsplit").value;
+    let splitArray = splitStringToSplitArray(string);
+    Splitter.add(splitArray);
+    closeModalMenu();
+    /*
     selectedObject.inputNode.value = State.changeWidth(
         selectedObject.inputNode.value,
         width
     );
     console.log("AAAAAAAA", splitArray);
     selectedObject.setSplitter(splitArray);
+    */
 }
 
 class NBitInput extends Module {
@@ -149,21 +165,25 @@ class NBitInput extends Module {
         super.evaluate(time);
     }
     render() {
-        super.render(this.outputValue, 12, -5, 0, "basic/input");
+        super.render(this.outputValue, 12, 0, 0, "basic/input");
     }
     released() {
         super.released();
     }
+    selected() {
+        super.selected();
+        document.getElementById("selecting-nbitinput").style.display = "flex";
+    }
     static add() {
         let module = new NBitInput("N-bit Input");
-        circuit.addInputModule(module);
+        currentCircuit.addInputModule(module);
     }
 }
 
 function setNBitInput(time) {
     let value = document.getElementById("selecting-nbitinput-value").value;
     selectedObject.setInput(State.fromString(value), time);
-    circuit.evaluateAll(false);
+    currentCircuit.evaluateAll(false);
 }
 
 class BitwiseNotGate extends Module {
@@ -174,12 +194,12 @@ class BitwiseNotGate extends Module {
         this.displayName = "NOT";
     }
     render() {
-        super.render()
+        super.render();
         // super.render(this.displayName, 8, -8, 0, "basic/not");
     }
     evaluate(time) {
         super.evaluate(time);
-        let result = this.inputs[0].getValue(time).map(x => State.not(x));
+        let result = this.inputs[0].getValue(time).map((x) => State.not(x));
         this.outputs[0].setValues(
             result,
             time + this.outputs[0].delay,
@@ -188,6 +208,6 @@ class BitwiseNotGate extends Module {
         );
     }
     static add() {
-        circuit.addModule(new BitwiseNotGate("Bitwise NOT Gate"));
+        currentCircuit.addModule(new BitwiseNotGate("Bitwise NOT Gate"));
     }
 }

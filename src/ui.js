@@ -1,5 +1,7 @@
-let bg = document.getElementById("background-blur");
-bg.addEventListener("click", closeMenu);
+bg.addEventListener("click", () => {
+    closeMenu();
+    closeModalMenu();
+});
 
 function openAccordionMenu(id, mode, arrowId = null) {
     let div = document.getElementById(id);
@@ -47,3 +49,41 @@ function setControlMode(mode) {
     });
 }
 setControlMode("edit");
+
+function selectedObjectUI() {
+    selectingDiv.children.forEach((element) => {
+        element.style.display = "none";
+    });
+
+    let name = selectedObject.name;
+    if (name != null) {
+        selectingDiv.style.display = "flex";
+        document.getElementById("selecting-name").style.display = "flex";
+        document.getElementById("selecting-name").innerText = name;
+        selectedObject.selected();
+    } else {
+        selectingDiv.style.display = "none";
+    }
+    
+    if (selectedObject.name == "Splitter") {
+        document
+            .getElementById("selecting-bitwidth")
+            .setAttribute("value", selectedObject.inputNode.value.length);
+    }
+    /*
+    selectingDiv.style.display = name != "" ? "block" : "none";
+    document.getElementById("selecting-name").style.display = name != "" ? "block" : "none";
+    */
+
+    
+
+    /*
+    document.getElementById("selecting-input").style.display =
+        selectedObject.name == "Input" ? "block" : "none";
+    document.getElementById("selecting-nbitinput").style.display =
+        selectedObject.name == "N-bit Input" ? "block" : "none";
+        document.getElementById("selecting-splitter").style.display =
+        selectedObject.name == "Splitter" ? "block" : "none";
+        */
+    
+}
