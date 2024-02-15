@@ -24,35 +24,35 @@ class Circuit extends Module {
         });
         return nodes;
     }
-    addModule(module, evaluate = true) {
-        this.modules.push(module);
+    addModule(mod, evaluate = true) {
+        this.modules.push(mod);
         if (evaluate) {
             this.evaluateAll();
         }
-        return module;
+        return mod;
     }
-    addInputModule(module, evaluate = true) {
-        this.modules.push(module);
-        this.inputModules.push(module);
+    addInputModule(mod, evaluate = true) {
+        this.modules.push(mod);
+        this.inputModules.push(mod);
         if (evaluate) {
             this.evaluateAll();
         }
-        return module;
+        return mod;
     }
-    addOutputModule(module, evaluate = true) {
-        this.modules.push(module);
-        this.outputModules.push(module);
+    addOutputModule(mod, evaluate = true) {
+        this.modules.push(mod);
+        this.outputModules.push(mod);
         if (evaluate) {
             this.evaluateAll();
         }
-        return module;
+        return mod;
     }
-    removeModule(module, evaluate = true) {
-        module.inputs.concat(module.outputs).forEach((x) => x.disconnectAll());
-        this.modules = this.modules.filter((x) => x.id != module.id);
-        this.inputModules = this.inputModules.filter((x) => x.id != module.id);
+    removeModule(mod, evaluate = true) {
+        mod.inputs.concat(mod.outputs).forEach((x) => x.disconnectAll());
+        this.modules = this.modules.filter((x) => x.id != mod.id);
+        this.inputModules = this.inputModules.filter((x) => x.id != mod.id);
         this.outputModules = this.outputModules.filter(
-            (x) => x.id != module.id
+            (x) => x.id != mod.id
         );
         if (evaluate) {
             this.evaluateAll();
@@ -70,7 +70,7 @@ class Circuit extends Module {
             m.inputs.concat(m.outputs).forEach((node) => {
                 node.valueAtTime = {};
             });
-            if (isInputModule(m)) {
+            if (m.isInputModule()) {
                 m.setInput(m.outputValue);
                 [...m.outputs[0].value]
                     .fill(0)
@@ -80,7 +80,7 @@ class Circuit extends Module {
                     });
             } else {
                 m.inputs.forEach((node) => {
-                    console.log(node)
+                    console.log(node);
                     Object.entries(node.value).forEach((x) => {
                         let index = x[0];
                         if (
@@ -137,7 +137,7 @@ class Circuit extends Module {
             return `t${time}i${index}n${nodeId}`;
         }
         let iteration = 0;
-        let maxIteration = 100
+        let maxIteration = 100;
         while (iteration < maxIteration && evalQueue.length > 0) {
             evalQueue.sort((a, b) => a[0] - b[0]);
             let item = evalQueue.shift();
@@ -215,10 +215,23 @@ class Circuit extends Module {
     }
     serialize() {
         let moduleData = super.serialize();
-        moduleData.modulesID = this.modules.map((m) => m.id);
-        moduleData.inputModulesID = this.inputModules.map((m) => m.id);
-        moduleData.outputModulesID = this.outputModules.map((m) => m.id);
+        moduleData.modulesId = this.modules.map((m) => m.id);
+        moduleData.inputModulesId = this.inputModules.map((m) => m.id);
+        moduleData.outputModulesId = this.outputModules.map((m) => m.id);
         return moduleData;
+    }
+    static fromModulesArray(modulesArray, name) {
+        let newCircuit = new Circuit(name);
+        modulesArray.forEach((mod) => {
+            if (mod.isInputModule()) {
+                newCircuit.addInputModule(mod, false);
+            } else if (mod.isOutputModule()) {
+                newCircuit.addOutputModule(mod, false);
+            } else {
+                newCircuit.addModule(mod, false);
+            }
+        })
+        return newCircuit;
     }
     toModule() {
         let newModule = new Circuit();
@@ -273,12 +286,12 @@ class Circuit extends Module {
     }
 }
 
-let nameID = 0;
+let nameId = 0;
 var currentCircuit = new Circuit("Circuit");
 var customModules = {};
 
 function toSubModule() {
-    let name = "MODULE" + nameID;
+    let name = "MODULE" + nameId;
     // let newModule = Object.assign(Object.create(Object.getPrototypeOf(circuit)), circuit);
     let newModule = currentCircuit;
     // console.log(newModule)
@@ -302,5 +315,5 @@ function toSubModule() {
     });
     document.getElementById("module-button-container").appendChild(button);
 
-    nameID++;
+    nameId++;
 }

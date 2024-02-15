@@ -158,8 +158,8 @@ function objectsPress() {
     mouseUpdate();
     let pressedOnObject = false;
     for (let i = currentCircuit.modules.length - 1; i >= 0; i--) {
-        let module = currentCircuit.modules[i];
-        let nodes = module.inputs.concat(module.outputs);
+        let mod = currentCircuit.modules[i];
+        let nodes = mod.inputs.concat(mod.outputs);
         for (let j = nodes.length - 1; j >= 0; j--) {
             if (nodes[j].pressed()) {
                 pressedOnObject = true;
@@ -173,7 +173,7 @@ function objectsPress() {
                 }
             }
         }
-        if (module.pressed()) {
+        if (mod.pressed()) {
             pressedOnObject = true;
             break;
         }
@@ -210,8 +210,8 @@ function touchMoved(e) {
     if (controlMode == "edit") {
         let pressedOnObject = false;
         for (let i = currentCircuit.modules.length - 1; i >= 0; i--) {
-            let module = currentCircuit.modules[i];
-            let nodes = module.inputs.concat(module.outputs);
+            let mod = currentCircuit.modules[i];
+            let nodes = mod.inputs.concat(mod.outputs);
             for (let j = nodes.length - 1; j >= 0; j--) {
                 if (nodes[j].pressed()) {
                     pressedOnObject = true;
@@ -225,7 +225,7 @@ function touchMoved(e) {
                     }
                 }
             }
-            if (module.pressed()) {
+            if (mod.pressed()) {
                 pressedOnObject = true;
                 break;
             }

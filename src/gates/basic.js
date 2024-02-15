@@ -20,7 +20,7 @@ class NotGate extends Module {
         );
     }
     static add() {
-        circuit.addModule(new NotGate("NOT Gate"));
+        currentCircuit.addModule(new NotGate("NOT Gate"));
     }
 }
 
@@ -62,7 +62,7 @@ class AndGate extends Module {
         );
     }
     static add() {
-        circuit.addModule(new AndGate("AND Gate"));
+        currentCircuit.addModule(new AndGate("AND Gate"));
     }
 }
 
@@ -94,7 +94,7 @@ class OrGate extends Module {
         );
     }
     static add() {
-        circuit.addModule(new OrGate("OR Gate"));
+        currentCircuit.addModule(new OrGate("OR Gate"));
     }
 }
 
@@ -137,7 +137,7 @@ class NandGate extends Module {
         );
     }
     static add() {
-        circuit.addModule(new NandGate("NAND Gate", placeX, placeY));
+        currentCircuit.addModule(new NandGate("NAND Gate", placeX, placeY));
     }
 }
 
@@ -180,7 +180,7 @@ class NorGate extends Module {
         );
     }
     static add() {
-        circuit.addModule(new NorGate("NOR Gate", placeX, placeY));
+        currentCircuit.addModule(new NorGate("NOR Gate", placeX, placeY));
     }
 }
 
@@ -222,7 +222,7 @@ class XorGate extends Module {
         );
     }
     static add() {
-        circuit.addModule(new XorGate("XOR Gate", placeX, placeY));
+        currentCircuit.addModule(new XorGate("XOR Gate", placeX, placeY));
     }
 }
 
@@ -266,7 +266,7 @@ class XnorGate extends Module {
         );
     }
     static add() {
-        circuit.addModule(new XnorGate("XNOR Gate", placeX, placeY));
+        currentCircuit.addModule(new XnorGate("XNOR Gate", placeX, placeY));
     }
 }
 
@@ -305,7 +305,7 @@ class HalfAdder extends Module {
         );
     }
     static add() {
-        circuit.addModule(new HalfAdder("Half Adder", placeX, placeY));
+        currentCircuit.addModule(new HalfAdder("Half Adder", placeX, placeY));
     }
 }
 
@@ -347,7 +347,7 @@ class FullAdder extends Module {
         );
     }
     static add() {
-        circuit.addModule(new FullAdder("Full Adder", placeX, placeY));
+        currentCircuit.addModule(new FullAdder("Full Adder", placeX, placeY));
     }
 }
 
@@ -395,7 +395,7 @@ class TriStateBuffer extends Module {
         }
     }
     static add() {
-        circuit.addModule(
+        currentCircuit.addModule(
             new TriStateBuffer("Tri-State Buffer", placeX, placeY)
         );
     }

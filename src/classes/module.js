@@ -93,6 +93,7 @@ class Module {
                 }
 
                 node.icto[index] = isConnectedToOutput;
+                // console.log(x[1].name, activeOutputsCount)
                 if (activeOutputsCount == 0) {
                     index = x[0];
                     let stack2 = [];
@@ -102,16 +103,21 @@ class Module {
                         let [index, src] = stack2.pop();
                         src.value[index] = State.highZ;
                         src.isHighZ[index] = true;
-                        if (traversed2.has(currentItemToString(index, src.id))) {
+                        if (
+                            traversed2.has(currentItemToString(index, src.id))
+                        ) {
                             continue;
                         }
                         traversed2.add(currentItemToString(index, src.id));
                         src.connections.forEach((wire) => {
                             let dest = wire.destination;
                             if (wire.isSplitterConnection()) {
-                                index = dest.indices.indexOf(
+                                let newIndex = dest.indices.indexOf(
                                     index + Math.min(...src.indices)
                                 );
+                                if (newIndex != -1) {
+                                    index = newIndex;
+                                }
                             }
                             stack2.push([index, dest]);
                         });
@@ -292,6 +298,12 @@ class Module {
             x.connectByGrid();
         });
     }
+    isInputModule() {
+        return ["Input", "N-bit Input"].includes(this.name);
+    }
+    isOutputModule() {
+        return ["Output"].includes(this.name);
+    }
     serialize() {
         return {
             name: this.name,
@@ -302,11 +314,41 @@ class Module {
             x: this.x,
             y: this.y,
             displayName: this.displayName,
-            inputsID: this.inputs.map((node) => node.id),
-            outputsID: this.outputs.map((node) => node.id),
+            inputsId: this.inputs.map((node) => node.id),
+            outputsId: this.outputs.map((node) => node.id),
             isSubModule: this.isSubModule,
         };
     }
+    fromSerialized(data, inputs, outputs) {
+        this.name = data.name;
+        this.id = data.id;
+        this.objectType = data.objectType;
+        this.width = data.width;
+        this.height = data.height;
+        this.x = data.x;
+        this.y = data.y;
+        this.displayName = data.displayName;
+        this.isSubModule = data.isSubModule;
+        this.inputs = inputs;
+        this.outputs = outputs;
+    }
+    /*
+    static deserialize(data, inputs, outputs) {
+        let newModule = new Module();
+        newModule.name = data.name;
+        newModule.id = data.id;
+        newModule.objectType = data.objectType;
+        newModule.width = data.width;
+        newModule.height = data.height;
+        newModule.x = data.x;
+        newModule.y = data.y;
+        newModule.displayName = data.displayName;
+        newModule.isSubModule = data.isSubModule;
+        newModule.inputs = inputs;
+        newModule.outputs = outputs;
+        return newModule;
+    }
+    */
 }
 
 class WireNode extends Module {
@@ -317,7 +359,9 @@ class WireNode extends Module {
     hovering() {
         return this.inputs[0].hovering();
     }
-    evaluate(connectedToOutput = false, evaluated = new Set()) {
+    evaluate(time, connectedToOutput = false, evaluated = new Set()) {
+        super.evaluate(time, connectedToOutput, evaluated);
+        /*
         this.inputs.forEach((node) => {
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
@@ -360,6 +404,7 @@ class WireNode extends Module {
                 }
             });
         });
+        */
     }
     pressed() {
         if (this.hovering() && pressedObject.id == 0) {
@@ -377,9 +422,9 @@ class WireNode extends Module {
         return;
     }
     static add(x, y, value) {
-        let module = new WireNode("Node", x, y, value);
-        currentCircuit.addModule(module);
-        return module;
+        let mod = new WireNode("Node", x, y, value);
+        currentCircuit.addModule(mod);
+        return mod;
     }
 }
 
@@ -406,8 +451,8 @@ class Input extends Module {
         document.getElementById("selecting-input").style.display = "flex";
     }
     static add() {
-        let module = new Input("Input");
-        currentCircuit.addInputModule(module);
+        let mod = new Input("Input");
+        currentCircuit.addInputModule(mod);
     }
 }
 
@@ -436,7 +481,7 @@ class Output extends Module {
         super.render(char, 12, 0, 0, "basic/output");
     }
     static add() {
-        let module = new Output("Output");
-        currentCircuit.addOutputModule(module);
+        let mod = new Output("Output");
+        currentCircuit.addOutputModule(mod);
     }
 }

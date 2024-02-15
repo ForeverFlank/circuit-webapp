@@ -175,8 +175,8 @@ class NBitInput extends Module {
         document.getElementById("selecting-nbitinput").style.display = "flex";
     }
     static add() {
-        let module = new NBitInput("N-bit Input");
-        currentCircuit.addInputModule(module);
+        let mod = new NBitInput("N-bit Input");
+        currentCircuit.addInputModule(mod);
     }
 }
 

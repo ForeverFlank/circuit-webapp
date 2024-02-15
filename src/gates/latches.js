@@ -38,7 +38,7 @@ class SRLatch extends Module {
         );
     }
     static add() {
-        circuit.addModule(new SRLatch("SR Latch"));
+        currentCircuit.addModule(new SRLatch("SR Latch"));
     }
 }
 
@@ -79,6 +79,6 @@ class DLatch extends Module {
         );
     }
     static add() {
-        circuit.addModule(new DLatch("D Latch"));
+        currentCircuit.addModule(new DLatch("D Latch"));
     }
 }

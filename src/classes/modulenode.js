@@ -5,7 +5,8 @@ class ModuleNode {
         relativeX = 0,
         relativeY = 0,
         value = [State.highZ],
-        delay = 0
+        delay = 0,
+        updateGridNodeLookup = true
     ) {
         this.owner = owner;
         this.name = name;
@@ -25,7 +26,9 @@ class ModuleNode {
         this.isDragging = false;
         this.isHovering = false;
         this.linkedModule = null;
-        gridNodeLookup[this.getPosition()] = this;
+        if (updateGridNodeLookup) {
+            gridNodeLookup[this.getPosition()] = this;
+        }
         // console.log(gridNodeLookup)
     }
     getPosition() {
@@ -439,25 +442,61 @@ class ModuleNode {
         clickedNode = null;
         return dest;
     }
-    linkModule(module) {
-        this.linkedModule = module;
-        module.linkedNode = this;
+    linkModule(mod) {
+        this.linkedModule = mod;
+        mod.linkedNode = this;
     }
     serialize() {
         return {
-            ownerID: this.owner.id,
+            ownerId: this.owner.id,
             name: this.name,
             id: this.id,
             objectType: this.objectType,
             value: this.value,
             delay: this.delay,
             isHighZ: this.isHighZ,
-            connectionsID: this.connections.map(wire => wire.id),
+            connectionsId: this.connections.map(wire => wire.id),
             nodeType: this.nodeType,
             isSplitter: this.isSplitter,
-            isSplitterInput: this.isSplitterInput
+            isSplitterInput: this.isSplitterInput,
+            relativeX: this.relativeX,
+            relativeY: this.relativeY
         }
     }
+    fromSerialized(data, owner, connections) {
+        this.name = data.name;
+        this.id = data.id;
+        this.objectType = data.objectType;
+        this.value = data.value;
+        this.delay = data.delay;
+        this.isHighZ = data.isHighZ;
+        this.nodeType = data.nodeType;
+        this.isSplitter = data.isSplitter;
+        this.isSplitterInput = data.isSplitterInput;
+        this.relativeX = data.relativeX;
+        this.relativeY = data.relativeY;
+        this.owner = owner;
+        this.connections = connections;
+    }
+    /*
+    static deserialize(data, owner, connections) {
+        let newNode = new ModuleNode(null, null, null, null, [State.highZ], null, false);
+        newNode.name = data.name;
+        newNode.id = data.id;
+        newNode.objectType = data.objectType;
+        newNode.value = data.value;
+        newNode.delay = data.delay;
+        newNode.isHighZ = data.isHighZ;
+        newNode.nodeType = data.nodeType;
+        newNode.isSplitter = data.isSplitter;
+        newNode.isSplitterInput = data.isSplitterInput;
+        newNode.relativeX = data.relativeX;
+        newNode.relativeY = data.relativeY;
+        newNode.owner = owner;
+        newNode.connections = connections;
+        return newNode;
+    }
+    */
 }
 
 class InputNode extends ModuleNode {
@@ -466,9 +505,11 @@ class InputNode extends ModuleNode {
         name,
         relativeX = 0,
         relativeY = 0,
-        value = [State.highZ]
+        value = [State.highZ],
+        delay = 0,
+        updateGridNodeLookup = true
     ) {
-        super(owner, name, relativeX, relativeY, value);
+        super(owner, name, relativeX, relativeY, value, delay, updateGridNodeLookup);
         this.nodeType = "input";
     }
 }
@@ -480,9 +521,10 @@ class OutputNode extends ModuleNode {
         relativeX = 0,
         relativeY = 0,
         value = [State.highZ],
-        delay = 1
+        delay = 1,
+        updateGridNodeLookup = true
     ) {
-        super(owner, name, relativeX, relativeY, value, delay);
+        super(owner, name, relativeX, relativeY, value, delay, updateGridNodeLookup);
         this.nodeType = "output";
     }
 }
@@ -493,9 +535,11 @@ class SplitterNode extends ModuleNode {
         name,
         relativeX = 0,
         relativeY = 0,
-        value = [State.highZ]
+        value = [State.highZ],
+        delay = 0,
+        updateGridNodeLookup = true
     ) {
-        super(owner, name, relativeX, relativeY, value, 0);
+        super(owner, name, relativeX, relativeY, value, delay, updateGridNodeLookup);
         this.nodeType = "node";
         this.isSplitter = true;
         this.indices = [];

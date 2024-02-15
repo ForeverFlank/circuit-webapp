@@ -160,4 +160,14 @@ class Wire {
             isSubmoduleWire: this.isSubModuleWire
         }
     }
+    static deserialize(data, source, destination) {
+        let newWire = new Wire();
+        newWire.id = data.id;
+        newWire.objectType = data.objectType;
+        newWire.rendered = data.rendered;
+        newWire.isSubModuleWire = data.isSubModuleWire;
+        newWire.source = source;
+        newWire.destination = destination;
+        return newWire;
+    }
 }
