@@ -77,17 +77,25 @@ class Module {
                         isConnectedToOutput ||= true;
                         if (
                             !destinationNode.isHighZ[index] &&
-                            !marked.has(currentItemToString(index, destinationNode.id))
+                            !marked.has(
+                                currentItemToString(index, destinationNode.id)
+                            )
                         ) {
                             activeOutputsCount++;
-                            marked.add(currentItemToString(index, destinationNode.id));
+                            marked.add(
+                                currentItemToString(index, destinationNode.id)
+                            );
                         }
                     }
                     stack.push([index, destinationNode]);
                 }
                 while (stack.length > 0) {
                     let [index, currentNode] = stack.pop();
-                    if (traversed.has(currentItemToString(index, currentNode.id))) {
+                    if (
+                        traversed.has(
+                            currentItemToString(index, currentNode.id)
+                        )
+                    ) {
                         continue;
                     }
                     traversed.add(currentItemToString(index, currentNode.id));
@@ -108,11 +116,15 @@ class Module {
                         currentNode.value[index] = State.highZ;
                         currentNode.isHighZ[index] = true;
                         if (
-                            traversed2.has(currentItemToString(index, currentNode.id))
+                            traversed2.has(
+                                currentItemToString(index, currentNode.id)
+                            )
                         ) {
                             continue;
                         }
-                        traversed2.add(currentItemToString(index, currentNode.id));
+                        traversed2.add(
+                            currentItemToString(index, currentNode.id)
+                        );
                         currentNode.connections.forEach((wire) => {
                             let destinationNode = wire.destination;
                             if (wire.isSplitterConnection()) {
@@ -458,7 +470,10 @@ class Input extends Module {
     }
     selected() {
         super.selected();
+        let value = this.outputValue;
+
         document.getElementById("selecting-input").style.display = "flex";
+        setInputButtonColor(value);
     }
     static add() {
         let mod = new Input("Input");
@@ -466,10 +481,28 @@ class Input extends Module {
     }
 }
 
-function setInput(time) {
-    let value = document.getElementById("selecting-input-value").value;
-    selectedObject.setInput(State.fromNumber(value), time);
+function setInput(time, value) {
+    value = State.fromNumber(value);
+    console.log(value);
+    // let value = document.getElementById("selecting-input-value").value;
+    selectedObject.setInput(value, time);
+    setInputButtonColor(value);
     currentCircuit.evaluateAll(false);
+}
+
+function setInputButtonColor(value) {
+    function element(s) {
+        return document.getElementById(`selecting-input-${s}`);
+    }
+    element("z").style.backgroundColor =
+        value == State.highZ ? "#71717a" : "white";
+    element("0").style.backgroundColor =
+        value == State.low ? "#ef4444" : "white";
+    element("1").style.backgroundColor =
+        value == State.high ? "#22c55e" : "white";
+    element("z").style.color = value == State.highZ ? "white" : "black";
+    element("0").style.color = value == State.low ? "white" : "black";
+    element("1").style.color = value == State.high ? "white" : "black";
 }
 
 class Output extends Module {
