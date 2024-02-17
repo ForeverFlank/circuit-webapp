@@ -62,32 +62,36 @@ class Module {
                 let activeOutputsCount = 0;
 
                 function evaluateWire(wire) {
-                    let src = wire.source;
-                    let dest = wire.destination;
-                    stack.push([index, dest]);
+                    let sourceNode = wire.source;
+                    let destinationNode = wire.destination;
                     if (wire.isSplitterConnection()) {
-                        index = dest.indices.indexOf(
-                            index + Math.min(...src.indices)
+                        let newIndex = destinationNode.indices.indexOf(
+                            index + Math.min(...sourceNode.indices)
                         );
-                    }
-                    if (dest.isOutputNode()) {
-                        isConnectedToOutput ||= true;
-                        if (
-                            !dest.isHighZ[index] &&
-                            !marked.has(currentItemToString(index, dest.id))
-                        ) {
-                            activeOutputsCount++;
-                            marked.add(currentItemToString(index, dest.id));
+                        if (newIndex != -1) {
+                            stack.push([newIndex, destinationNode]);
+                            return;
                         }
                     }
+                    if (destinationNode.isOutputNode()) {
+                        isConnectedToOutput ||= true;
+                        if (
+                            !destinationNode.isHighZ[index] &&
+                            !marked.has(currentItemToString(index, destinationNode.id))
+                        ) {
+                            activeOutputsCount++;
+                            marked.add(currentItemToString(index, destinationNode.id));
+                        }
+                    }
+                    stack.push([index, destinationNode]);
                 }
                 while (stack.length > 0) {
-                    let [index, src] = stack.pop();
-                    if (traversed.has(currentItemToString(index, src.id))) {
+                    let [index, currentNode] = stack.pop();
+                    if (traversed.has(currentItemToString(index, currentNode.id))) {
                         continue;
                     }
-                    traversed.add(currentItemToString(index, src.id));
-                    src.connections.forEach((wire) => {
+                    traversed.add(currentItemToString(index, currentNode.id));
+                    currentNode.connections.forEach((wire) => {
                         evaluateWire(wire);
                     });
                 }
@@ -100,26 +104,27 @@ class Module {
                     let traversed2 = new Set();
                     stack2.push([index, node]);
                     while (stack2.length > 0) {
-                        let [index, src] = stack2.pop();
-                        src.value[index] = State.highZ;
-                        src.isHighZ[index] = true;
+                        let [index, currentNode] = stack2.pop();
+                        currentNode.value[index] = State.highZ;
+                        currentNode.isHighZ[index] = true;
                         if (
-                            traversed2.has(currentItemToString(index, src.id))
+                            traversed2.has(currentItemToString(index, currentNode.id))
                         ) {
                             continue;
                         }
-                        traversed2.add(currentItemToString(index, src.id));
-                        src.connections.forEach((wire) => {
-                            let dest = wire.destination;
+                        traversed2.add(currentItemToString(index, currentNode.id));
+                        currentNode.connections.forEach((wire) => {
+                            let destinationNode = wire.destination;
                             if (wire.isSplitterConnection()) {
-                                let newIndex = dest.indices.indexOf(
-                                    index + Math.min(...src.indices)
+                                let newIndex = destinationNode.indices.indexOf(
+                                    index + Math.min(...currentNode.indices)
                                 );
                                 if (newIndex != -1) {
-                                    index = newIndex;
+                                    stack2.push([newIndex, destinationNode]);
+                                    return;
                                 }
                             }
-                            stack2.push([index, dest]);
+                            stack2.push([index, destinationNode]);
                         });
                     }
                     /*
@@ -144,6 +149,7 @@ class Module {
             });
         });
 
+        /*
         this.outputs.forEach((node) => {
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
@@ -152,44 +158,46 @@ class Module {
                 // console.log('a1')
                 let traversed = new Set();
                 let marked = new Set();
-                stack.push(node);
+                stack.push([index, node]);
                 while (stack.length > 0) {
-                    let src = stack.pop();
-                    if (traversed.has(src.id)) {
+                    let [index, currentNode] = stack.pop();
+                    if (traversed.has(
+                        currentItemToString(index, currentNode.id))) {
                         continue;
                     }
-                    traversed.add(src.id);
-                    marked.add(src.id);
-                    src.connections.forEach((wire) => {
-                        let dest = wire.destination;
-                        stack.push(dest);
-                        if (!marked.has(dest.id)) {
-                            console.log("direction", src, dest);
-                            wire.setDirection(src, dest);
+                    traversed.add(currentNode.id);
+                    marked.add(currentNode.id);
+                    currentNode.connections.forEach((wire) => {
+                        let destinationNode = wire.destination;
+                        stack.push([index, destinationNode]);
+                        if (!marked.has(destinationNode.id)) {
+                            console.log("direction", currentNode, destinationNode);
+                            wire.setDirection(currentNode, destinationNode);
                         }
                         if (wire.isSplitterConnection()) {
-                            let newIndex = dest.indices.indexOf(
-                                index + Math.min(...src.indices)
+                            let newIndex = destinationNode.indices.indexOf(
+                                index + Math.min(...currentNode.indices)
                             );
                             if (newIndex != -1) {
                                 index = newIndex;
                             }
                         }
                         if (
-                            this.inputs.some((node) => node.id == dest.id) &&
+                            this.inputs.some((node) => node.id == destinationNode.id) &&
                             !sequentialModuleList.some(
-                                (name) => name == dest.owner.name
+                                (name) => name == destinationNode.owner.name
                             )
                         ) {
                             this.isDragging = false;
                             this.isHovering = false;
                             throw new Error("Circular Loop!");
                         }
-                        marked.add(dest.id);
+                        marked.add(destinationNode.id);
                     });
                 }
             });
         });
+        */
     }
     remove() {
         currentCircuit.removeModule(this);
@@ -423,9 +431,9 @@ class WireNode extends Module {
     render() {
         return;
     }
-    static add(x, y, value) {
+    static add(x, y, value, evaluate) {
         let mod = new WireNode("Node", x, y, value);
-        currentCircuit.addModule(mod);
+        currentCircuit.addModule(mod, evaluate);
         return mod;
     }
 }

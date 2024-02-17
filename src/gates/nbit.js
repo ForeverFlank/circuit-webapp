@@ -12,7 +12,13 @@ class Splitter extends Module {
         this.splitArray = splitArray;
         this.displayName = "";
 
-        this.inputNode = new SplitterNode(this, "Splitter Input", 0, 0, Array(width).fill(State.highZ));
+        this.inputNode = new SplitterNode(
+            this,
+            "Splitter Input",
+            0,
+            0,
+            Array(width).fill(State.highZ)
+        );
         this.inputs = [this.inputNode];
 
         this.splitArray = splitArray;
@@ -209,5 +215,57 @@ class BitwiseNotGate extends Module {
     }
     static add() {
         currentCircuit.addModule(new BitwiseNotGate("Bitwise NOT Gate"));
+    }
+}
+
+class BitwiseAndGate extends Module {
+    constructor(name) {
+        super(name, 4, 3);
+        this.inputs = [
+            new InputNode(this, "Input 1", 0, 0),
+            new InputNode(this, "Input 2", 0, 2),
+        ];
+        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.displayName = "AND";
+    }
+    render() {
+        /*
+        super.render(
+            this.displayName,
+            12,
+            -5,
+            -10,
+            "basic/and",
+            0,
+            -20,
+            80,
+            80
+        );
+        */
+        super.render();
+    }
+    evaluate(time) {
+        super.evaluate(time);
+        let input1 = this.inputs[0].getValue(time);
+        let input2 = this.inputs[1].getValue(time);
+        let maxWidth = Math.max(input1.length, input2.length);
+        for (let i = 0; i < maxWidth; i++) {
+            let a = input1[i];
+            let b = input2[i];
+            if (a == null) a = -1;
+            if (b == null) b = -1;
+
+            let result = State.and([a, b]);
+            this.outputs[0].setValue(
+                result,
+                i,
+                time + this.outputs[0].delay,
+                false,
+                true
+            );
+        }
+    }
+    static add() {
+        currentCircuit.addModule(new BitwiseAndGate("Bitwise AND Gate"));
     }
 }
