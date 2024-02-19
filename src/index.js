@@ -104,38 +104,7 @@ function draw() {
     placeY = -Math.round(controls.view.y / 20 / controls.view.zoom) * 20;
     hoveringNode = {};
 
-    background("#f4f4f5");
-
-    // let w = 40 * ceil(containerWidth / 40);
-    // let h = 40 * ceil(containerHeight / 40);
-
-    push();
-    translate(width / 2, height / 2);
-    translate(controls.view.x, controls.view.y);
-    scale(controls.view.zoom);
-
-    grid();
-
-    let nodes = [];
-    currentCircuit.modules.forEach((x) => {
-        nodes = nodes.concat(x.inputs).concat(x.outputs);
-    });
-    let wires = [];
-    nodes.forEach((x) => {
-        wires = wires.concat(x.connections);
-    });
-
-    currentCircuit.modules.forEach((x) => {
-        x.render();
-    });
-    wires.forEach((x) => x.render());
-    nodes.forEach((x) => x.render());
-
-    if (Object.keys(hoveringNode).length != 0) {
-        nodeHint();
-    }
-
-    pop();
+    mainRender();
 
     // timingDiagram();
 

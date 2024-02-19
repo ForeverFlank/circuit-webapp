@@ -59,8 +59,8 @@ class Module {
                 let marked = new Set();
                 stack.push([index, node]);
                 let isConnectedToOutput = false;
-                let activeOutputsCount = 0;
-
+                let activeOutputs = [];
+                console.log('mmmm')
                 function evaluateWire(wire) {
                     let sourceNode = wire.source;
                     let destinationNode = wire.destination;
@@ -70,8 +70,8 @@ class Module {
                         );
                         if (newIndex != -1) {
                             stack.push([newIndex, destinationNode]);
-                            return;
                         }
+                        return;
                     }
                     if (destinationNode.isOutputNode()) {
                         isConnectedToOutput ||= true;
@@ -81,7 +81,7 @@ class Module {
                                 currentItemToString(index, destinationNode.id)
                             )
                         ) {
-                            activeOutputsCount++;
+                            activeOutputs.push(destinationNode.value[index]);
                             marked.add(
                                 currentItemToString(index, destinationNode.id)
                             );
@@ -105,8 +105,8 @@ class Module {
                 }
 
                 node.icto[index] = isConnectedToOutput;
-                // console.log(x[1].name, activeOutputsCount)
-                if (activeOutputsCount == 0) {
+                console.log('mmmm')
+                if (activeOutputs.length == 0) {
                     index = x[0];
                     let stack2 = [];
                     let traversed2 = new Set();
@@ -133,26 +133,18 @@ class Module {
                                 );
                                 if (newIndex != -1) {
                                     stack2.push([newIndex, destinationNode]);
-                                    return;
                                 }
+                                return;
                             }
                             stack2.push([index, destinationNode]);
                         });
                     }
-                    /*
-                    node.connections.forEach((adjNode) => {
-                        adjNode.destination.value[index] = State.highZ;
-                        if (!evaluated.has(this.id)) {
-                            adjNode.destination.owner.evaluate(
-                                time,
-                                false,
-                                evaluated.add(this.id)
-                            );
-                        }
-                    });
-                    */
-                } else {
-                    if (activeOutputsCount >= 2) {
+                } else if (activeOutputs.length >= 2) {
+                    let allSameElements = activeOutputs.every(
+                        (value, i, arr) => value === arr[0]
+                    );
+                    console.log(allSameElements);
+                    if (!allSameElements) {
                         this.isDragging = false;
                         this.isHovering = false;
                         throw new Error("Shortage");
@@ -304,9 +296,6 @@ class Module {
             this.rawY = mouseCanvasY + this.offsetY;
             this.x = round(this.rawX / 20) * 20;
             this.y = round(this.rawY / 20) * 20;
-            this.inputs.concat(
-                this.outputs.forEach((x) => x.updateGridNodeLookup())
-            );
         }
         return false;
     }
@@ -383,50 +372,6 @@ class WireNode extends Module {
     }
     evaluate(time, connectedToOutput = false, evaluated = new Set()) {
         super.evaluate(time, connectedToOutput, evaluated);
-        /*
-        this.inputs.forEach((node) => {
-            Object.entries(node.value).forEach((x) => {
-                let index = x[0];
-                let stack = [];
-                let traversed = new Set();
-                stack.push(node);
-                while (stack.length > 0) {
-                    let src = stack.pop();
-                    if (!traversed.has(src.id)) {
-                        traversed.add(src.id);
-                        src.connections.forEach((wire) => {
-                            let dest = wire.destination;
-                            stack.push(dest);
-                            if (dest.isOutputNode()) {
-                                connectedToOutput ||= true;
-                            }
-                        });
-                        if (connectedToOutput) {
-                            break;
-                        }
-                    }
-                }
-                if (!connectedToOutput) {
-                    this.inputs.forEach((node) => {
-                        let stack2 = [];
-                        let traversed2 = new Set();
-                        stack2.push(node);
-                        while (stack2.length > 0) {
-                            let src = stack2.pop();
-                            if (!traversed2.has(src.id)) {
-                                traversed2.add(src.id);
-                                src.connections.forEach((wire) => {
-                                    let dest = wire.destination;
-                                    stack2.push(dest);
-                                    dest.value[index] = State.highZ;
-                                });
-                            }
-                        }
-                    });
-                }
-            });
-        });
-        */
     }
     pressed() {
         if (this.hovering() && pressedObject.id == 0) {
@@ -453,13 +398,13 @@ class WireNode extends Module {
 class Input extends Module {
     constructor(name) {
         super(name, 2, 2);
-        this.outputValue = State.low;
+        this.outputValue = [State.low];
         this.outputs = [new OutputNode(this, "Output", 2, 1, [State.low], 0)];
         this.isSubmoduleIO = false;
     }
     setInput(value, time = 0) {
         this.outputValue = value;
-        this.outputs[0].setValue(this.outputValue, 0, time, true, true);
+        this.outputs[0].setValues(this.outputValue, time, true, true);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -485,7 +430,7 @@ function setInput(time, value) {
     value = State.fromNumber(value);
     console.log(value);
     // let value = document.getElementById("selecting-input-value").value;
-    selectedObject.setInput(value, time);
+    selectedObject.setInput([value], time);
     setInputButtonColor(value);
     currentCircuit.evaluateAll(false);
 }
@@ -508,7 +453,7 @@ function setInputButtonColor(value) {
 class Output extends Module {
     constructor(name) {
         super(name, 2, 2);
-        this.inputValue = State.highZ;
+        this.inputValue = [State.highZ];
         this.inputs = [new InputNode(this, "Input", 0, 1, [State.highZ])];
     }
     evaluate(time) {
@@ -520,7 +465,7 @@ class Output extends Module {
         */
     }
     render() {
-        let char = State.char(this.inputValue);
+        let char = State.toString(this.inputs[0].value);
         super.render(char, 12, 0, 0, "basic/output");
     }
     static add() {

@@ -1,4 +1,4 @@
-Circuit.prototype.evaluateAll = function(reset = true, initTime = 0) {
+Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
     if (reset) {
         this.getNodes().forEach((node) => (node.totalDelay = []));
     }
@@ -15,21 +15,22 @@ Circuit.prototype.evaluateAll = function(reset = true, initTime = 0) {
                 .forEach((index) => {
                     startingNodes.push([0, index, m.outputs[0]]);
                 });
-        } else {
+        }
+    });
+    this.modules.forEach((m) => {
+        if (!m.isInputModule()) {
             m.inputs.forEach((node) => {
-                console.log(node);
+                // console.log(node);
                 Object.entries(node.value).forEach((x) => {
                     let index = x[0];
-                    if (
-                        !node.connectedToOutput(index).isConnectedToOutput
-                    ) {
+                    // console.log("q", node.name, index);
+                    if (!node.connectedToOutput(index).isConnectedToOutput) {
                         startingNodes.push([0, index, node]);
                     }
-                    // fix here
-                    if (0) {
+                    if (node.connectedToOutput(index).activeOutputsCount == 0) {
                         node.isHighZ[index] = true;
                         node.value[index] = State.highZ;
-                        console.log('setz1', node.name, index)
+                        // console.log("setz1", node.name, index);
                     }
                     node.valueAtTime[0] = node.value;
                 });
@@ -47,7 +48,7 @@ Circuit.prototype.evaluateAll = function(reset = true, initTime = 0) {
                     node.value[index] = State.highZ;
                     node.isHighZ[index] = true;
                     node.valueAtTime[0] = node.value;
-                    console.log('setz2', node.name, index)
+                    console.log("setz2", node.name, index);
                 }
             });
         });
@@ -82,14 +83,14 @@ Circuit.prototype.evaluateAll = function(reset = true, initTime = 0) {
         let currentTime = item[0];
         let currentIndex = item[1];
         let currentNode = item[2];
-        /*
+        
         console.log(
             currentNode.owner.name,
             ".",
             currentNode.name,
             currentIndex
         );
-        */
+        
         let currentModule = currentNode.owner;
         let itemString = currentItemToString(
             currentTime,
@@ -135,11 +136,7 @@ Circuit.prototype.evaluateAll = function(reset = true, initTime = 0) {
         if (currentNode.isInputNode()) {
             currentModule.outputs.forEach((node) => {
                 // console.log('D', node.delay)
-                evalQueue.push([
-                    currentTime + node.delay,
-                    currentIndex,
-                    node,
-                ]);
+                evalQueue.push([currentTime + node.delay, currentIndex, node]);
             });
             currentModule.evaluate(currentTime, true);
         }
@@ -150,4 +147,4 @@ Circuit.prototype.evaluateAll = function(reset = true, initTime = 0) {
         console.error("Error: Iteration limit exceeded! ");
         pushAlert("error", "Error: Iteration limit exceeded!");
     }
-}
+};

@@ -6,7 +6,7 @@ class ModuleNode {
         relativeY = 0,
         value = [State.highZ],
         delay = 0,
-        updateGridNodeLookup = true
+        pinDirection = -1
     ) {
         this.owner = owner;
         this.name = name;
@@ -26,24 +26,13 @@ class ModuleNode {
         this.isDragging = false;
         this.isHovering = false;
         this.linkedModule = null;
-        if (updateGridNodeLookup) {
-            gridNodeLookup[this.getPosition()] = this;
-        }
-        // console.log(gridNodeLookup)
+        this.pinDirection = pinDirection;
     }
     getPosition() {
         return [
             this.relativeX + this.owner.x / 20,
             this.relativeY + this.owner.y / 20,
         ];
-    }
-    updateGridNodeLookup() {
-        gridNodeLookup = Object.fromEntries(
-            Object.entries(gridNodeLookup).filter(
-                ([key, value]) => value.id != this.id
-            )
-        );
-        gridNodeLookup[this.getPosition()] = this;
     }
     isConnected() {
         return this.connections.length > 0;
@@ -60,25 +49,30 @@ class ModuleNode {
         let activeOutputsCount = 0;
         while (stack.length > 0) {
             let [index, currentNode] = stack.pop();
+            console.log(";;", index, currentNode.name);
             if (!traversed.has(currentItemToString(index, currentNode.id))) {
                 traversed.add(currentItemToString(index, currentNode.id));
                 currentNode.connections.forEach((wire) => {
                     let destinationNode = wire.destination;
+                    console.log(":", destinationNode.name);
                     if (wire.isSplitterConnection()) {
                         let newIndex = destinationNode.indices.indexOf(
                             index + Math.min(...currentNode.indices)
                         );
+                        console.log(newIndex);
                         if (newIndex != -1) {
                             stack.push([newIndex, destinationNode]);
-                            return;
                         }
+                        return;
                     }
+
                     if (destinationNode.isOutputNode()) {
                         isConnectedToOutput ||= true;
                         if (
                             !destinationNode.isHighZ[index] &&
                             !marked.has(destinationNode.id)
                         ) {
+                            console.log("+", destinationNode.name, index);
                             activeOutputsCount++;
                             marked.add(destinationNode.id);
                         }
@@ -128,9 +122,8 @@ class ModuleNode {
         inputDelay = 0,
         traversed = new Set()
     ) {
-        /*
         console.log(
-            '----',
+            "----",
             this.owner.name,
             "->",
             this.name,
@@ -143,17 +136,17 @@ class ModuleNode {
             "at time",
             time
         );
-        */
 
         if (setByModule) {
             this.isHighZ[index] = value == State.highZ;
+            console.log("ee", value == State.highZ);
+            let newValue = [...this.value];
+            newValue[index] = value;
+            this.value = newValue;
             if (
                 !this.isHighZ[index] ||
                 this.connectedToOutput(index).activeOutputsCount == 0
             ) {
-                let newValue = [...this.value];
-                newValue[index] = value;
-                this.value = newValue;
             }
         } else {
             let newValue = [...this.value];
@@ -163,48 +156,28 @@ class ModuleNode {
 
         this.valueAtTime[time] = this.value;
 
-        /* console.log(
-            "a",
-            Object.entries(this.valueAtTime)
-                .map((x) => x[0] + ":" + x[1])
-                .join(" ")
-        );
-        */
-
-        if (evaluate) {
-            // this.owner.evaluate(time);
-        }
-        /*
-        if (this.owner.name == "Output") {
-            console.log("oooo");
-            this.owner.inputValue = value;
-            if (this.owner.linkedNode != null) {
-                console.log("hit out");
-                this.owner.linkedNode.setValue(value, index, time);
-            }
-        }
-        if (this.linkedModule != null) {
-            if (this.linkedModule.name == "Input") {
-                console.log("hit in");
-                this.linkedModule.setInput(value, time);
-            }
-        }
-        */
-        // console.log("it is now", this.value, this.valueAtTime);
+        console.log("it is now", this.value, this.valueAtTime);
+        console.log(traversed);
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
         }
         this.connections.forEach((wire) => {
             let destinationNode = wire.destination;
-            if (traversed.has(currentItemToString(index, destinationNode.id)))
-                return;
+
             if (!this.isHighZ[index] || this.value[index] != State.highZ) {
                 if (wire.isSplitterConnection()) {
                     let destIndex = destinationNode.indices.indexOf(
                         index + Math.min(...this.indices)
                     );
+                    if (
+                        traversed.has(
+                            currentItemToString(destIndex, destinationNode.id)
+                        )
+                    ) {
+                        return;
+                    }
                     // console.log("dest indices", dest.indices, "this indices", this.indices);
-                    // console.log(this.name, "index", index, "->", destIndex);
+                    console.log(this.name, "index", index, "->", destIndex);
                     if (destIndex != -1) {
                         destinationNode.setValue(
                             this.value[index],
@@ -213,12 +186,16 @@ class ModuleNode {
                             false,
                             false,
                             inputDelay,
-                            traversed.add(
-                                currentItemToString(destIndex, this.id)
-                            )
+                            traversed.add(currentItemToString(index, this.id))
                         );
                     }
                 } else {
+                    if (
+                        traversed.has(
+                            currentItemToString(index, destinationNode.id)
+                        )
+                    )
+                        return;
                     destinationNode.setValue(
                         this.value[index],
                         index,
@@ -229,9 +206,6 @@ class ModuleNode {
                         traversed.add(currentItemToString(index, this.id))
                     );
                 }
-            }
-            if (!destinationNode.isOutputNode()) {
-                // dest.owner.evaluate();
             }
         });
     }
@@ -330,7 +304,7 @@ class ModuleNode {
         if (!this.isGenericNode()) {
             nodes = nodes.filter((node) => node.isGenericNode());
         }
-        console.log(this, nodes)
+        // console.log(this, nodes)
         let targetNode = nodes.find(
             (node) =>
                 node.id != this.id &&
@@ -338,29 +312,8 @@ class ModuleNode {
                 node.getCanvasY() == this.getCanvasY()
         );
         if (targetNode != null) {
-            this.connect(targetNode)
+            this.connect(targetNode);
         }
-        /*
-        let otherNode = gridNodeLookup[thisNode.getPosition()];
-        // console.log('w', otherNode)
-        if (otherNode != null && otherNode.owner.id != thisNode.owner.id) {
-            // console.log('aa')
-            // console.log(thisNode, 'found', otherNode);
-            function isWireNode(node) {
-                return node.isGenericNode() && !node.isSplitterNode();
-            }
-            if (!(isWireNode(thisNode) || isWireNode(otherNode))) return;
-            if (isWireNode(otherNode)) {
-                [thisNode, otherNode] = [otherNode, thisNode];
-            }
-            thisNode.connections.forEach((wire) => {
-                let destination = wire.destination;
-                currentCircuit.removeModule(thisNode.owner);
-                otherNode.connect(destination);
-                // console.log('replaced')
-            });
-        }
-        */
     }
     hovering() {
         if (controlMode == "pan") return false;
@@ -378,7 +331,6 @@ class ModuleNode {
         let netY = this.getCanvasY();
         if (this.isDragging) {
             line(netX, netY, mouseCanvasX, mouseCanvasY);
-        } else {
         }
 
         noStroke();
@@ -421,6 +373,22 @@ class ModuleNode {
             if (this.isSplitterNode()) text(this.indices, netX + 16, netY - 26);
             pop();
         }
+    }
+    renderPin() {
+        let netX = this.getCanvasX();
+        let netY = this.getCanvasY();
+        push();
+        stroke(0);
+        strokeWeight(2);
+        if (this.pinDirection == 0)
+            line(netX, netY, netX + 10, netY);
+        if (this.pinDirection == 1) 
+            line(netX, netY, netX, netY - 10);
+        if (this.pinDirection == 2)
+            line(netX, netY, netX - 10, netY);
+        if (this.pinDirection == 3)
+            line(netX, netY, netX, netY + 10);
+        pop();
     }
     pressed() {
         this.isHovering = this.hovering();
@@ -542,17 +510,9 @@ class InputNode extends ModuleNode {
         relativeY = 0,
         value = [State.highZ],
         delay = 0,
-        updateGridNodeLookup = true
+        pinDirection = -1
     ) {
-        super(
-            owner,
-            name,
-            relativeX,
-            relativeY,
-            value,
-            delay,
-            updateGridNodeLookup
-        );
+        super(owner, name, relativeX, relativeY, value, delay, pinDirection);
         this.nodeType = "input";
     }
 }
@@ -565,17 +525,9 @@ class OutputNode extends ModuleNode {
         relativeY = 0,
         value = [State.highZ],
         delay = 1,
-        updateGridNodeLookup = true
+        pinDirection = -1
     ) {
-        super(
-            owner,
-            name,
-            relativeX,
-            relativeY,
-            value,
-            delay,
-            updateGridNodeLookup
-        );
+        super(owner, name, relativeX, relativeY, value, delay, pinDirection);
         this.nodeType = "output";
     }
 }
@@ -588,17 +540,9 @@ class SplitterNode extends ModuleNode {
         relativeY = 0,
         value = [State.highZ],
         delay = 0,
-        updateGridNodeLookup = true
+        pinDirection = -1
     ) {
-        super(
-            owner,
-            name,
-            relativeX,
-            relativeY,
-            value,
-            delay,
-            updateGridNodeLookup
-        );
+        super(owner, name, relativeX, relativeY, value, delay, pinDirection);
         this.nodeType = "node";
         this.isSplitter = true;
         this.indices = [];

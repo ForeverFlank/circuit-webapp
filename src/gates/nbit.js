@@ -19,6 +19,7 @@ class Splitter extends Module {
             0,
             Array(width).fill(State.highZ)
         );
+        this.inputNode.pinDirection = 0;
         this.inputs = [this.inputNode];
 
         this.splitArray = splitArray;
@@ -45,6 +46,7 @@ class Splitter extends Module {
                 i,
                 [...array].fill(State.highZ)
             );
+            newNode.pinDirection = 2;
             newNode.indices = array;
             this.inputs.push(newNode);
             let [wire1, wire2] = this.inputNode.connect(newNode);
@@ -84,7 +86,7 @@ class Splitter extends Module {
             this.y + this.splitArray.length * 20 - 20
         );
         pop();
-        super.render();
+        // super.render();
     }
     released() {
         super.released();
@@ -171,7 +173,7 @@ class NBitInput extends Module {
         super.evaluate(time);
     }
     render() {
-        super.render(this.outputValue, 12, 0, 0, "basic/input");
+        super.render(State.toString(this.outputValue), 12, 0, 0, "basic/input");
     }
     released() {
         super.released();
@@ -220,28 +222,15 @@ class BitwiseNotGate extends Module {
 
 class BitwiseAndGate extends Module {
     constructor(name) {
-        super(name, 4, 3);
+        super(name, 4, 4);
         this.inputs = [
-            new InputNode(this, "Input 1", 0, 0),
-            new InputNode(this, "Input 2", 0, 2),
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 3),
         ];
-        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "AND";
     }
     render() {
-        /*
-        super.render(
-            this.displayName,
-            12,
-            -5,
-            -10,
-            "basic/and",
-            0,
-            -20,
-            80,
-            80
-        );
-        */
         super.render();
     }
     evaluate(time) {

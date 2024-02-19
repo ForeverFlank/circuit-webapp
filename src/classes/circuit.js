@@ -93,7 +93,6 @@ class Circuit extends Module {
         newModule.height =
             max(this.inputModules.length, this.outputModules.length) + 1;
 
-        gridNodeLookup = {};
         let inputs = newModule.inputModules;
         let outputs = newModule.outputModules;
         for (let i in inputs) {
