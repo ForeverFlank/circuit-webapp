@@ -25,6 +25,16 @@ function objectsPress() {
     return pressedOnObject;
 }
 
+function mousePressed(e) {
+    touchStarted(e);
+}
+function mouseDragged(e) {
+    touchMoved(e);
+}
+function mouseReleased(e) {
+    touchEnded(e);
+}
+
 var released = false;
 var initialPinchDistance;
 let initialZoom;
@@ -117,6 +127,7 @@ function touchEnded(e) {
         // selected = false;
     }
     pressedObject = { id: 0 };
+    pressedWire = { id: 0 };
     released = true;
     // return false;
     // console.log(circuit)
