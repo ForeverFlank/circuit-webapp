@@ -11,13 +11,14 @@
 </head>
 
 <body oncontextmenu="return false">
+  <p class="fixed left-3 bottom-2 text-sm text-zinc-600">v1.00 alpha <a class="mx-2 underline" href="https://github.com/ForeverFlank/circuit-webapp" target="_blank">Source Code</a></p>
   <div id="top-tab" class="flex sticky top-0 h-14 z-20 bg-white border-b border-zinc-200">
     <div>
       <button class="h-full left-3 mx-3 my-0 px-4 py-0 top-button" onclick="openAccordionMenu('menu-circuits', 'grid')">
         Circuits
       </button>
-      <div class="top-accordion top-14 left-3 shadow z-20" id="menu-circuits" style="display: none">
-        <button onclick="openSaveMenu()">
+      <div id="menu-circuits" class="top-accordion top-14 left-3 shadow z-20" style="display: none">
+        <!--button onclick="openSaveMenu()">
           <span> Save </span>
         </button>
         <button onclick="openSaveMenu()">
@@ -25,17 +26,17 @@
         </button>
         <button onclick="openLoadMenu()">
           <span> Load </span>
+        </button-->
+        <button onclick="closeAccordionMenu('menu-circuits'); importCircuitPrompt()">
+          <span> Import from text</span>
         </button>
-        <button onclick="importCircuitPrompt()">
-          <span> Import from string </span>
-        </button>
-        <button onclick="exportSerializedCircuit()">
-          <span> Export to string </span>
+        <button onclick="closeAccordionMenu('menu-circuits'); exportSerializedCircuit()">
+          <span> Export to text</span>
         </button>
       </div>
     </div>
 
-    <input class="top-name focus-outline" type="text" placeholder="Untitled" />
+    <input class="hidden top-name focus-outline" type="text" placeholder="Untitled" />
   </div>
 
   <div id="canvas-container"></div>
@@ -96,9 +97,9 @@
         <button onclick="BitwiseAndGate.add()">Bitwise AND Gate</button>
       </div>
 
-      <div id="module-button-container">
+      <!--div id="module-button-container">
         <button onclick="toSubModule()">Make Module</button>
-      </div>
+      </div-->
     </div>
 
     <div class="grow">
@@ -158,7 +159,7 @@
   <div id="background-blur" class="background-blur" style="display: none"></div>
   <div id="save-menu" class="menu rounded-xl shadow-lg" style="display: none"></div>
   <div id="modal-menu"
-    class="z-20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-y-4 p-4 bg-white rounded-lg shadow-lg w-2/5 max-w-96"
+    class="z-20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-y-4 p-4 bg-white rounded-lg shadow-lg w-1/2 max-w-96"
     style="display: none;">
     <h1 id="modal-title" class="text-zinc-800 font-bold text-lg text-left">Title</h1>
 
@@ -177,7 +178,7 @@
     </div-->
   </div>
 
-  <p id="fps-counter" style="position: fixed; left: 89%; top: 16%">0</p>
+  <p id="fps-counter" style="position: fixed; left: 85%; bottom: 5%">0</p>
 
   <script src="src/p5.min.js"></script>
   <script src="src/init.js"></script>
@@ -198,6 +199,7 @@
   <script src="src/saving.js"></script>
   <script src="src/ui.js"></script>
   <script src="src/renderer.js"></script>
+  <script src="src/input-handler.js"></script>
   <script src="src/index.js"></script>
 </body>
 

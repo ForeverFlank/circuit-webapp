@@ -13,7 +13,6 @@ class ModuleNode {
         this.id = unique(name);
         this.value = value;
         this.delay = delay;
-        this.totalDelay = [];
         this.valueAtTime = { 0: value };
         this.isHighZ = Object.entries(value).map((x) => x[1] == State.highZ);
         this.connections = [];
@@ -49,17 +48,17 @@ class ModuleNode {
         let activeOutputsCount = 0;
         while (stack.length > 0) {
             let [index, currentNode] = stack.pop();
-            console.log(";;", index, currentNode.name);
+            // console.log(";;", index, currentNode.name);
             if (!traversed.has(currentItemToString(index, currentNode.id))) {
                 traversed.add(currentItemToString(index, currentNode.id));
                 currentNode.connections.forEach((wire) => {
                     let destinationNode = wire.destination;
-                    console.log(":", destinationNode.name);
+                    // console.log(":", destinationNode.name);
                     if (wire.isSplitterConnection()) {
                         let newIndex = destinationNode.indices.indexOf(
                             index + Math.min(...currentNode.indices)
                         );
-                        console.log(newIndex);
+                        // console.log(newIndex);
                         if (newIndex != -1) {
                             stack.push([newIndex, destinationNode]);
                         }
@@ -72,7 +71,7 @@ class ModuleNode {
                             !destinationNode.isHighZ[index] &&
                             !marked.has(destinationNode.id)
                         ) {
-                            console.log("+", destinationNode.name, index);
+                            // console.log("+", destinationNode.name, index);
                             activeOutputsCount++;
                             marked.add(destinationNode.id);
                         }
@@ -81,6 +80,7 @@ class ModuleNode {
                 });
             }
         }
+        /*
         console.log(
             this.name,
             initIndex,
@@ -88,6 +88,7 @@ class ModuleNode {
             isConnectedToOutput,
             activeOutputsCount
         );
+        */
         return {
             isConnectedToOutput: isConnectedToOutput,
             activeOutputsCount: activeOutputsCount,
@@ -97,6 +98,12 @@ class ModuleNode {
         if (time == null) return this.value;
         let result = this.valueAtTime[time];
         if (result == null) {
+            for (let key in this.valueAtTime) {
+                if (Number(key) < time) {
+                    result = this.valueAtTime[key];
+                }
+            }
+            /*
             let keys = Object.keys(this.valueAtTime)
                 .map((x) => parseFloat(x))
                 .sort();
@@ -110,6 +117,7 @@ class ModuleNode {
                     return this.valueAtTime[lastTime];
                 }
             }
+            */
         }
         return result;
     }
@@ -139,7 +147,6 @@ class ModuleNode {
 
         if (setByModule) {
             this.isHighZ[index] = value == State.highZ;
-            console.log("ee", value == State.highZ);
             let newValue = [...this.value];
             newValue[index] = value;
             this.value = newValue;
@@ -157,7 +164,7 @@ class ModuleNode {
         this.valueAtTime[time] = this.value;
 
         console.log("it is now", this.value, this.valueAtTime);
-        console.log(traversed);
+        // console.log(traversed);
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
         }
@@ -177,7 +184,7 @@ class ModuleNode {
                         return;
                     }
                     // console.log("dest indices", dest.indices, "this indices", this.indices);
-                    console.log(this.name, "index", index, "->", destIndex);
+                    // console.log(this.name, "index", index, "->", destIndex);
                     if (destIndex != -1) {
                         destinationNode.setValue(
                             this.value[index],
@@ -369,7 +376,6 @@ class ModuleNode {
             );
             */
             // text(this.delay, netX + 5, netY - 15);
-            // text(this.totalDelay, netX + 5, netY + 15);
             if (this.isSplitterNode()) text(this.indices, netX + 16, netY - 26);
             pop();
         }
@@ -406,7 +412,7 @@ class ModuleNode {
                 return true;
             }
             if (mouseButton == RIGHT) {
-                this.disconnectAll();
+                this.remove();
             }
         }
         return false;
@@ -421,6 +427,9 @@ class ModuleNode {
             }
         }
         this.isHovering = false;
+    }
+    remove() {
+        this.disconnectAll();
     }
     isGenericNode() {
         return this.nodeType == "node";

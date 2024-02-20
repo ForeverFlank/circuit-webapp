@@ -8,7 +8,7 @@ function getContainerHeight() {
 var containerWidth = getContainerWidth();
 var containerHeight = getContainerHeight();
 
-const DEBUG = 1;
+const DEBUG = 0;
 const DEBUG_2 = 0;
 const NODE_HOVERING_RADIUS = 10;
 
@@ -29,8 +29,8 @@ function setClickedNode(node) {
     clickedNode = node;
 }
 
-var gridNodeLookup = {};
 var pressedObject = { id: 0 };
+var pressedWires = { id: 0 };
 var selectedObject = {};
 var hoveringNode = {};
 

@@ -281,6 +281,8 @@ class HalfAdder extends Module {
             new OutputNode(this, "Sum", 4, 1),
             new OutputNode(this, "Carry Out", 4, 2),
         ];
+        this.inputs.forEach((node) => node.pinDirection = 0);
+        this.outputs.forEach((node) => node.pinDirection = 2);
         this.displayName = "Half\nAdder";
     }
     evaluate(time) {
@@ -321,6 +323,8 @@ class FullAdder extends Module {
             new OutputNode(this, "Sum", 4, 1),
             new OutputNode(this, "Carry Out", 4, 2),
         ];
+        this.inputs.forEach((node) => node.pinDirection = 0);
+        this.outputs.forEach((node) => node.pinDirection = 2);
         this.displayName = "Full\nAdder";
     }
     evaluate(time) {

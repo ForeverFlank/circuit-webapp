@@ -45,6 +45,9 @@ class Module {
             !isHoveringNode;
         return hovering;
     }
+    init() {
+        
+    }
     evaluate(time, checkDisconnectedInput = true, evaluated = new Set()) {
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
@@ -54,13 +57,14 @@ class Module {
             if (!checkDisconnectedInput) return;
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
+                /*
                 let stack = [];
                 let traversed = new Set();
                 let marked = new Set();
                 stack.push([index, node]);
                 let isConnectedToOutput = false;
                 let activeOutputs = [];
-                console.log('mmmm')
+                // console.log('mmmm')
                 function evaluateWire(wire) {
                     let sourceNode = wire.source;
                     let destinationNode = wire.destination;
@@ -103,10 +107,12 @@ class Module {
                         evaluateWire(wire);
                     });
                 }
-
-                node.icto[index] = isConnectedToOutput;
-                console.log('mmmm')
-                if (activeOutputs.length == 0) {
+*/
+                let activeOutputs = node.connectedToOutput(index).activeOutputsCount
+                // node.icto[index] = isConnectedToOutput;
+                node.icto[index] = activeOutputs == 0;
+                // console.log('mmmm')
+                if (activeOutputs == 0) {
                     index = x[0];
                     let stack2 = [];
                     let traversed2 = new Set();
@@ -458,11 +464,6 @@ class Output extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        /*
-        if (this.linkedNode != null) {
-            this.linkedNode.setValue(this.inputValue);
-        }
-        */
     }
     render() {
         let char = State.toString(this.inputs[0].value);

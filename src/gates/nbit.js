@@ -199,6 +199,8 @@ class BitwiseNotGate extends Module {
         super(name, 3, 2);
         this.inputs = [new InputNode(this, "Input", 0, 1)];
         this.outputs = [new OutputNode(this, "Output", 3, 1)];
+        this.inputs.forEach((node) => node.pinDirection = 0);
+        this.outputs.forEach((node) => node.pinDirection = 2);
         this.displayName = "NOT";
     }
     render() {
@@ -228,6 +230,8 @@ class BitwiseAndGate extends Module {
             new InputNode(this, "Input 2", 0, 3),
         ];
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
+        this.inputs.forEach((node) => node.pinDirection = 0);
+        this.outputs.forEach((node) => node.pinDirection = 2);
         this.displayName = "AND";
     }
     render() {
@@ -256,5 +260,46 @@ class BitwiseAndGate extends Module {
     }
     static add() {
         currentCircuit.addModule(new BitwiseAndGate("Bitwise AND Gate"));
+    }
+}
+
+class BitwiseOrGate extends Module {
+    constructor(name) {
+        super(name, 4, 4);
+        this.inputs = [
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 3),
+        ];
+        this.outputs = [new OutputNode(this, "Output", 4, 2)];
+        this.inputs.forEach((node) => node.pinDirection = 0);
+        this.outputs.forEach((node) => node.pinDirection = 2);
+        this.displayName = "OR";
+    }
+    render() {
+        super.render();
+    }
+    evaluate(time) {
+        super.evaluate(time);
+        let input1 = this.inputs[0].getValue(time);
+        let input2 = this.inputs[1].getValue(time);
+        let maxWidth = Math.max(input1.length, input2.length);
+        for (let i = 0; i < maxWidth; i++) {
+            let a = input1[i];
+            let b = input2[i];
+            if (a == null) a = -1;
+            if (b == null) b = -1;
+
+            let result = State.or([a, b]);
+            this.outputs[0].setValue(
+                result,
+                i,
+                time + this.outputs[0].delay,
+                false,
+                true
+            );
+        }
+    }
+    static add() {
+        currentCircuit.addModule(new BitwiseOrGate("Bitwise OR Gate"));
     }
 }

@@ -1,12 +1,14 @@
 Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
     if (reset) {
-        this.getNodes().forEach((node) => (node.totalDelay = []));
+        this.getNodes().forEach((node) => {
+            node.value.fill(State.highZ);
+            node.isHighZ.fill(true);
+        });
+        this.getModules().forEach((mod) => mod.init());
     }
     let startingNodes = [];
+    this.getNodes().forEach((node) => (node.valueAtTime = {}));
     this.modules.forEach((m) => {
-        m.inputs.concat(m.outputs).forEach((node) => {
-            node.valueAtTime = {};
-        });
         if (m.isInputModule()) {
             m.setInput(m.outputValue);
             [...m.outputs[0].value]
@@ -48,13 +50,14 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
                     node.value[index] = State.highZ;
                     node.isHighZ[index] = true;
                     node.valueAtTime[0] = node.value;
-                    console.log("setz2", node.name, index);
+                    // console.log("setz2", node.name, index);
                 }
             });
         });
     });
 
     let evalQueue = [];
+    let checkQueue = [];
     /*
     startingNodes.forEach((node) => {
         node.value.forEach((value, index) => {
@@ -69,28 +72,23 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
     evalQueue = startingNodes;
 
     console.log(evalQueue.map((x) => x[2].owner.name));
-    // console.log('pre2', this.getNodes())
+
     let traversed = new Set();
     function currentItemToString(time, index, nodeId) {
         return `t${time}i${index}n${nodeId}`;
     }
     let iteration = 0;
-    let maxIteration = 100;
+    let maxIteration = 10000;
+    let currentTime = 0;
+    let lastTime = 0;
     while (iteration < maxIteration && evalQueue.length > 0) {
         evalQueue.sort((a, b) => a[0] - b[0]);
         let item = evalQueue.shift();
         // console.log("queue", evalQueue, "traversed", traversed);
-        let currentTime = item[0];
+        lastTime = currentTime;
+        currentTime = item[0];
         let currentIndex = item[1];
         let currentNode = item[2];
-        
-        console.log(
-            currentNode.owner.name,
-            ".",
-            currentNode.name,
-            currentIndex
-        );
-        
         let currentModule = currentNode.owner;
         let itemString = currentItemToString(
             currentTime,
@@ -98,10 +96,52 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
             currentNode.id
         );
         if (traversed.has(itemString)) {
-            // console.log('!cont')
             continue;
         }
         traversed.add(itemString);
+        /*
+        console.log(
+            currentTime,
+            currentNode.owner.name,
+            currentNode.name,
+            currentIndex
+        );
+        */
+        if (currentNode.isInputNode()) {
+            currentModule.evaluate(currentTime, true);
+            /*
+            console.log("ev", [
+                ...currentModule.outputs.map((x) => x.valueAtTime),
+            ]);
+            */
+            currentModule.outputs.forEach((node) => {
+                /*
+                console.log(
+                    "F",
+                    currentTime,
+                    node.getValue(currentTime),
+                    node.getValue(currentTime + node.delay),
+                    JSON.parse(JSON.stringify(node.valueAtTime))
+                );
+                */
+                let currentNodeValue = node.getValue(currentTime);
+                let futureNodeValue = node.getValue(currentTime + node.delay);
+                let valueChanged = node
+                    .getValue(currentTime)
+                    .some(
+                        (x, index) =>
+                            currentNodeValue[index] != futureNodeValue[index]
+                    );
+                if (valueChanged) {
+                    evalQueue.push([
+                        currentTime + node.delay,
+                        currentIndex,
+                        node,
+                    ]);
+                }
+            });
+        }
+
         currentNode.connections.forEach((wire) => {
             let dest = wire.destination;
             if (
@@ -118,6 +158,7 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
                 );
 
                 if (destIndex != -1) {
+                    /*
                     console.log(
                         currentNode.name,
                         currentIndex,
@@ -125,23 +166,16 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
                         dest.name,
                         destIndex
                     );
+                    */
                     evalQueue.push([currentTime, destIndex, dest]);
                 }
             } else {
                 evalQueue.push([currentTime, currentIndex, dest]);
             }
-            // console.log('pushing', [currentTime, currentIndex, dest])
         });
-        // save init state, remove from queue if state same after eval
-        if (currentNode.isInputNode()) {
-            currentModule.outputs.forEach((node) => {
-                // console.log('D', node.delay)
-                evalQueue.push([currentTime + node.delay, currentIndex, node]);
-            });
-            currentModule.evaluate(currentTime, true);
-        }
-
+        // console.log("qE", [...evalQueue]);
         iteration++;
+        console.log(iteration)
     }
     if (iteration >= maxIteration) {
         console.error("Error: Iteration limit exceeded! ");

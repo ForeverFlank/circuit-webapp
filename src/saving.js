@@ -17,6 +17,8 @@ function exportSerializedCircuit() {
     // pushAlert("info", "Copied export data to clipboard!")
     console.log(exportJson);
     console.log("!!! Export !!!");
+    exportCircuitPrompt();
+    document.getElementById('modal-circuit-export-string').value = exportJson;
 }
 
 function importSerializedCircuit(string) {
@@ -146,20 +148,34 @@ function getNodeClassByObject(object) {
 function importCircuitPrompt() {
     let html = `
     <div class="flex flex-col gap-y-2">
-      <p class="text-zinc-600 text-sm">Placeholder</p>
+      <p class="text-zinc-600 text-sm">Please paste the exported string in the input box provided.</p>
       <input id="modal-circuit-import-string" class="border p-2 h-8 w-full rounded-sm focus-outline text-sm text-zinc-600"
         type="text" placeholder="" />
     </div>
 
     <div class="flex flex-row justify-end w-full gap-x-2">
       <button id="modal-cancel" class="bg-white w-20 h-8 text-sm rounded border border-zinc-200" onclick="closeModalMenu()">Cancel</button>
-      <button id="modal-submit" class="bg-blue-500 w-20 h-8 text-sm text-white rounded" onclick="submitCircuitImportString()">OK</button>
+      <button id="modal-submit" class="bg-blue-500 w-20 h-8 text-sm text-white rounded" onclick="submitCircuitImportString()">Import</button>
     </div>`;
-    openModalMenu("Import from string", html);
+    openModalMenu("Import from text", html);
 }
 
 function submitCircuitImportString() {
     let string = document.getElementById("modal-circuit-import-string").value;
     importSerializedCircuit(string);
     closeModalMenu();
+}
+
+function exportCircuitPrompt() {
+    let html = `
+    <div class="flex flex-col gap-y-2">
+      <p class="text-zinc-600 text-sm">Please copy the exported string below and save it somewhere safe:</p>
+      <input id="modal-circuit-export-string" class="border p-2 h-8 w-full rounded-sm focus-outline text-sm text-zinc-600"
+        type="text" placeholder="" />
+    </div>
+
+    <div class="flex flex-row justify-end w-full gap-x-2">
+      <button id="modal-submit" class="bg-blue-500 w-20 h-8 text-sm text-white rounded" onclick="closeModalMenu()">Close</button>
+    </div>`;
+    openModalMenu("Export to text", html);
 }

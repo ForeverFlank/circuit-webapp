@@ -1,12 +1,13 @@
 var controls = {
     view: { x: 0, y: 0, zoom: 1 },
     viewPos: { prevX: null, prevY: null, isDragging: false },
-}
-
+};
+const minZoom = 0.2;
+const maxZoom = 5;
 class Controls {
     static move(controls) {
         function pressed(e) {
-            if (e.type.includes('touch')) e = e.touches[0];
+            if (e.type.includes("touch")) e = e.touches[0];
             controls.viewPos.isDragging = true;
             controls.viewPos.prevX = e.clientX;
             controls.viewPos.prevY = e.clientY;
@@ -21,7 +22,7 @@ class Controls {
                 controls.viewPos.prevY = e.clientY;
             }
             */
-            if (e.type.includes('touch')) e = e.touches[0];
+            if (e.type.includes("touch")) e = e.touches[0];
             const { prevX, prevY, isDragging } = controls.viewPos;
             if (!isDragging) return;
 
@@ -32,7 +33,8 @@ class Controls {
             if (prevX || prevY) {
                 controls.view.x += dx;
                 controls.view.y += dy;
-                controls.viewPos.prevX = pos.x, controls.viewPos.prevY = pos.y
+                (controls.viewPos.prevX = pos.x),
+                    (controls.viewPos.prevY = pos.y);
             }
         }
 
@@ -45,8 +47,8 @@ class Controls {
         return {
             pressed,
             dragged,
-            released
-        }
+            released,
+        };
     }
 
     static zoom(controls) {
@@ -56,19 +58,33 @@ class Controls {
             const factor = 0.07;
             const zoom = 1 * direction * factor * controls.view.zoom;
             controls.view.zoom += zoom;
-            if (controls.view.zoom < 0.2) controls.view.zoom = 0.2;
-            else if (controls.view.zoom > 5) controls.view.zoom = 5;
-            else {
-                const wx = (x - controls.view.x - containerWidth / 2) / (width * controls.view.zoom);
-                const wy = (y - controls.view.y - containerHeight / 2) / (height * controls.view.zoom);
-                
+            if (controls.view.zoom < 0.2) {
+                controls.view.zoom = 0.2;
+            } else if (controls.view.zoom > 5) {
+                controls.view.zoom = 5;
+            } else {
+                const wx =
+                    (x - controls.view.x - containerWidth / 2) /
+                    (width * controls.view.zoom);
+                const wy =
+                    (y - controls.view.y - containerHeight / 2) /
+                    (height * controls.view.zoom);
+
                 controls.view.x -= wx * width * zoom;
                 controls.view.y -= wy * height * zoom;
-                
             }
-            
         }
 
-        return { worldZoom }
+        return { worldZoom };
+    }
+
+    static setZoom(value) {
+        if (value < 0.2) {
+            controls.view.zoom = 0.2;
+        } else if (value > 5) {
+            controls.view.zoom = 5;
+        } else {
+            controls.view.zoom = value
+        }
     }
 }

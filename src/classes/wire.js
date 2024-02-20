@@ -138,17 +138,20 @@ class Wire {
     }
     pressed() {
         this.isHovering = this.hovering();
-        
+        pressedWire = this;
         if (!this.rendered) {
             return false;
         }
         if (this.isHovering) {
             if (mouseButton == RIGHT) {
-                this.source.disconnect(this.destination);
-                return this;
+                return this.remove();
             }
         }
         return false;
+    }
+    remove() {
+        this.source.disconnect(this.destination);
+        return this;
     }
     serialize() {
         return {

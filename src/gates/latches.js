@@ -9,7 +9,13 @@ class SRLatch extends Module {
             new OutputNode(this, "Q", 3, 3),
             new OutputNode(this, "Q'", 3, 1),
         ];
+        this.inputs.forEach((node) => node.pinDirection = 0);
+        this.outputs.forEach((node) => node.pinDirection = 2);
         this.displayName = "SR";
+        this.latchValue = State.low;
+    }
+    init() {
+        super.init();
         this.latchValue = State.low;
     }
     evaluate(time) {
@@ -53,7 +59,13 @@ class DLatch extends Module {
             new OutputNode(this, "Q", 2, 2),
             new OutputNode(this, "Q'", 2, 0),
         ];
+        this.inputs.forEach((node) => node.pinDirection = 0);
+        this.outputs.forEach((node) => node.pinDirection = 2);
         this.displayName = "D";
+        this.latchValue = State.low;
+    }
+    init() {
+        super.init();
         this.latchValue = State.low;
     }
     evaluate(time) {

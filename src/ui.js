@@ -17,6 +17,11 @@ function openAccordionMenu(id, mode, arrowId = null) {
     }
 }
 
+function closeAccordionMenu(id) {
+    let div = document.getElementById(id);
+    div.style.display = "none";
+}
+
 function openSaveMenu() {
     let div = document.getElementById("save-menu");
     div.style.display = "block";
