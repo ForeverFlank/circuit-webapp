@@ -54,6 +54,7 @@ class Wire {
     isSplitterConnection() {
         if (!this.source.isSplitterNode()) return false;
         if (!this.destination.isSplitterNode()) return false;
+        if (this.source.owner.id != this.destination.owner.id) return false;
         if (this.source.isSplitterInput == this.destination.isSplitterInput)
             return false;
         return true;
