@@ -130,6 +130,7 @@ class ModuleNode {
         inputDelay = 0,
         traversed = new Set()
     ) {
+        /*
         console.log(
             "----",
             this.owner.name,
@@ -144,7 +145,7 @@ class ModuleNode {
             "at time",
             time
         );
-
+*/
         if (setByModule) {
             this.isHighZ[index] = value == State.highZ;
             let newValue = [...this.value];
@@ -163,7 +164,7 @@ class ModuleNode {
 
         this.valueAtTime[time] = this.value;
 
-        console.log("it is now", this.value, this.valueAtTime);
+        // console.log("it is now", this.value, this.valueAtTime);
         // console.log(traversed);
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;

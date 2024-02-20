@@ -149,7 +149,7 @@ class Module {
                     let allSameElements = activeOutputs.every(
                         (value, i, arr) => value === arr[0]
                     );
-                    console.log(allSameElements);
+                    // console.log(allSameElements);
                     if (!allSameElements) {
                         this.isDragging = false;
                         this.isHovering = false;
@@ -434,7 +434,7 @@ class Input extends Module {
 
 function setInput(time, value) {
     value = State.fromNumber(value);
-    console.log(value);
+    // console.log(value);
     // let value = document.getElementById("selecting-input-value").value;
     selectedObject.setInput([value], time);
     setInputButtonColor(value);
