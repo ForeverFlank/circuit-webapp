@@ -34,7 +34,7 @@ function touchStarted(e) {
         const distance = (u, v) => sqrt((u.x - v.x) ** 2 + (u.y - v.y) ** 2);
         initialPinchDistance = distance(touches[0], touches[1]);
         initialZoom = controls.view.zoom;
-        console.log(initialPinchDistance)
+        console.log(initialPinchDistance);
     }
     released = false;
     if (controlMode == "edit") {
@@ -57,7 +57,12 @@ function touchStarted(e) {
     }
     if (controlMode == "delete" && mouseButton == LEFT) {
         objectsPress();
-        pressedObject.remove();
+        if (pressedObject.id != 0) {
+            pressedObject.remove();
+        }
+        if (pressedWire.id != 0) {
+            pressedWire.remove();
+        }
     }
 }
 
@@ -67,7 +72,9 @@ function touchMoved(e) {
     if (touches.length >= 2) {
         const distance = (u, v) => sqrt((u.x - v.x) ** 2 + (u.y - v.y) ** 2);
         let currentPinchDistance = distance(touches[0], touches[1]);
-        Controls.setZoom(initialZoom * currentPinchDistance / initialPinchDistance);
+        Controls.setZoom(
+            (initialZoom * currentPinchDistance) / initialPinchDistance
+        );
     }
     if (controlMode == "edit") {
         objectsPress();

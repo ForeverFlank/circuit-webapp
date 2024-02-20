@@ -54,7 +54,8 @@ class Wire {
     isSplitterConnection() {
         if (!this.source.isSplitterNode()) return false;
         if (!this.destination.isSplitterNode()) return false;
-        if (this.source.isSplitterInput == this.destination.isSplitterInput) return false;
+        if (this.source.isSplitterInput == this.destination.isSplitterInput)
+            return false;
         return true;
     }
     render() {
@@ -80,7 +81,7 @@ class Wire {
             fill(State.color(this.source.value[0]));
         } else {
             if (this.source.value.every((x) => x == State.highZ)) {
-                fill(State.color(State.highZ))
+                fill(State.color(State.highZ));
             } else {
                 fill(64);
             }
@@ -93,8 +94,10 @@ class Wire {
         rect(-length / 2, -width / 2, length, width);
         pop();
 
-        textSize(6)
-        text("src", sourceX, sourceY)
+        push();
+        textSize(8);
+        textAlign(CENTER, CENTER);
+        // text("src", sourceX, sourceY)
         if (
             !(
                 (this.source.value == State.highZ ||
@@ -126,15 +129,28 @@ class Wire {
                 if (value.length == 1) {
                     circle(sourceX + deltaX * t, sourceY + deltaY * t, 4);
                 } else {
-                    text(
-                        State.toString(value),
+                    push();
+                    let str = State.toString(value);
+                    let bbox = fontRegular.textBounds(
+                        str,
                         sourceX + deltaX * t,
-                        sourceY + deltaY * t
+                        sourceY + deltaY * t - 16
                     );
+                    fill("#f4f4f5");
+                    rect(
+                        bbox.x - 2,
+                        bbox.y + 12,
+                        bbox.w + 2 * 2,
+                        bbox.h + 2 * 2
+                    );
+                    fill(0);
+                    text(str, sourceX + deltaX * t, sourceY + deltaY * t - 1);
+                    pop();
                 }
             }
             pop();
         }
+        pop();
     }
     pressed() {
         this.isHovering = this.hovering();
@@ -151,6 +167,12 @@ class Wire {
     }
     remove() {
         this.source.disconnect(this.destination);
+        let otherWire = this.destination.connections.find(
+            (x) => x.destination.id == this.id
+        );
+        if (otherWire != null) {
+            otherWire.remove();
+        }
         return this;
     }
     serialize() {
@@ -160,8 +182,8 @@ class Wire {
             sourceId: this.source.id,
             destinationId: this.destination.id,
             rendered: this.rendered,
-            isSubmoduleWire: this.isSubModuleWire
-        }
+            isSubmoduleWire: this.isSubModuleWire,
+        };
     }
     static deserialize(data, source, destination) {
         let newWire = new Wire();

@@ -71,7 +71,7 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
     });
     evalQueue = startingNodes;
 
-    console.log(evalQueue.map((x) => x[2].owner.name));
+    // console.log(evalQueue.map((x) => x[2].owner.name));
 
     let traversed = new Set();
     function currentItemToString(time, index, nodeId) {
@@ -175,7 +175,7 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
         });
         // console.log("qE", [...evalQueue]);
         iteration++;
-        console.log(iteration)
+        // console.log(iteration)
     }
     if (iteration >= maxIteration) {
         console.error("Error: Iteration limit exceeded! ");

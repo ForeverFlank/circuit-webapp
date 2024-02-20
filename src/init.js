@@ -30,7 +30,7 @@ function setClickedNode(node) {
 }
 
 var pressedObject = { id: 0 };
-var pressedWires = { id: 0 };
+var pressedWire = { id: 0 };
 var selectedObject = {};
 var hoveringNode = {};
 
