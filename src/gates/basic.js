@@ -234,8 +234,8 @@ class TriStateBuffer extends Module {
         super.render("", 12, -8, 0, "basic/tristatebuffer");
     }
     evaluate(time) {
-        console.warn("EVAL", time);
-        super.evaluate(time);
+        // console.warn("EVAL", time);
+        // super.evaluate(time);
         let input = this.inputs[0].getValueAtTime(time)[0];
         let control = this.inputs[1].getValueAtTime(time)[0];
         if (control == State.high) {
@@ -246,7 +246,10 @@ class TriStateBuffer extends Module {
                 false,
                 true
             );
-        } else if (control == State.low) {
+        } else if (
+            control == State.low ||
+            (control == State.highZ && input == State.highZ)
+        ) {
             this.outputs[0].setValue(
                 State.highZ,
                 0,
@@ -356,4 +359,3 @@ class FullAdder extends Module {
         currentCircuit.addModule(new FullAdder("Full Adder", placeX, placeY));
     }
 }
-

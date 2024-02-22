@@ -152,9 +152,9 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
     this.getNodes()
         .filter((node) => node.nodeType == "output")
         .forEach((node) => {
-            Object.entries(node.getValueAtTime(0)).forEach((x) => {
+            Object.entries(node.getValueAtTime(Infinity)).forEach((x) => {
                 let initIndex = 0;
-                if (node.getHighZAtTime(0)[initIndex]) return;
+                if (node.getHighZAtTime(Infinity)[initIndex]) return;
                 let stack = [];
                 let traversed = new Set();
                 let marked = new Set();
@@ -184,7 +184,7 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
                                 marked.add(
                                     currentItemToString(0, index, destinationNode.id)
                                 );
-
+                                // console.log(currentNode.id, destinationNode.id)
                                 wire.setDirection(currentNode, destinationNode);
                             }
                             if (wire.isSplitterConnection()) {

@@ -109,6 +109,7 @@ class ModuleNode {
                         }
                         return;
                     }
+
                     stack.push([index, destinationNode]);
                 });
                 if (currentNode.isOutputNode()) {
@@ -138,7 +139,7 @@ class ModuleNode {
         return {
             isConnectedToOutput: isConnectedToOutput,
             activeOutputsCount: activeOutputsCount,
-            activeOutputs: activeOutputs
+            activeOutputs: activeOutputs,
         };
     }
     setValue(
@@ -151,30 +152,28 @@ class ModuleNode {
         traversed = new Set()
     ) {
         /*
-            console.warn(
-                "----",
-                this.id,
-                "set",
-                value,
-                evaluate,
-                setByModule,
-                "to index",
-                index,
-                "at time",
-                time
-            );
-*/
-
+        console.warn(
+            "----",
+            this.id,
+            "set",
+            value,
+            evaluate,
+            setByModule,
+            "to index",
+            index,
+            "at time",
+            time
+        );
+        */
+        let isValueHighZ = value == State.highZ;
         if (setByModule) {
-            let isValueHighZ = value == State.highZ;
             this.setHighZAtIndexAtTime(time, index, isValueHighZ);
             if (
-                !isValueHighZ ||
+                isValueHighZ &&
                 this.connectedToOutput(index, time).activeOutputsCount == 0
             ) {
             }
         }
-
         this.setValueAtIndexAtTime(time, index, value);
 
         /*
@@ -188,6 +187,7 @@ class ModuleNode {
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
         }
+        let currentValue = this.getValueAtTime(time)[index];
         this.connections.forEach((wire) => {
             let destinationNode = wire.destination;
             let isNodeHighZ = this.getHighZAtTime(time)[index];
@@ -206,7 +206,7 @@ class ModuleNode {
                     }
                     if (destIndex != -1) {
                         destinationNode.setValue(
-                            value,
+                            currentValue,
                             destIndex,
                             time,
                             false,
@@ -223,7 +223,7 @@ class ModuleNode {
                     )
                         return;
                     destinationNode.setValue(
-                        value,
+                        currentValue,
                         index,
                         time,
                         false,

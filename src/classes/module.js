@@ -66,6 +66,7 @@ class Module {
                     stack.push([index, node]);
                     while (stack.length > 0) {
                         let [index, currentNode] = stack.pop();
+                        // console.log('setZ', currentNode.id)
                         index = parseInt(index);
                         currentNode.setValueAtIndexAtTime(time, index, State.highZ);
                         currentNode.setHighZAtIndexAtTime(time, index, true);
@@ -105,6 +106,9 @@ class Module {
                         // throw new Error("Shortage");
                     }
                     
+                }
+                if (activeOutputs.length >= 1) {
+                    activeOutputs[0].setValues(activeOutputs[0].getValueAtTime(time), time)
                 }
             });
         });
