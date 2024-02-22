@@ -55,10 +55,10 @@ class Module {
             if (!checkDisconnectedInput) return;
             let nodeValues = node.getValueAtTime(time);
             console.log('z', nodeValues)
-            Object.entries(node.value).forEach((x) => {
+            Object.entries(nodeValues).forEach((x) => {
                 let index = x[0];
                 let activeOutputs =
-                    node.connectedToOutput(index).activeOutputsCount;
+                    node.connectedToOutput(index, time).activeOutputsCount;
 
                 if (activeOutputs == 0) {
                     index = x[0];
@@ -68,8 +68,6 @@ class Module {
                     while (stack.length > 0) {
                         let [index, currentNode] = stack.pop();
                         index = parseInt(index);
-                        // currentNode.value[index] = State.highZ;
-                        // currentNode.isHighZ[index] = true;
                         currentNode.setValueAtIndexAtTime(time, index, State.highZ);
                         currentNode.setHighZAtIndexAtTime(time, index, true);
                         if (

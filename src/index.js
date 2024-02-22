@@ -66,7 +66,7 @@ function nodeHint() {
         push();
         textAlign(CENTER, CENTER);
         fill(0);
-        let debugstring;
+        let debugString;
         debugString = Object.entries(hoveringNode.valueAtTime).map((x) => {
             let key = x[0];
             let value = x[1];

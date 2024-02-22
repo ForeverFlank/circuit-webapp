@@ -11,11 +11,9 @@ class ModuleNode {
         this.owner = owner;
         this.name = name;
         this.id = unique(name);
-        this.value = value;
         this.delay = delay;
         this.valueAtTime = { 0: value };
-        this.isHighZ = Object.entries(value).map((x) => x[1] == State.highZ);
-        this.isHighZAtTime = { 0: [...this.isHighZ] };
+        this.isHighZAtTime = { 0: value.map((x) => x == State.highZ) };
         this.connections = [];
         this.objectType = "node";
         this.nodeType = "node";
@@ -36,6 +34,45 @@ class ModuleNode {
     }
     isConnected() {
         return this.connections.length > 0;
+    }
+    getValueAtTime(time) {
+        if (time == null) return this.value;
+        let result = this.valueAtTime[time];
+        if (result == null) {
+            for (let key in this.valueAtTime) {
+                if (Number(key) < time) {
+                    result = this.valueAtTime[key];
+                }
+            }
+        }
+        return result;
+    }
+    setValueAtTime(time, value) {
+        this.valueAtTime[time] = value;
+    }
+    setValueAtIndexAtTime(time, index, value) {
+        let newValue = [...this.getValueAtTime(time)];
+        newValue[index] = value;
+        this.valueAtTime[time] = newValue;
+    }
+    getHighZAtTime(time) {
+        // console.log('f', this.isHighZAtTime)
+        if (time == null) return this.isHighZAtTime;
+        let result = this.isHighZAtTime[time];
+        if (result == null) {
+            for (let key in this.isHighZAtTime) {
+                if (Number(key) < time) {
+                    result = this.isHighZAtTime[key];
+                }
+            }
+        }
+        return result;
+    }
+    setHighZAtIndexAtTime(time, index, value) {
+        console.log(time, index, value)
+        let newValue = [...this.getHighZAtTime(time)];
+        newValue[index] = value;
+        this.isHighZAtTime[time] = newValue;
     }
     connectedToOutput(initIndex = 0, time) {
         function currentItemToString(index, nodeId) {
@@ -69,6 +106,7 @@ class ModuleNode {
                         isConnectedToOutput ||= true;
                         let isDestinationHighZ =
                             destinationNode.getHighZAtTime(time)[index];
+                        console.log(isDestinationHighZ)
                         if (
                             !isDestinationHighZ &&
                             !marked.has(destinationNode.id)
@@ -82,7 +120,7 @@ class ModuleNode {
             }
         }
 
-        /*
+        
         console.log(
             '>>',
             this.name,
@@ -91,51 +129,11 @@ class ModuleNode {
             isConnectedToOutput,
             activeOutputsCount
         );
-        */
+        
         return {
             isConnectedToOutput: isConnectedToOutput,
             activeOutputsCount: activeOutputsCount,
         };
-    }
-    getValueAtTime(time) {
-        if (time == null) return this.value;
-        let result = this.valueAtTime[time];
-        if (result == null) {
-            for (let key in this.valueAtTime) {
-                if (Number(key) < time) {
-                    result = this.valueAtTime[key];
-                }
-            }
-        }
-        return result;
-    }
-    setValueAtTime(time, value) {
-        this.valueAtTime[time] = value;
-    }
-    setValueAtIndexAtTime(time, index, value) {
-        let valueAtTime = [...this.getValueAtTime(time)];
-        valueAtTime[index] = value;
-        this.valueAtTime[time] = valueAtTime;
-    }
-    getHighZAtTime(time) {
-        // console.log('f', this.isHighZAtTime)
-        if (time == null) return this.isHighZAtTime;
-        let result = this.isHighZAtTime[time];
-        if (result == null) {
-            for (let key in this.isHighZAtTime) {
-                if (Number(key) < time) {
-                    result = this.isHighZAtTime[key];
-                }
-            }
-        }
-        return result;
-    }
-    setHighZAtIndexAtTime(time, index, value) {
-        console.log(time, index, value)
-        let isHighZAtTime = [...this.getHighZAtTime(time)];
-        isHighZAtTime[index] = value;
-        this.isHighZ[time] = isHighZAtTime;
-        console.log(this.isHighZ)
     }
     setValue(
         value,
@@ -146,12 +144,10 @@ class ModuleNode {
         inputDelay = 0,
         traversed = new Set()
     ) {
-        /*
+        
         console.log(
             "----",
-            this.owner.name,
-            "->",
-            this.name,
+            this.id,
             "set",
             value,
             evaluate,
@@ -161,21 +157,14 @@ class ModuleNode {
             "at time",
             time
         );
-*/
+
         if (setByModule) {
             let isValueHighZ = value == State.highZ;
-            // this.isHighZ[index] = isValueHighZ;
-            // console.log('m', this.getHighZAtTime(time))
-            // let newHighZ = [...this.getHighZAtTime(time)];
-            /*
-            let newHighZ = [...this.isHighZ];
-            newHighZ[index] = isValueHighZ;
-            this.isHighZAtTime[time] = newHighZ;
-            */
+            console.log(isValueHighZ)
             this.setHighZAtIndexAtTime(time, index, isValueHighZ);
             if (
                 !isValueHighZ ||
-                this.connectedToOutput(index).activeOutputsCount == 0
+                this.connectedToOutput(index, time).activeOutputsCount == 0
             ) {
             }
         }
@@ -187,7 +176,7 @@ class ModuleNode {
         */
        this.setValueAtIndexAtTime(time, index, value);
 
-        // console.log("it is now", this.value, this.valueAtTime);
+        console.log("it is now " + this.valueAtTime[time] + " " + this.isHighZAtTime[time]);
         // console.log(traversed);
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
@@ -196,8 +185,7 @@ class ModuleNode {
             let destinationNode = wire.destination;
             let isNodeHighZ = this.getHighZAtTime(time)[index];
             let isValueHighZ = this.getValueAtTime(time)[index] == State.highZ;
-            // if (!this.isHighZ[index] || this.value[index] != State.highZ) {
-            if (!isNodeHighZ || isValueHighZ) {
+            if (!isNodeHighZ || !isValueHighZ) {
                 if (wire.isSplitterConnection()) {
                     let destIndex = destinationNode.indices.indexOf(
                         index + Math.min(...this.indices)
@@ -469,7 +457,7 @@ class ModuleNode {
     addWireNode() {
         let x = Math.round(mouseCanvasX / 20) * 20;
         let y = Math.round(mouseCanvasY / 20) * 20;
-        let value = [...this.value].fill(State.highZ);
+        let value = [...this.getValueAtTime(0)].fill(State.highZ);
         let destinationNode = WireNode.add(x, y, value, false);
         clickedNode.connect(destinationNode.inputs[0]);
         clickedNode = null;

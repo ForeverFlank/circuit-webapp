@@ -1,8 +1,6 @@
 Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
     if (reset) {
         this.getNodes().forEach((node) => {
-            node.value.fill(State.highZ);
-            node.isHighZ.fill(true);
             node.valueAtTime = { 0: [...node.getValueAtTime(0).fill(State.highZ)] };
             node.isHighZAtTime = { 0: [...node.getHighZAtTime(0).fill(true)] };
         });
@@ -13,13 +11,13 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
         // inefficient
         node.valueAtTime = { 0: [...node.getValueAtTime(Infinity)] };
         node.isHighZAtTime = { 0: [...node.getHighZAtTime(Infinity)] };
-        // node.valueAtTime = {};
-        // node.isHighZAtTime = {};
+        console.log(node.name + node.isHighZAtTime[0])
     });
     this.modules.forEach((m) => {
         if (m.isInputModule()) {
             m.setInput(m.outputValue);
-            [...m.outputs[0].value]
+            console.log(m);
+            [...m.outputs[0].getValueAtTime(0)]
                 .fill(0)
                 .map((x, y) => x + y)
                 .forEach((index) => {
@@ -31,18 +29,20 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
         if (!m.isInputModule()) {
             m.inputs.forEach((node) => {
                 // console.log(node);
-                Object.entries(node.value).forEach((x) => {
+                Object.entries(node.getValueAtTime(0)).forEach((x) => {
                     let index = x[0];
                     // console.log("q", node.name, index);
-                    if (!node.connectedToOutput(index).isConnectedToOutput) {
+                    if (!node.connectedToOutput(index, 0).isConnectedToOutput) {
                         startingNodes.push([0, index, node]);
                     }
-                    if (node.connectedToOutput(index).activeOutputsCount == 0) {
+                    if (node.connectedToOutput(index, 0).activeOutputsCount == 0) {
                         // node.isHighZ[index] = true;
                         // node.value[index] = State.highZ;
                         // node.valueAtTime[0][index] = node.value;
-                        node.valueAtTime[0][index] = State.highZ;
-                        node.isHighZAtTime[0][index] = true;
+                        // node.valueAtTime[0][index] = State.highZ;
+                        // node.isHighZAtTime[0][index] = true;
+                        node.setValueAtIndexAtTime(0, index, State.highZ)
+                        node.setHighZAtIndexAtTime(0, index, true)
                         // console.log("setz1", node.name, index);
                     }
                     // node.valueAtTime[0] = node.value;
@@ -57,9 +57,9 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
     });
     this.modules.forEach((m) => {
         m.inputs.forEach((node) => {
-            Object.entries(node.value).forEach((x) => {
+            Object.entries(node.getValueAtTime(0)).forEach((x) => {
                 let index = x[0];
-                if (node.connectedToOutput(index).activeOutputsCount == 0) {
+                if (node.connectedToOutput(index, 0).activeOutputsCount == 0) {
                     // node.value[index] = State.highZ;
                     // node.isHighZ[index] = true;
                     // node.valueAtTime[0] = node.value;
@@ -88,7 +88,7 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
     });
     evalQueue = startingNodes;
 
-    // console.log(evalQueue.map((x) => x[2].owner.name));
+    console.log([...evalQueue]);
 
     let traversed = new Set();
     function currentItemToString(time, index, nodeId) {
@@ -116,14 +116,14 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
             continue;
         }
         traversed.add(itemString);
-        /*
+        
         console.log(
             currentTime,
             currentNode.owner.name,
             currentNode.name,
             currentIndex
         );
-        */
+        
         if (currentNode.isInputNode()) {
             currentModule.evaluate(currentTime, true);
             /*
