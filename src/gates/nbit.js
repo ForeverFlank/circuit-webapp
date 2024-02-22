@@ -41,7 +41,7 @@ class Splitter extends Module {
         [...splitArray].forEach((array) => {
             let newNode = new SplitterNode(
                 this,
-                "Split" + (i + 1),
+                "Split " + (i + 1),
                 1,
                 i,
                 [...array].fill(State.highZ)
@@ -59,8 +59,6 @@ class Splitter extends Module {
                 wire.rendered = false;
             }
         });
-        // console.log('ttt', this);
-        // console.log(circuit);
     }
     getSplitArrayString() {
         return this.splitArray
@@ -146,14 +144,6 @@ function addSplitter() {
     let splitArray = splitStringToSplitArray(string);
     Splitter.add(splitArray);
     closeModalMenu();
-    /*
-    selectedObject.inputNode.value = State.changeWidth(
-        selectedObject.inputNode.value,
-        width
-    );
-    console.log("AAAAAAAA", splitArray);
-    selectedObject.setSplitter(splitArray);
-    */
 }
 
 class NBitInput extends Module {
@@ -181,6 +171,7 @@ class NBitInput extends Module {
     selected() {
         super.selected();
         document.getElementById("selecting-nbitinput").style.display = "flex";
+        setNBitInputValue(this.outputValue)
     }
     static add() {
         let mod = new NBitInput("N-bit Input");
@@ -192,6 +183,10 @@ function setNBitInput(time) {
     let value = document.getElementById("selecting-nbitinput-value").value;
     selectedObject.setInput(State.fromString(value), time);
     currentCircuit.evaluateAll(false);
+}
+
+function setNBitInputValue(value) {
+    document.getElementById("selecting-nbitinput-value").value = State.toString(value);
 }
 
 class BitwiseNotGate extends Module {
@@ -209,7 +204,7 @@ class BitwiseNotGate extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let result = this.inputs[0].getValue(time).map((x) => State.not(x));
+        let result = this.inputs[0].getValueAtTime(time).map((x) => State.not(x));
         this.outputs[0].setValues(
             result,
             time + this.outputs[0].delay,
@@ -239,8 +234,8 @@ class BitwiseAndGate extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let input1 = this.inputs[0].getValue(time);
-        let input2 = this.inputs[1].getValue(time);
+        let input1 = this.inputs[0].getValueAtTime(time);
+        let input2 = this.inputs[1].getValueAtTime(time);
         let maxWidth = Math.max(input1.length, input2.length);
         for (let i = 0; i < maxWidth; i++) {
             let a = input1[i];
@@ -280,8 +275,8 @@ class BitwiseOrGate extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let input1 = this.inputs[0].getValue(time);
-        let input2 = this.inputs[1].getValue(time);
+        let input1 = this.inputs[0].getValueAtTime(time);
+        let input2 = this.inputs[1].getValueAtTime(time);
         let maxWidth = Math.max(input1.length, input2.length);
         for (let i = 0; i < maxWidth; i++) {
             let a = input1[i];

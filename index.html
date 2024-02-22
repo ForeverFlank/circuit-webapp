@@ -11,7 +11,8 @@
 </head>
 
 <body oncontextmenu="return false" style="touch-action: pan-x pan-y;">
-  <p class="fixed left-3 bottom-2 text-sm text-zinc-600">v1.08 alpha <a class="mx-2 underline" href="https://github.com/ForeverFlank/circuit-webapp" target="_blank">Source Code</a></p>
+  <p class="fixed left-3 bottom-2 text-sm text-zinc-600">v1.10 alpha <a class="mx-2 underline"
+      href="https://github.com/ForeverFlank/circuit-webapp" target="_blank">Source Code</a></p>
   <div id="top-tab" class="flex sticky top-0 h-14 z-20 bg-white border-b border-zinc-200">
     <div>
       <button class="h-full left-3 mx-3 my-0 px-4 py-0 top-button" onclick="openAccordionMenu('menu-circuits', 'grid')">
@@ -70,9 +71,28 @@
         <button onclick="NorGate.add()">NOR</button>
         <button onclick="XorGate.add()">XOR</button>
         <button onclick="XnorGate.add()">XNOR</button>
+        <button onclick="TriStateBuffer.add()">Tri-State Buffer</button>
+      </div>
+
+      <button class="flex flex-row justify-between h-6 bg-transparent text-left px-2"
+        onclick="openAccordionMenu('gate-plexers', 'grid', 'gate-plexers-arrow')">
+        Plexers
+        <img id="gate-plexers-arrow" src="sprites/ui/expand-more.svg" class="ease-in-out duration-200">
+      </button>
+      <div class="accordion-gate" id="gate-plexers" style="display: none">
+        <button onclick="Decoder1To2.add()">1-to-2 Decoder</button>
+        <button onclick="Decoder2To4.add()">2-to-4 Decoder</button>
+        <button onclick="Decoder3To8.add()">3-to-8 Decoder</button>
+      </div>
+
+      <button class="flex flex-row justify-between h-6 bg-transparent text-left px-2"
+        onclick="openAccordionMenu('gate-arithmetic', 'grid', 'gate-arithmetic-arrow')">
+        Arithmetic
+        <img id="gate-arithmetic-arrow" src="sprites/ui/expand-more.svg" class="ease-in-out duration-200">
+      </button>
+      <div class="accordion-gate" id="gate-arithmetic" style="display: none">
         <button onclick="HalfAdder.add()">Half Adder</button>
         <button onclick="FullAdder.add()">Full Adder</button>
-        <button onclick="TriStateBuffer.add()">Tri-State Buffer</button>
       </div>
 
       <button class="flex flex-row justify-between h-6 bg-transparent text-left px-2"
@@ -104,17 +124,17 @@
     </div>
 
     <div class="grow">
-      <div id="control-tab" class="flex items-center h-10 p-2 gap-x-1 grow bg-white border-b border-zinc-200">
-        <div class="flex items-center h-10 gap-x-0 ml-auto">
-          <button id="control-edit" class="bg-white px-2 h-6 text-sm border border-zinc-200 rounded-l-md"
+      <div id="control-tab" class="flex items-center h-11 p-1.5 gap-x-1 grow bg-white border-b border-zinc-200">
+        <div class="flex items-center h-11 gap-x-0 ml-auto">
+          <button id="control-edit" class="bg-white px-3 h-8 text-sm border border-zinc-200 rounded-l-md"
             onclick="setControlMode('edit')">
             Edit
           </button>
-          <button id="control-pan" class="bg-white px-2 h-6 text-sm border-y border-zinc-200"
+          <button id="control-pan" class="bg-white px-3 h-8 text-sm border-y border-zinc-200"
             onclick="setControlMode('pan')">
             Pan
           </button>
-          <button id="control-delete" class="bg-white px-2 h-6 text-sm border border-zinc-200 rounded-r-md"
+          <button id="control-delete" class="bg-white px-3 h-8 text-sm border border-zinc-200 rounded-r-md"
             onclick="setControlMode('delete')">
             Delete
           </button>
@@ -142,14 +162,14 @@
     <div id="selecting-input" class="flex flex-col gap-y-2" style="display: none">
       <p class="text-sm text-zinc-600">Value</p>
       <div class="flex flex-row justify-between">
-        <button id="selecting-input-z" class="flex-1 h-6 border border-zinc-200 rounded-l-md"
+        <button id="selecting-input-z" class="flex-1 h-8 border border-zinc-200 rounded-l-md"
           onclick="setInput(0, -1)">Z</button>
-        <button id="selecting-input-0" class="flex-1 h-6 border-y border-zinc-200" onclick="setInput(0, 0)">0</button>
-        <button id="selecting-input-1" class="flex-1 h-6 border border-zinc-200 rounded-r-md"
+        <button id="selecting-input-0" class="flex-1 h-8 border-y border-zinc-200" onclick="setInput(0, 0)">0</button>
+        <button id="selecting-input-1" class="flex-1 h-8 border border-zinc-200 rounded-r-md"
           onclick="setInput(0, 1)">1</button>
       </div>
     </div>
-    
+
     <div id="selecting-nbitinput" class="flex flex-col gap-y-2" style="display: none">
       <p class="text-sm text-zinc-600">Value</p>
       <input id="selecting-nbitinput-value" class="border p-2 h-8 w-full rounded-sm focus-outline text-sm text-zinc-600"
@@ -179,7 +199,7 @@
     </div-->
   </div>
 
-  <p id="fps-counter" style="position: fixed; left: 85%; bottom: 5%">0</p>
+  <p id="fps-counter" class="fixed bottom-6 left-3">0</p>
 
   <script src="src/p5.min.js"></script>
   <script src="src/init.js"></script>
@@ -193,6 +213,7 @@
   <script src="src/classes/evaluate.js"></script>
 
   <script src="src/gates/basic.js"></script>
+  <script src="src/gates/plexers.js"></script>
   <script src="src/gates/latches.js"></script>
   <script src="src/gates/nbit.js"></script>
 

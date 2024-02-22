@@ -65,6 +65,7 @@ class State {
         return char;
     }
     static fromString(string) {
+        string = string.toUpperCase();
         if (string.length < 1) return [State.err];
         let result = [];
         for (let i in string) {

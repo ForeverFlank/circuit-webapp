@@ -11,10 +11,9 @@ class ModuleNode {
         this.owner = owner;
         this.name = name;
         this.id = unique(name);
-        this.value = value;
         this.delay = delay;
         this.valueAtTime = { 0: value };
-        this.isHighZ = Object.entries(value).map((x) => x[1] == State.highZ);
+        this.isHighZAtTime = { 0: value.map((x) => x == State.highZ) };
         this.connections = [];
         this.objectType = "node";
         this.nodeType = "node";
@@ -36,7 +35,54 @@ class ModuleNode {
     isConnected() {
         return this.connections.length > 0;
     }
-    connectedToOutput(initIndex = 0) {
+    getValueAtTime(time) {
+        if (time == null) return this.value;
+        let result = this.valueAtTime[time];
+        if (result == null) {
+            for (let key in this.valueAtTime) {
+                if (Number(key) < time) {
+                    result = this.valueAtTime[key];
+                }
+            }
+        }
+        return result;
+    }
+    getLatestValue() {
+        let latestKey = Math.max(...parseInt(Object.keys(this.valueAtTime)));
+        return this.valueAtTime[latestKey];
+    }
+    setValueAtTime(time, value) {
+        this.valueAtTime[time] = value;
+    }
+    setValueAtIndexAtTime(time, index, value) {
+        // console.log(this.id + " mset " + time + " " + index + " " + value);
+        let newValue = [...this.getValueAtTime(time)];
+        newValue[index] = value;
+        this.valueAtTime[time] = newValue;
+    }
+    getHighZAtTime(time) {
+        if (time == null) return this.isHighZAtTime;
+        let result = this.isHighZAtTime[time];
+        if (result == null) {
+            for (let key in this.isHighZAtTime) {
+                if (Number(key) < time) {
+                    result = this.isHighZAtTime[key];
+                }
+            }
+        }
+        return result;
+    }
+    getLatestHighZ() {
+        let latestKey = Math.max(...parseInt(Object.keys(this.isHighZAtTime)));
+        return this.isHighZAtTime[latestKey];
+    }
+    setHighZAtIndexAtTime(time, index, value) {
+        // console.log("sethighz", time, index, value);
+        let newValue = [...this.getHighZAtTime(time)];
+        newValue[index] = value;
+        this.isHighZAtTime[time] = newValue;
+    }
+    connectedToOutput(initIndex = 0, time) {
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
         }
@@ -46,85 +92,55 @@ class ModuleNode {
         stack.push([initIndex, this]);
         let isConnectedToOutput = false;
         let activeOutputsCount = 0;
+        let activeOutputs = [];
         while (stack.length > 0) {
             let [index, currentNode] = stack.pop();
             index = parseInt(index);
-            // console.log(";;", index, currentNode.name);
             if (!traversed.has(currentItemToString(index, currentNode.id))) {
                 traversed.add(currentItemToString(index, currentNode.id));
                 currentNode.connections.forEach((wire) => {
                     let destinationNode = wire.destination;
-                    // console.log(":", destinationNode.name);
-                    // console.log(wire.source.name, wire.destination.name, wire.isSplitterConnection())
                     if (wire.isSplitterConnection()) {
                         let newIndex = destinationNode.indices.indexOf(
                             index + Math.min(...currentNode.indices)
                         );
-                        // console.log(newIndex, destinationNode.indices, index, currentNode.indices)
-                        // console.log(newIndex);
                         if (newIndex != -1) {
                             stack.push([newIndex, destinationNode]);
                         }
                         return;
                     }
 
-                    if (destinationNode.isOutputNode()) {
-                        isConnectedToOutput ||= true;
-                        if (
-                            !destinationNode.isHighZ[index] &&
-                            !marked.has(destinationNode.id)
-                        ) {
-                            // console.log("+", destinationNode.name, index);
-                            activeOutputsCount++;
-                            marked.add(destinationNode.id);
-                        }
-                    }
                     stack.push([index, destinationNode]);
                 });
+                if (currentNode.isOutputNode()) {
+                    isConnectedToOutput ||= true;
+                    let isDestinationHighZ =
+                        currentNode.getHighZAtTime(time)[index];
+                    if (!isDestinationHighZ && !marked.has(currentNode.id)) {
+                        activeOutputsCount++;
+                        activeOutputs.push(currentNode);
+                        marked.add(currentNode.id);
+                    }
+                }
             }
         }
-        
+
         /*
         console.log(
-            '>>',
-            this.name,
+            ">>",
+            this.id,
             initIndex,
+            time,
             ">>",
             isConnectedToOutput,
             activeOutputsCount
         );
-        */
+*/
         return {
             isConnectedToOutput: isConnectedToOutput,
             activeOutputsCount: activeOutputsCount,
+            activeOutputs: activeOutputs,
         };
-    }
-    getValue(time) {
-        if (time == null) return this.value;
-        let result = this.valueAtTime[time];
-        if (result == null) {
-            for (let key in this.valueAtTime) {
-                if (Number(key) < time) {
-                    result = this.valueAtTime[key];
-                }
-            }
-            /*
-            let keys = Object.keys(this.valueAtTime)
-                .map((x) => parseFloat(x))
-                .sort();
-            let maxKey = keys[keys.length - 1];
-            if (time > maxKey) {
-                return this.valueAtTime[maxKey];
-            }
-            for (let i in keys) {
-                if (keys[i] > time) {
-                    let lastTime = keys[i - 1];
-                    return this.valueAtTime[lastTime];
-                }
-            }
-            */
-        }
-        return result;
     }
     setValue(
         value,
@@ -136,11 +152,9 @@ class ModuleNode {
         traversed = new Set()
     ) {
         /*
-        console.log(
+        console.warn(
             "----",
-            this.owner.name,
-            "->",
-            this.name,
+            this.id,
             "set",
             value,
             evaluate,
@@ -150,34 +164,35 @@ class ModuleNode {
             "at time",
             time
         );
-*/
+        */
+        let isValueHighZ = value == State.highZ;
         if (setByModule) {
-            this.isHighZ[index] = value == State.highZ;
-            let newValue = [...this.value];
-            newValue[index] = value;
-            this.value = newValue;
+            this.setHighZAtIndexAtTime(time, index, isValueHighZ);
             if (
-                !this.isHighZ[index] ||
-                this.connectedToOutput(index).activeOutputsCount == 0
+                isValueHighZ &&
+                this.connectedToOutput(index, time).activeOutputsCount == 0
             ) {
             }
-        } else {
-            let newValue = [...this.value];
-            newValue[index] = value;
-            this.value = newValue;
         }
+        this.setValueAtIndexAtTime(time, index, value);
 
-        this.valueAtTime[time] = this.value;
-
-        // console.log("it is now", this.value, this.valueAtTime);
-        // console.log(traversed);
+        /*
+        console.log(
+            "it is now " +
+                this.valueAtTime[time] +
+                " " +
+                this.isHighZAtTime[time]
+        );
+        */
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
         }
+        let currentValue = this.getValueAtTime(time)[index];
         this.connections.forEach((wire) => {
             let destinationNode = wire.destination;
-
-            if (!this.isHighZ[index] || this.value[index] != State.highZ) {
+            let isNodeHighZ = this.getHighZAtTime(time)[index];
+            let isValueHighZ = this.getValueAtTime(time)[index] == State.highZ;
+            if (!isNodeHighZ || !isValueHighZ) {
                 if (wire.isSplitterConnection()) {
                     let destIndex = destinationNode.indices.indexOf(
                         index + Math.min(...this.indices)
@@ -189,11 +204,9 @@ class ModuleNode {
                     ) {
                         return;
                     }
-                    // console.log("dest indices", dest.indices, "this indices", this.indices);
-                    // console.log(this.name, "index", index, "->", destIndex);
                     if (destIndex != -1) {
                         destinationNode.setValue(
-                            this.value[index],
+                            currentValue,
                             destIndex,
                             time,
                             false,
@@ -210,7 +223,7 @@ class ModuleNode {
                     )
                         return;
                     destinationNode.setValue(
-                        this.value[index],
+                        currentValue,
                         index,
                         time,
                         false,
@@ -231,10 +244,14 @@ class ModuleNode {
         changeWidth = false
     ) {
         if (changeWidth) {
-            this.value = this.value.slice(0, value.length);
+            for (let time in this.valueAtTime) {
+                this.valueAtTime[time] = this.valueAtTime[time].slice(
+                    0,
+                    value.length
+                );
+            }
         }
         Object.entries(value).forEach((x) => {
-            // console.log("g", x);
             let index = parseInt(x[0]);
             this.setValue(x[1], index, time, evaluate, setByModule, inputDelay);
         });
@@ -317,7 +334,6 @@ class ModuleNode {
         if (!this.isGenericNode()) {
             nodes = nodes.filter((node) => node.isGenericNode());
         }
-        // console.log(this, nodes)
         let targetNode = nodes.find(
             (node) =>
                 node.id != this.id &&
@@ -345,12 +361,13 @@ class ModuleNode {
         if (this.isDragging) {
             line(netX, netY, mouseCanvasX, mouseCanvasY);
         }
-
+        let value =
+            this.valueAtTime[Math.max(...Object.keys(this.valueAtTime))];
         noStroke();
-        if (this.value.length == 1) {
-            fill(State.color(this.value[0]));
+        if (value.length == 1) {
+            fill(State.color(value[0]));
         } else {
-            if (this.value.every((x) => x == State.highZ)) {
+            if (value.every((x) => x == State.highZ)) {
                 fill(State.color(State.highZ));
             } else {
                 fill(64);
@@ -370,10 +387,10 @@ class ModuleNode {
             fill(0);
 
             if (this.isSplitterNode()) text(this.indices, netX, netY - 8);
-            let str = typeof this.value == "object" ? ": " : "";
-            text(str + this.value, netX, netY - 13);
-            text(this.isHighZ, netX, netY - 18);
-            text("; " + this.icto, netX, netY - 23);
+            let str = typeof value == "object" ? ": " : "";
+            text(str + value, netX, netY - 13);
+            // text(this.isHighZ, netX, netY - 18);
+            // text("; " + this.valueAtTime, netX, netY - 23);
             /*
             text(
                 this.connections.map((x) => x.destination.name),
@@ -392,14 +409,10 @@ class ModuleNode {
         push();
         stroke(0);
         strokeWeight(2);
-        if (this.pinDirection == 0)
-            line(netX, netY, netX + 10, netY);
-        if (this.pinDirection == 1) 
-            line(netX, netY, netX, netY - 10);
-        if (this.pinDirection == 2)
-            line(netX, netY, netX - 10, netY);
-        if (this.pinDirection == 3)
-            line(netX, netY, netX, netY + 10);
+        if (this.pinDirection == 0) line(netX, netY, netX + 10, netY);
+        if (this.pinDirection == 1) line(netX, netY, netX, netY - 10);
+        if (this.pinDirection == 2) line(netX, netY, netX - 10, netY);
+        if (this.pinDirection == 3) line(netX, netY, netX, netY + 10);
         pop();
     }
     pressed() {
@@ -452,7 +465,7 @@ class ModuleNode {
     addWireNode() {
         let x = Math.round(mouseCanvasX / 20) * 20;
         let y = Math.round(mouseCanvasY / 20) * 20;
-        let value = [...this.value].fill(State.highZ);
+        let value = [...this.getValueAtTime(0)].fill(State.highZ);
         let destinationNode = WireNode.add(x, y, value, false);
         clickedNode.connect(destinationNode.inputs[0]);
         clickedNode = null;
@@ -462,6 +475,7 @@ class ModuleNode {
         this.linkedModule = mod;
         mod.linkedNode = this;
     }
+    selected() {}
     serialize() {
         return {
             ownerId: this.owner.id,
@@ -496,25 +510,6 @@ class ModuleNode {
         // this.owner = owner;
         // this.connections = connections;
     }
-    /*
-    static deserialize(data, owner, connections) {
-        let newNode = new ModuleNode(null, null, null, null, [State.highZ], null, false);
-        newNode.name = data.name;
-        newNode.id = data.id;
-        newNode.objectType = data.objectType;
-        newNode.value = data.value;
-        newNode.delay = data.delay;
-        newNode.isHighZ = data.isHighZ;
-        newNode.nodeType = data.nodeType;
-        newNode.isSplitter = data.isSplitter;
-        newNode.isSplitterInput = data.isSplitterInput;
-        newNode.relativeX = data.relativeX;
-        newNode.relativeY = data.relativeY;
-        newNode.owner = owner;
-        newNode.connections = connections;
-        return newNode;
-    }
-    */
 }
 
 class InputNode extends ModuleNode {

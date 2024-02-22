@@ -69,26 +69,4 @@ function selectedObjectUI() {
     } else {
         selectingDiv.style.display = "none";
     }
-    
-    if (selectedObject.name == "Splitter") {
-        document
-            .getElementById("selecting-bitwidth")
-            .setAttribute("value", selectedObject.inputNode.value.length);
-    }
-    /*
-    selectingDiv.style.display = name != "" ? "block" : "none";
-    document.getElementById("selecting-name").style.display = name != "" ? "block" : "none";
-    */
-
-    
-
-    /*
-    document.getElementById("selecting-input").style.display =
-        selectedObject.name == "Input" ? "block" : "none";
-    document.getElementById("selecting-nbitinput").style.display =
-        selectedObject.name == "N-bit Input" ? "block" : "none";
-        document.getElementById("selecting-splitter").style.display =
-        selectedObject.name == "Splitter" ? "block" : "none";
-        */
-    
 }

@@ -1,13 +1,13 @@
 class SRLatch extends Module {
     constructor(name) {
-        super(name, 3, 4);
+        super(name, 4, 4);
         this.inputs = [
             new InputNode(this, "Set", 0, 3),
             new InputNode(this, "Reset", 0, 1),
         ];
         this.outputs = [
-            new OutputNode(this, "Q", 3, 3),
-            new OutputNode(this, "Q'", 3, 1),
+            new OutputNode(this, "Q", 4, 3),
+            new OutputNode(this, "Q'", 4, 1),
         ];
         this.inputs.forEach((node) => node.pinDirection = 0);
         this.outputs.forEach((node) => node.pinDirection = 2);
@@ -20,8 +20,8 @@ class SRLatch extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let s = this.inputs[0].getValue(time);
-        let r = this.inputs[1].getValue(time);
+        let s = this.inputs[0].getValueAtTime(time);
+        let r = this.inputs[1].getValueAtTime(time);
         if (this.latchValue == State.low && s[0] == State.high) {
             this.latchValue = State.high;
         }
@@ -50,14 +50,14 @@ class SRLatch extends Module {
 
 class DLatch extends Module {
     constructor(name) {
-        super(name, 2, 2);
+        super(name, 4, 4);
         this.inputs = [
-            new InputNode(this, "Data", 0, 2),
-            new InputNode(this, "Enable", 0, 0),
+            new InputNode(this, "Data", 0, 3),
+            new InputNode(this, "Enable", 0, 1),
         ];
         this.outputs = [
-            new OutputNode(this, "Q", 2, 2),
-            new OutputNode(this, "Q'", 2, 0),
+            new OutputNode(this, "Q", 4, 3),
+            new OutputNode(this, "Q'", 4, 1),
         ];
         this.inputs.forEach((node) => node.pinDirection = 0);
         this.outputs.forEach((node) => node.pinDirection = 2);
@@ -70,8 +70,8 @@ class DLatch extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let d = this.inputs[0].getValue(time);
-        let e = this.inputs[1].getValue(time);
+        let d = this.inputs[0].getValueAtTime(time);
+        let e = this.inputs[1].getValueAtTime(time);
         if (e[0] == State.high) {
             this.latchValue = d[0];
         }

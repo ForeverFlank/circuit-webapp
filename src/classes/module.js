@@ -39,10 +39,10 @@ class Module {
         });
         /*
         let hovering =
-            mouseCanvasX > this.x + 10 &&
-            mouseCanvasX < this.x + this.width * 20 - 10 &&
-            mouseCanvasY > this.y + 10 &&
-            mouseCanvasY < this.y + this.height * 20 - 10 &&
+            mouseCanvasX > this.x + 5 &&
+            mouseCanvasX < this.x + this.width * 20 - 5 &&
+            mouseCanvasY > this.y + 5 &&
+            mouseCanvasY < this.y + this.height * 20 - 5 &&
             !isHoveringNode;
             */
             let hovering =
@@ -61,30 +61,31 @@ class Module {
         this.inputs.concat(this.outputs).forEach((node) => {
             node.icto = [];
             if (!checkDisconnectedInput) return;
-            Object.entries(node.value).forEach((x) => {
+            let nodeValues = node.getValueAtTime(time);
+            Object.entries(nodeValues).forEach((x) => {
                 let index = x[0];
                 let activeOutputs =
-                    node.connectedToOutput(index).activeOutputsCount;
-                // node.icto[index] = isConnectedToOutput;
-                node.icto[index] = activeOutputs == 0;
-                // console.log('mmmm')
-                if (activeOutputs == 0) {
+                    node.connectedToOutput(index, time).activeOutputs;
+
+                if (activeOutputs.length == 0) {
                     index = x[0];
-                    let stack2 = [];
-                    let traversed2 = new Set();
-                    stack2.push([index, node]);
-                    while (stack2.length > 0) {
-                        let [index, currentNode] = stack2.pop();
-                        currentNode.value[index] = State.highZ;
-                        currentNode.isHighZ[index] = true;
+                    let stack = [];
+                    let traversed = new Set();
+                    stack.push([index, node]);
+                    while (stack.length > 0) {
+                        let [index, currentNode] = stack.pop();
+                        // console.log('setZ', currentNode.id)
+                        index = parseInt(index);
+                        currentNode.setValueAtIndexAtTime(time, index, State.highZ);
+                        currentNode.setHighZAtIndexAtTime(time, index, true);
                         if (
-                            traversed2.has(
+                            traversed.has(
                                 currentItemToString(index, currentNode.id)
                             )
                         ) {
                             continue;
                         }
-                        traversed2.add(
+                        traversed.add(
                             currentItemToString(index, currentNode.id)
                         );
                         currentNode.connections.forEach((wire) => {
@@ -94,23 +95,28 @@ class Module {
                                     index + Math.min(...currentNode.indices)
                                 );
                                 if (newIndex != -1) {
-                                    stack2.push([newIndex, destinationNode]);
+                                    stack.push([newIndex, destinationNode]);
                                 }
                                 return;
                             }
-                            stack2.push([index, destinationNode]);
+                            stack.push([index, destinationNode]);
                         });
                     }
-                } else if (activeOutputs >= 2) {
+                } else if (activeOutputs.length >= 2) {
+                    
                     let allSameElements = activeOutputs.every(
                         (value, i, arr) => value === arr[0]
                     );
                     // console.log(allSameElements);
                     if (!allSameElements) {
-                        this.isDragging = false;
-                        this.isHovering = false;
-                        throw new Error("Shortage");
+                        // this.isDragging = false;
+                        // this.isHovering = false;
+                        // throw new Error("Shortage");
                     }
+                    
+                }
+                if (activeOutputs.length >= 1) {
+                    activeOutputs[0].setValues(activeOutputs[0].getValueAtTime(time), time)
                 }
             });
         });
@@ -255,29 +261,12 @@ class Module {
         // this.inputs = inputs;
         // this.outputs = outputs;
     }
-    /*
-    static deserialize(data, inputs, outputs) {
-        let newModule = new Module();
-        newModule.name = data.name;
-        newModule.id = data.id;
-        newModule.objectType = data.objectType;
-        newModule.width = data.width;
-        newModule.height = data.height;
-        newModule.x = data.x;
-        newModule.y = data.y;
-        newModule.displayName = data.displayName;
-        newModule.isSubModule = data.isSubModule;
-        newModule.inputs = inputs;
-        newModule.outputs = outputs;
-        return newModule;
-    }
-    */
 }
 
 class WireNode extends Module {
     constructor(name, x, y, value = [State.highZ]) {
         super(name, 0, 0, x, y);
-        this.inputs = [new ModuleNode(this, "node", 0, 0, value)];
+        this.inputs = [new ModuleNode(this, "Node", 0, 0, value)];
     }
     hovering() {
         return this.inputs[0].hovering();
@@ -340,8 +329,6 @@ class Input extends Module {
 
 function setInput(time, value) {
     value = State.fromNumber(value);
-    // console.log(value);
-    // let value = document.getElementById("selecting-input-value").value;
     selectedObject.setInput([value], time);
     setInputButtonColor(value);
     currentCircuit.evaluateAll(false);
@@ -372,7 +359,7 @@ class Output extends Module {
         super.evaluate(time);
     }
     render() {
-        let char = State.toString(this.inputs[0].value);
+        let char = State.toString(this.inputs[0].getValueAtTime(Infinity));
         super.render(char, 12, 0, 0, "basic/output");
     }
     static add() {

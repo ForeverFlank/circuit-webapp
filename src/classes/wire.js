@@ -45,8 +45,6 @@ class Wire {
     }
     setDirection(from, to) {
         if (this.isSplitterConnection()) return;
-        // console.log(from.id, to.id)
-        // if (!this.rendered) return;
         this.rendered = from.id == this.source.id;
         let hiddenWire = to.connections.find(
             (x) => x.destination.id == from.id
@@ -70,20 +68,18 @@ class Wire {
         let destinationX = this.destination.getCanvasX();
         let destinationY = this.destination.getCanvasY();
 
-        let length = sqrt(
+        let length = Math.sqrt(
             (sourceX - destinationX) ** 2 + (sourceY - destinationY) ** 2
         );
-        let angle = atan2(destinationY - sourceY, destinationX - sourceX);
+        let angle = Math.atan2(destinationY - sourceY, destinationX - sourceX);
 
         push();
-        // stroke(0);
-        // strokeWeight(2);
 
         noStroke();
-        if (this.source.value.length == 1) {
-            fill(State.color(this.source.value[0]));
+        if (this.source.getValueAtTime(Infinity).length == 1) {
+            fill(State.color(this.source.getValueAtTime(Infinity)[0]));
         } else {
-            if (this.source.value.every((x) => x == State.highZ)) {
+            if (this.source.getValueAtTime(Infinity).every((x) => x == State.highZ)) {
                 fill(State.color(State.highZ));
             } else {
                 fill(64);
@@ -100,28 +96,28 @@ class Wire {
         push();
         textSize(8);
         textAlign(CENTER, CENTER);
-        // text("src", sourceX, sourceY)
+
         if (
             !(
-                (this.source.value == State.highZ ||
-                    this.source.value == State.err) &&
-                (this.destination.value == State.highZ ||
-                    this.destination.value == State.err)
+                (this.source.getValueAtTime(Infinity) == State.highZ ||
+                    this.source.getValueAtTime(Infinity) == State.err) &&
+                (this.destination.getValueAtTime(Infinity) == State.highZ ||
+                    this.destination.getValueAtTime(Infinity) == State.err)
             )
         ) {
             push();
             noStroke();
-            let value = this.source.value;
+            let value = this.source.getValueAtTime(Infinity);
             let dotDistance = 0;
             if (value.length == 1) {
                 dotDistance = 20;
                 fill(color(255, 255, 0));
             } else {
-                dotDistance = 40;
+                dotDistance = 60;
                 fill(0);
             }
             const speed = 2;
-            let dotCount = Math.floor(length / dotDistance);
+            let dotCount = Math.round(length / dotDistance);
             for (let i = 0; i < dotCount; i++) {
                 let t =
                     ((speed * Date.now()) / (length * dotDistance) +
