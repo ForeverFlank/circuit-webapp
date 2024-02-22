@@ -10,7 +10,7 @@ class NotGate extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let result = State.not(this.inputs[0].getValue(time)[0]);
+        let result = State.not(this.inputs[0].getValueAtTime(time)[0]);
         this.outputs[0].setValue(
             result,
             0,
@@ -50,8 +50,8 @@ class AndGate extends Module {
     evaluate(time) {
         super.evaluate(time);
         let result = State.and([
-            this.inputs[0].getValue(time)[0],
-            this.inputs[1].getValue(time)[0],
+            this.inputs[0].getValueAtTime(time)[0],
+            this.inputs[1].getValueAtTime(time)[0],
         ]);
         this.outputs[0].setValue(
             result,
@@ -82,8 +82,8 @@ class OrGate extends Module {
     evaluate(time) {
         super.evaluate(time);
         let result = State.or([
-            this.inputs[0].getValue(time)[0],
-            this.inputs[1].getValue(time)[0],
+            this.inputs[0].getValueAtTime(time)[0],
+            this.inputs[1].getValueAtTime(time)[0],
         ]);
         this.outputs[0].setValue(
             result,
@@ -124,8 +124,8 @@ class NandGate extends Module {
     evaluate(time) {
         super.evaluate(time);
         let result = State.and([
-            this.inputs[0].getValue(time)[0],
-            this.inputs[1].getValue(time)[0],
+            this.inputs[0].getValueAtTime(time)[0],
+            this.inputs[1].getValueAtTime(time)[0],
         ]);
         result = State.not(result);
         this.outputs[0].setValue(
@@ -167,8 +167,8 @@ class NorGate extends Module {
     evaluate(time) {
         super.evaluate(time);
         let result = State.or([
-            this.inputs[0].getValue(time)[0],
-            this.inputs[1].getValue(time)[0],
+            this.inputs[0].getValueAtTime(time)[0],
+            this.inputs[1].getValueAtTime(time)[0],
         ]);
         result = State.not(result);
         this.outputs[0].setValue(
@@ -210,8 +210,8 @@ class XorGate extends Module {
     evaluate(time) {
         super.evaluate(time);
         let result = State.xor(
-            this.inputs[0].getValue(time)[0],
-            this.inputs[1].getValue(time)[0]
+            this.inputs[0].getValueAtTime(time)[0],
+            this.inputs[1].getValueAtTime(time)[0]
         );
         this.outputs[0].setValue(
             result,
@@ -253,8 +253,8 @@ class XnorGate extends Module {
         super.evaluate(time);
         let result = State.not(
             State.xor(
-                this.inputs[0].getValue(time)[0],
-                this.inputs[1].getValue(time)[0]
+                this.inputs[0].getValueAtTime(time)[0],
+                this.inputs[1].getValueAtTime(time)[0]
             )
         );
         this.outputs[0].setValue(
@@ -287,8 +287,8 @@ class HalfAdder extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let a = this.inputs[0].getValue(time)[0];
-        let b = this.inputs[1].getValue(time)[0];
+        let a = this.inputs[0].getValueAtTime(time)[0];
+        let b = this.inputs[1].getValueAtTime(time)[0];
         let sum = State.xor(a, b);
         let cOut = State.and([a, b]);
         this.outputs[0].setValue(
@@ -329,9 +329,9 @@ class FullAdder extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let a = this.inputs[0].getValue(time)[0];
-        let b = this.inputs[1].getValue(time)[0];
-        let cIn = this.inputs[2].getValue(time)[0];
+        let a = this.inputs[0].getValueAtTime(time)[0];
+        let b = this.inputs[1].getValueAtTime(time)[0];
+        let cIn = this.inputs[2].getValueAtTime(time)[0];
         let p = State.xor(a, b);
         let sum = State.xor(p, cIn);
         let cOut = State.or([State.and([a, b]), State.and([p, cIn])]);
@@ -370,8 +370,8 @@ class TriStateBuffer extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let input = this.inputs[0].getValue(time)[0];
-        let control = this.inputs[1].getValue(time)[0];
+        let input = this.inputs[0].getValueAtTime(time)[0];
+        let control = this.inputs[1].getValueAtTime(time)[0];
         if (control == State.high) {
             this.outputs[0].setValue(
                 input,

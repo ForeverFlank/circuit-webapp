@@ -61,6 +61,26 @@ function nodeHint() {
     fill(0);
     text(hoveringNode.name, x, y - 16);
     pop();
+
+    if (DEBUG) {
+        push();
+        textAlign(CENTER, CENTER);
+        fill(0);
+        let debugstring;
+        debugString = Object.entries(hoveringNode.valueAtTime).map((x) => {
+            let key = x[0];
+            let value = x[1];
+            return `${key}:${value}`
+        }).join(' | ')
+        text(debugString, x, y - 32);
+        debugString = Object.entries(hoveringNode.isHighZAtTime).map((x) => {
+            let key = x[0];
+            let value = x[1];
+            return `${key}:${value}`
+        }).join(' | ')
+        text(debugString, x, y - 44);
+        pop();
+    }
 }
 
 function draw() {
@@ -70,9 +90,9 @@ function draw() {
     hoveringNode = {};
 
     mainRender();
-    
+
     let fps = frameRate();
-    document.getElementById("fps-counter").innerText = 'FPS: ' + fps.toFixed(0);
+    document.getElementById("fps-counter").innerText = "FPS: " + fps.toFixed(0);
 }
 
 // new p5(sketch);

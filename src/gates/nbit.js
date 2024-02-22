@@ -209,7 +209,7 @@ class BitwiseNotGate extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let result = this.inputs[0].getValue(time).map((x) => State.not(x));
+        let result = this.inputs[0].getValueAtTime(time).map((x) => State.not(x));
         this.outputs[0].setValues(
             result,
             time + this.outputs[0].delay,
@@ -239,8 +239,8 @@ class BitwiseAndGate extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let input1 = this.inputs[0].getValue(time);
-        let input2 = this.inputs[1].getValue(time);
+        let input1 = this.inputs[0].getValueAtTime(time);
+        let input2 = this.inputs[1].getValueAtTime(time);
         let maxWidth = Math.max(input1.length, input2.length);
         for (let i = 0; i < maxWidth; i++) {
             let a = input1[i];
@@ -280,8 +280,8 @@ class BitwiseOrGate extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let input1 = this.inputs[0].getValue(time);
-        let input2 = this.inputs[1].getValue(time);
+        let input1 = this.inputs[0].getValueAtTime(time);
+        let input2 = this.inputs[1].getValueAtTime(time);
         let maxWidth = Math.max(input1.length, input2.length);
         for (let i = 0; i < maxWidth; i++) {
             let a = input1[i];

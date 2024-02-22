@@ -20,8 +20,8 @@ class SRLatch extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let s = this.inputs[0].getValue(time);
-        let r = this.inputs[1].getValue(time);
+        let s = this.inputs[0].getValueAtTime(time);
+        let r = this.inputs[1].getValueAtTime(time);
         if (this.latchValue == State.low && s[0] == State.high) {
             this.latchValue = State.high;
         }
@@ -70,8 +70,8 @@ class DLatch extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let d = this.inputs[0].getValue(time);
-        let e = this.inputs[1].getValue(time);
+        let d = this.inputs[0].getValueAtTime(time);
+        let e = this.inputs[1].getValueAtTime(time);
         if (e[0] == State.high) {
             this.latchValue = d[0];
         }

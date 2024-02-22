@@ -29,52 +29,6 @@ function importSerializedCircuit(string) {
 
     console.log(importedModules, importedNodes, importedWires);
 
-    /*
-    importedWires.forEach((wire) => {
-        wire.source = importedNodes.find((node) => wire.sourceId == node.id);
-        wire.destination = importedNodes.find(
-            (node) => wire.destinationId == node.id
-        );
-        // console.log('sd', source, destination)
-        delete wire.sourceId;
-        delete wire.destinationId;
-        // return Wire.deserialize(wire, source, destination);
-    });
-
-    console.log(importedWires);
-
-    importedModules.forEach((mod) => {
-        mod.inputs = mod.inputsId.map((id) =>
-            importedNodes.find((node) => id == node.id)
-        );
-        mod.outputs = mod.outputsId.map((id) =>
-            importedNodes.find((node) => id == node.id)
-        );
-        // console.log("io", inputs, outputs);
-        delete mod.inputsId;
-        delete mod.outputsId;
-        // console.log(mod.name);
-        // let newModule = getModuleClassByName(mod.name);
-        // newModule.fromSerialized(mod, inputs, outputs);
-        // return newModule;
-        // return Module.deserialize(mod, inputs, outputs);
-    });
-
-    importedNodes.forEach((node) => {
-        node.owner = importedModules.find((mod) => node.ownerId == mod.id);
-        node.connections = node.connectionsId.map((id) =>
-            importedWires.find((wire) => id == wire.id)
-        );
-        delete node.ownerId;
-        delete node.connectionsId;
-        // console.log('oc', owner, connections)
-        // let newNode = getNodeClassByObject(node);
-        // newNode.fromSerialized(node, owner, connections);
-        // return newNode;
-        // return ModuleNode.deserialize(node, owner, connections);
-    });
-    */
-
     let newWires = importedWires.map((wire) => Wire.deserialize(wire));
     let newNodes = importedNodes.map((node) => {
         let newNode = getNodeClassByObject(node);

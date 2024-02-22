@@ -3,11 +3,19 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
         this.getNodes().forEach((node) => {
             node.value.fill(State.highZ);
             node.isHighZ.fill(true);
+            node.valueAtTime = { 0: [...node.getValueAtTime(0).fill(State.highZ)] };
+            node.isHighZAtTime = { 0: [...node.getHighZAtTime(0).fill(true)] };
         });
         this.getModules().forEach((mod) => mod.init());
     }
     let startingNodes = [];
-    this.getNodes().forEach((node) => (node.valueAtTime = {}));
+    this.getNodes().forEach((node) => {
+        // inefficient
+        node.valueAtTime = { 0: [...node.getValueAtTime(Infinity)] };
+        node.isHighZAtTime = { 0: [...node.getHighZAtTime(Infinity)] };
+        // node.valueAtTime = {};
+        // node.isHighZAtTime = {};
+    });
     this.modules.forEach((m) => {
         if (m.isInputModule()) {
             m.setInput(m.outputValue);
@@ -30,15 +38,20 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
                         startingNodes.push([0, index, node]);
                     }
                     if (node.connectedToOutput(index).activeOutputsCount == 0) {
-                        node.isHighZ[index] = true;
-                        node.value[index] = State.highZ;
+                        // node.isHighZ[index] = true;
+                        // node.value[index] = State.highZ;
+                        // node.valueAtTime[0][index] = node.value;
+                        node.valueAtTime[0][index] = State.highZ;
+                        node.isHighZAtTime[0][index] = true;
                         // console.log("setz1", node.name, index);
                     }
-                    node.valueAtTime[0] = node.value;
+                    // node.valueAtTime[0] = node.value;
+                    // node.isHighZAtTime[0] = node.isHighZ;
                 });
             });
             m.outputs.forEach((node) => {
-                node.valueAtTime[0] = node.value;
+                // node.valueAtTime[0] = node.value;
+                // node.isHighZAtTime[0] = node.isHighZ;
             });
         }
     });
@@ -47,9 +60,13 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
                 if (node.connectedToOutput(index).activeOutputsCount == 0) {
-                    node.value[index] = State.highZ;
-                    node.isHighZ[index] = true;
-                    node.valueAtTime[0] = node.value;
+                    // node.value[index] = State.highZ;
+                    // node.isHighZ[index] = true;
+                    // node.valueAtTime[0] = node.value;
+                    // node.isHighZAtTime[0] = node.isHighZ;
+                    node.setValueAtIndexAtTime(0, index, State.highZ)
+                    node.setHighZAtIndexAtTime(0, index, true);
+
                     // console.log("setz2", node.name, index);
                 }
             });
@@ -124,10 +141,12 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
                     JSON.parse(JSON.stringify(node.valueAtTime))
                 );
                 */
-                let currentNodeValue = node.getValue(currentTime);
-                let futureNodeValue = node.getValue(currentTime + node.delay);
+                let currentNodeValue = node.getValueAtTime(currentTime);
+                let futureNodeValue = node.getValueAtTime(
+                    currentTime + node.delay
+                );
                 let valueChanged = node
-                    .getValue(currentTime)
+                    .getValueAtTime(currentTime)
                     .some(
                         (x, index) =>
                             currentNodeValue[index] != futureNodeValue[index]

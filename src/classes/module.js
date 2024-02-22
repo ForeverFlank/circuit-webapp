@@ -53,30 +53,33 @@ class Module {
         this.inputs.concat(this.outputs).forEach((node) => {
             node.icto = [];
             if (!checkDisconnectedInput) return;
+            let nodeValues = node.getValueAtTime(time);
+            console.log('z', nodeValues)
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
                 let activeOutputs =
                     node.connectedToOutput(index).activeOutputsCount;
-                // node.icto[index] = isConnectedToOutput;
-                node.icto[index] = activeOutputs == 0;
-                // console.log('mmmm')
+
                 if (activeOutputs == 0) {
                     index = x[0];
-                    let stack2 = [];
-                    let traversed2 = new Set();
-                    stack2.push([index, node]);
-                    while (stack2.length > 0) {
-                        let [index, currentNode] = stack2.pop();
-                        currentNode.value[index] = State.highZ;
-                        currentNode.isHighZ[index] = true;
+                    let stack = [];
+                    let traversed = new Set();
+                    stack.push([index, node]);
+                    while (stack.length > 0) {
+                        let [index, currentNode] = stack.pop();
+                        index = parseInt(index);
+                        // currentNode.value[index] = State.highZ;
+                        // currentNode.isHighZ[index] = true;
+                        currentNode.setValueAtIndexAtTime(time, index, State.highZ);
+                        currentNode.setHighZAtIndexAtTime(time, index, true);
                         if (
-                            traversed2.has(
+                            traversed.has(
                                 currentItemToString(index, currentNode.id)
                             )
                         ) {
                             continue;
                         }
-                        traversed2.add(
+                        traversed.add(
                             currentItemToString(index, currentNode.id)
                         );
                         currentNode.connections.forEach((wire) => {
@@ -86,14 +89,15 @@ class Module {
                                     index + Math.min(...currentNode.indices)
                                 );
                                 if (newIndex != -1) {
-                                    stack2.push([newIndex, destinationNode]);
+                                    stack.push([newIndex, destinationNode]);
                                 }
                                 return;
                             }
-                            stack2.push([index, destinationNode]);
+                            stack.push([index, destinationNode]);
                         });
                     }
                 } else if (activeOutputs >= 2) {
+                    /*
                     let allSameElements = activeOutputs.every(
                         (value, i, arr) => value === arr[0]
                     );
@@ -103,6 +107,7 @@ class Module {
                         this.isHovering = false;
                         throw new Error("Shortage");
                     }
+                    */
                 }
             });
         });
@@ -297,23 +302,6 @@ class Module {
         // this.inputs = inputs;
         // this.outputs = outputs;
     }
-    /*
-    static deserialize(data, inputs, outputs) {
-        let newModule = new Module();
-        newModule.name = data.name;
-        newModule.id = data.id;
-        newModule.objectType = data.objectType;
-        newModule.width = data.width;
-        newModule.height = data.height;
-        newModule.x = data.x;
-        newModule.y = data.y;
-        newModule.displayName = data.displayName;
-        newModule.isSubModule = data.isSubModule;
-        newModule.inputs = inputs;
-        newModule.outputs = outputs;
-        return newModule;
-    }
-    */
 }
 
 class WireNode extends Module {
@@ -414,7 +402,7 @@ class Output extends Module {
         super.evaluate(time);
     }
     render() {
-        let char = State.toString(this.inputs[0].value);
+        let char = State.toString(this.inputs[0].getValueAtTime(Infinity));
         super.render(char, 12, 0, 0, "basic/output");
     }
     static add() {
