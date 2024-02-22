@@ -38,10 +38,10 @@ class Module {
             isHoveringNode ||= x.hovering();
         });
         let hovering =
-            mouseCanvasX > this.x + 10 &&
-            mouseCanvasX < this.x + this.width * 20 - 10 &&
-            mouseCanvasY > this.y + 10 &&
-            mouseCanvasY < this.y + this.height * 20 - 10 &&
+            mouseCanvasX > this.x + 5 &&
+            mouseCanvasX < this.x + this.width * 20 - 5 &&
+            mouseCanvasY > this.y + 5 &&
+            mouseCanvasY < this.y + this.height * 20 - 5 &&
             !isHoveringNode;
         return hovering;
     }
@@ -54,13 +54,12 @@ class Module {
             node.icto = [];
             if (!checkDisconnectedInput) return;
             let nodeValues = node.getValueAtTime(time);
-            console.log('z', nodeValues)
             Object.entries(nodeValues).forEach((x) => {
                 let index = x[0];
                 let activeOutputs =
-                    node.connectedToOutput(index, time).activeOutputsCount;
+                    node.connectedToOutput(index, time).activeOutputs;
 
-                if (activeOutputs == 0) {
+                if (activeOutputs.length == 0) {
                     index = x[0];
                     let stack = [];
                     let traversed = new Set();
@@ -94,71 +93,21 @@ class Module {
                             stack.push([index, destinationNode]);
                         });
                     }
-                } else if (activeOutputs >= 2) {
-                    /*
+                } else if (activeOutputs.length >= 2) {
+                    
                     let allSameElements = activeOutputs.every(
                         (value, i, arr) => value === arr[0]
                     );
                     // console.log(allSameElements);
                     if (!allSameElements) {
-                        this.isDragging = false;
-                        this.isHovering = false;
-                        throw new Error("Shortage");
+                        // this.isDragging = false;
+                        // this.isHovering = false;
+                        // throw new Error("Shortage");
                     }
-                    */
+                    
                 }
             });
         });
-
-        /*
-        this.outputs.forEach((node) => {
-            Object.entries(node.value).forEach((x) => {
-                let index = x[0];
-                if (node.isHighZ[index]) return;
-                let stack = [];
-                // console.log('a1')
-                let traversed = new Set();
-                let marked = new Set();
-                stack.push([index, node]);
-                while (stack.length > 0) {
-                    let [index, currentNode] = stack.pop();
-                    if (traversed.has(
-                        currentItemToString(index, currentNode.id))) {
-                        continue;
-                    }
-                    traversed.add(currentNode.id);
-                    marked.add(currentNode.id);
-                    currentNode.connections.forEach((wire) => {
-                        let destinationNode = wire.destination;
-                        stack.push([index, destinationNode]);
-                        if (!marked.has(destinationNode.id)) {
-                            console.log("direction", currentNode, destinationNode);
-                            wire.setDirection(currentNode, destinationNode);
-                        }
-                        if (wire.isSplitterConnection()) {
-                            let newIndex = destinationNode.indices.indexOf(
-                                index + Math.min(...currentNode.indices)
-                            );
-                            if (newIndex != -1) {
-                                index = newIndex;
-                            }
-                        }
-                        if (
-                            this.inputs.some((node) => node.id == destinationNode.id) &&
-                            !sequentialModuleList.some(
-                                (name) => name == destinationNode.owner.name
-                            )
-                        ) {
-                            this.isDragging = false;
-                            this.isHovering = false;
-                            throw new Error("Circular Loop!");
-                        }
-                        marked.add(destinationNode.id);
-                    });
-                }
-            });
-        });
-        */
     }
     remove() {
         currentCircuit.removeModule(this);
@@ -305,7 +254,7 @@ class Module {
 class WireNode extends Module {
     constructor(name, x, y, value = [State.highZ]) {
         super(name, 0, 0, x, y);
-        this.inputs = [new ModuleNode(this, "node", 0, 0, value)];
+        this.inputs = [new ModuleNode(this, "Node", 0, 0, value)];
     }
     hovering() {
         return this.inputs[0].hovering();
@@ -368,8 +317,6 @@ class Input extends Module {
 
 function setInput(time, value) {
     value = State.fromNumber(value);
-    // console.log(value);
-    // let value = document.getElementById("selecting-input-value").value;
     selectedObject.setInput([value], time);
     setInputButtonColor(value);
     currentCircuit.evaluateAll(false);

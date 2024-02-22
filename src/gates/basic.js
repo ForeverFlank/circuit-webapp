@@ -26,26 +26,16 @@ class NotGate extends Module {
 
 class AndGate extends Module {
     constructor(name) {
-        super(name, 4, 3);
+        super(name, 4, 4);
         this.inputs = [
-            new InputNode(this, "Input 1", 0, 0),
-            new InputNode(this, "Input 2", 0, 2),
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 3),
         ];
-        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "AND";
     }
     render() {
-        super.render(
-            this.displayName,
-            12,
-            -5,
-            -10,
-            "basic/and",
-            0,
-            -20,
-            80,
-            80
-        );
+        super.render(this.displayName, 12, -5, 0, "basic/and", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -68,16 +58,16 @@ class AndGate extends Module {
 
 class OrGate extends Module {
     constructor(name) {
-        super(name, 4, 3);
+        super(name, 4, 4);
         this.inputs = [
-            new InputNode(this, "Input 1", 0, 0),
-            new InputNode(this, "Input 2", 0, 2),
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 3),
         ];
-        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "OR";
     }
     render() {
-        super.render(this.displayName, 12, -5, -10, "basic/or", 0, -20, 80, 80);
+        super.render(this.displayName, 12, -5, 0, "basic/or", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -100,26 +90,16 @@ class OrGate extends Module {
 
 class NandGate extends Module {
     constructor(name) {
-        super(name, 4, 3);
+        super(name, 4, 4);
         this.inputs = [
-            new InputNode(this, "Input 1", 0, 0),
-            new InputNode(this, "Input 2", 0, 2),
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 3),
         ];
-        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "NAND";
     }
     render() {
-        super.render(
-            this.displayName,
-            12,
-            -5,
-            -10,
-            "basic/nand",
-            0,
-            -20,
-            80,
-            80
-        );
+        super.render(this.displayName, 12, -5, 0, "basic/nand", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -143,26 +123,16 @@ class NandGate extends Module {
 
 class NorGate extends Module {
     constructor(name) {
-        super(name, 4, 3);
+        super(name, 4, 4);
         this.inputs = [
-            new InputNode(this, "Input 1", 0, 0),
-            new InputNode(this, "Input 2", 0, 2),
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 3),
         ];
-        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "NOR";
     }
     render() {
-        super.render(
-            this.displayName,
-            12,
-            -5,
-            -10,
-            "basic/nor",
-            0,
-            -20,
-            80,
-            80
-        );
+        super.render(this.displayName, 12, -5, 0, "basic/nor", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -186,26 +156,16 @@ class NorGate extends Module {
 
 class XorGate extends Module {
     constructor(name) {
-        super(name, 4, 3);
+        super(name, 4, 4);
         this.inputs = [
-            new InputNode(this, "Input 1", 0, 0),
-            new InputNode(this, "Input 2", 0, 2),
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 3),
         ];
-        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "XOR";
     }
     render() {
-        super.render(
-            this.displayName,
-            12,
-            -5,
-            -10,
-            "basic/xor",
-            0,
-            -20,
-            80,
-            80
-        );
+        super.render(this.displayName, 12, -5, 0, "basic/xor", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -228,26 +188,16 @@ class XorGate extends Module {
 
 class XnorGate extends Module {
     constructor(name) {
-        super(name, 4, 3);
+        super(name, 4, 4);
         this.inputs = [
-            new InputNode(this, "Input 1", 0, 0),
-            new InputNode(this, "Input 2", 0, 2),
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 3),
         ];
-        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "XNOR";
     }
     render() {
-        super.render(
-            this.displayName,
-            12,
-            -5,
-            -10,
-            "basic/xnor",
-            0,
-            -20,
-            80,
-            80
-        );
+        super.render(this.displayName, 12, -5, 0, "basic/xnor", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -270,6 +220,58 @@ class XnorGate extends Module {
     }
 }
 
+class TriStateBuffer extends Module {
+    constructor(name) {
+        super(name, 4, 2);
+        this.inputs = [
+            new InputNode(this, "Input", 0, 1),
+            new InputNode(this, "Control", 2, 0),
+        ];
+        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.displayName = "";
+    }
+    render() {
+        super.render("", 12, -8, 0, "basic/tristatebuffer");
+    }
+    evaluate(time) {
+        console.warn("EVAL", time);
+        super.evaluate(time);
+        let input = this.inputs[0].getValueAtTime(time)[0];
+        let control = this.inputs[1].getValueAtTime(time)[0];
+        if (control == State.high) {
+            this.outputs[0].setValue(
+                input,
+                0,
+                time + this.outputs[0].delay,
+                false,
+                true
+            );
+        } else if (control == State.low) {
+            this.outputs[0].setValue(
+                State.highZ,
+                0,
+                time + this.outputs[0].delay,
+                false,
+                true
+            );
+        } else {
+            this.outputs[0].setValue(
+                State.err,
+                0,
+                time + this.outputs[0].delay,
+                false,
+                true
+            );
+        }
+        super.evaluate(time + this.outputs[0].delay);
+    }
+    static add() {
+        currentCircuit.addModule(
+            new TriStateBuffer("Tri-State Buffer", placeX, placeY)
+        );
+    }
+}
+
 class HalfAdder extends Module {
     constructor(name) {
         super(name, 4, 3);
@@ -281,8 +283,8 @@ class HalfAdder extends Module {
             new OutputNode(this, "Sum", 4, 1),
             new OutputNode(this, "Carry Out", 4, 2),
         ];
-        this.inputs.forEach((node) => node.pinDirection = 0);
-        this.outputs.forEach((node) => node.pinDirection = 2);
+        this.inputs.forEach((node) => (node.pinDirection = 0));
+        this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "Half\nAdder";
     }
     evaluate(time) {
@@ -323,8 +325,8 @@ class FullAdder extends Module {
             new OutputNode(this, "Sum", 4, 1),
             new OutputNode(this, "Carry Out", 4, 2),
         ];
-        this.inputs.forEach((node) => node.pinDirection = 0);
-        this.outputs.forEach((node) => node.pinDirection = 2);
+        this.inputs.forEach((node) => (node.pinDirection = 0));
+        this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "Full\nAdder";
     }
     evaluate(time) {
@@ -355,52 +357,3 @@ class FullAdder extends Module {
     }
 }
 
-class TriStateBuffer extends Module {
-    constructor(name) {
-        super(name, 4, 2);
-        this.inputs = [
-            new InputNode(this, "Input", 0, 1),
-            new InputNode(this, "Control", 2, 0),
-        ];
-        this.outputs = [new OutputNode(this, "Output", 4, 1)];
-        this.displayName = "";
-    }
-    render() {
-        super.render("", 12, -8, 0, "basic/tristatebuffer");
-    }
-    evaluate(time) {
-        super.evaluate(time);
-        let input = this.inputs[0].getValueAtTime(time)[0];
-        let control = this.inputs[1].getValueAtTime(time)[0];
-        if (control == State.high) {
-            this.outputs[0].setValue(
-                input,
-                0,
-                time + this.outputs[0].delay,
-                false,
-                true
-            );
-        } else if (control == State.low) {
-            this.outputs[0].setValue(
-                State.highZ,
-                0,
-                time + this.outputs[0].delay,
-                false,
-                true
-            );
-        } else {
-            this.outputs[0].setValue(
-                State.err,
-                0,
-                time + this.outputs[0].delay,
-                false,
-                true
-            );
-        }
-    }
-    static add() {
-        currentCircuit.addModule(
-            new TriStateBuffer("Tri-State Buffer", placeX, placeY)
-        );
-    }
-}

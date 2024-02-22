@@ -47,16 +47,20 @@ class ModuleNode {
         }
         return result;
     }
+    getLatestValue() {
+        let latestKey = Math.max(...parseInt(Object.keys(this.valueAtTime)));
+        return this.valueAtTime[latestKey];
+    }
     setValueAtTime(time, value) {
         this.valueAtTime[time] = value;
     }
     setValueAtIndexAtTime(time, index, value) {
+        // console.log(this.id + " mset " + time + " " + index + " " + value);
         let newValue = [...this.getValueAtTime(time)];
         newValue[index] = value;
         this.valueAtTime[time] = newValue;
     }
     getHighZAtTime(time) {
-        // console.log('f', this.isHighZAtTime)
         if (time == null) return this.isHighZAtTime;
         let result = this.isHighZAtTime[time];
         if (result == null) {
@@ -68,8 +72,12 @@ class ModuleNode {
         }
         return result;
     }
+    getLatestHighZ() {
+        let latestKey = Math.max(...parseInt(Object.keys(this.isHighZAtTime)));
+        return this.isHighZAtTime[latestKey];
+    }
     setHighZAtIndexAtTime(time, index, value) {
-        console.log(time, index, value)
+        // console.log("sethighz", time, index, value);
         let newValue = [...this.getHighZAtTime(time)];
         newValue[index] = value;
         this.isHighZAtTime[time] = newValue;
@@ -84,10 +92,10 @@ class ModuleNode {
         stack.push([initIndex, this]);
         let isConnectedToOutput = false;
         let activeOutputsCount = 0;
+        let activeOutputs = [];
         while (stack.length > 0) {
             let [index, currentNode] = stack.pop();
             index = parseInt(index);
-            // console.log(";;", index, currentNode.name);
             if (!traversed.has(currentItemToString(index, currentNode.id))) {
                 traversed.add(currentItemToString(index, currentNode.id));
                 currentNode.connections.forEach((wire) => {
@@ -101,38 +109,36 @@ class ModuleNode {
                         }
                         return;
                     }
-
-                    if (destinationNode.isOutputNode()) {
-                        isConnectedToOutput ||= true;
-                        let isDestinationHighZ =
-                            destinationNode.getHighZAtTime(time)[index];
-                        console.log(isDestinationHighZ)
-                        if (
-                            !isDestinationHighZ &&
-                            !marked.has(destinationNode.id)
-                        ) {
-                            activeOutputsCount++;
-                            marked.add(destinationNode.id);
-                        }
-                    }
                     stack.push([index, destinationNode]);
                 });
+                if (currentNode.isOutputNode()) {
+                    isConnectedToOutput ||= true;
+                    let isDestinationHighZ =
+                        currentNode.getHighZAtTime(time)[index];
+                    if (!isDestinationHighZ && !marked.has(currentNode.id)) {
+                        activeOutputsCount++;
+                        activeOutputs.push(currentNode);
+                        marked.add(currentNode.id);
+                    }
+                }
             }
         }
 
-        
+        /*
         console.log(
-            '>>',
-            this.name,
+            ">>",
+            this.id,
             initIndex,
+            time,
             ">>",
             isConnectedToOutput,
             activeOutputsCount
         );
-        
+*/
         return {
             isConnectedToOutput: isConnectedToOutput,
             activeOutputsCount: activeOutputsCount,
+            activeOutputs: activeOutputs
         };
     }
     setValue(
@@ -144,23 +150,23 @@ class ModuleNode {
         inputDelay = 0,
         traversed = new Set()
     ) {
-        
-        console.log(
-            "----",
-            this.id,
-            "set",
-            value,
-            evaluate,
-            setByModule,
-            "to index",
-            index,
-            "at time",
-            time
-        );
+        /*
+            console.warn(
+                "----",
+                this.id,
+                "set",
+                value,
+                evaluate,
+                setByModule,
+                "to index",
+                index,
+                "at time",
+                time
+            );
+*/
 
         if (setByModule) {
             let isValueHighZ = value == State.highZ;
-            console.log(isValueHighZ)
             this.setHighZAtIndexAtTime(time, index, isValueHighZ);
             if (
                 !isValueHighZ ||
@@ -169,15 +175,16 @@ class ModuleNode {
             }
         }
 
-        /*
-        let newValue = [...this.value];
-        newValue[index] = value;
-        this.valueAtTime[time] = this.value = newValue;
-        */
-       this.setValueAtIndexAtTime(time, index, value);
+        this.setValueAtIndexAtTime(time, index, value);
 
-        console.log("it is now " + this.valueAtTime[time] + " " + this.isHighZAtTime[time]);
-        // console.log(traversed);
+        /*
+        console.log(
+            "it is now " +
+                this.valueAtTime[time] +
+                " " +
+                this.isHighZAtTime[time]
+        );
+        */
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
         }
@@ -197,8 +204,6 @@ class ModuleNode {
                     ) {
                         return;
                     }
-                    // console.log("dest indices", dest.indices, "this indices", this.indices);
-                    // console.log(this.name, "index", index, "->", destIndex);
                     if (destIndex != -1) {
                         destinationNode.setValue(
                             value,
@@ -239,10 +244,14 @@ class ModuleNode {
         changeWidth = false
     ) {
         if (changeWidth) {
-            this.value = this.value.slice(0, value.length);
+            for (let time in this.valueAtTime) {
+                this.valueAtTime[time] = this.valueAtTime[time].slice(
+                    0,
+                    value.length
+                );
+            }
         }
         Object.entries(value).forEach((x) => {
-            // console.log("g", x);
             let index = parseInt(x[0]);
             this.setValue(x[1], index, time, evaluate, setByModule, inputDelay);
         });
@@ -325,7 +334,6 @@ class ModuleNode {
         if (!this.isGenericNode()) {
             nodes = nodes.filter((node) => node.isGenericNode());
         }
-        // console.log(this, nodes)
         let targetNode = nodes.find(
             (node) =>
                 node.id != this.id &&
@@ -467,6 +475,7 @@ class ModuleNode {
         this.linkedModule = mod;
         mod.linkedNode = this;
     }
+    selected() {}
     serialize() {
         return {
             ownerId: this.owner.id,

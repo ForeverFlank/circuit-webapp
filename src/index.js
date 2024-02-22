@@ -44,45 +44,6 @@ function timingDiagram(xPos, yPos) {
     pop();
 }
 
-function nodeHint() {
-    push();
-    let x = hoveringNode.relativeX * 20 + hoveringNode.owner.x;
-    let y = hoveringNode.relativeY * 20 + hoveringNode.owner.y;
-    let margin = 3;
-    textAlign(CENTER, CENTER);
-    let bbox = fontRegular.textBounds(hoveringNode.name, x, y - 16);
-    fill(240);
-    rect(
-        bbox.x - margin,
-        bbox.y - margin,
-        bbox.w + margin * 2,
-        bbox.h + margin * 2
-    );
-    fill(0);
-    text(hoveringNode.name, x, y - 16);
-    pop();
-
-    if (DEBUG) {
-        push();
-        textAlign(CENTER, CENTER);
-        fill(0);
-        let debugString;
-        debugString = Object.entries(hoveringNode.valueAtTime).map((x) => {
-            let key = x[0];
-            let value = x[1];
-            return `${key}:${value}`
-        }).join(' | ')
-        text(debugString, x, y - 32);
-        debugString = Object.entries(hoveringNode.isHighZAtTime).map((x) => {
-            let key = x[0];
-            let value = x[1];
-            return `${key}:${value}`
-        }).join(' | ')
-        text(debugString, x, y - 44);
-        pop();
-    }
-}
-
 function draw() {
     mouseUpdate();
     placeX = -Math.round(controls.view.x / 20 / controls.view.zoom) * 20;
