@@ -38,16 +38,14 @@ class Module {
             isHoveringNode ||= x.hovering();
         });
         let hovering =
-            mouseCanvasX > this.x &&
-            mouseCanvasX < this.x + this.width * 20 &&
-            mouseCanvasY > this.y &&
-            mouseCanvasY < this.y + this.height * 20 &&
+            mouseCanvasX > this.x + 10 &&
+            mouseCanvasX < this.x + this.width * 20 - 10 &&
+            mouseCanvasY > this.y + 10 &&
+            mouseCanvasY < this.y + this.height * 20 - 10 &&
             !isHoveringNode;
         return hovering;
     }
-    init() {
-        
-    }
+    init() {}
     evaluate(time, checkDisconnectedInput = true, evaluated = new Set()) {
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
@@ -57,58 +55,8 @@ class Module {
             if (!checkDisconnectedInput) return;
             Object.entries(node.value).forEach((x) => {
                 let index = x[0];
-                /*
-                let stack = [];
-                let traversed = new Set();
-                let marked = new Set();
-                stack.push([index, node]);
-                let isConnectedToOutput = false;
-                let activeOutputs = [];
-                // console.log('mmmm')
-                function evaluateWire(wire) {
-                    let sourceNode = wire.source;
-                    let destinationNode = wire.destination;
-                    if (wire.isSplitterConnection()) {
-                        let newIndex = destinationNode.indices.indexOf(
-                            index + Math.min(...sourceNode.indices)
-                        );
-                        if (newIndex != -1) {
-                            stack.push([newIndex, destinationNode]);
-                        }
-                        return;
-                    }
-                    if (destinationNode.isOutputNode()) {
-                        isConnectedToOutput ||= true;
-                        if (
-                            !destinationNode.isHighZ[index] &&
-                            !marked.has(
-                                currentItemToString(index, destinationNode.id)
-                            )
-                        ) {
-                            activeOutputs.push(destinationNode.value[index]);
-                            marked.add(
-                                currentItemToString(index, destinationNode.id)
-                            );
-                        }
-                    }
-                    stack.push([index, destinationNode]);
-                }
-                while (stack.length > 0) {
-                    let [index, currentNode] = stack.pop();
-                    if (
-                        traversed.has(
-                            currentItemToString(index, currentNode.id)
-                        )
-                    ) {
-                        continue;
-                    }
-                    traversed.add(currentItemToString(index, currentNode.id));
-                    currentNode.connections.forEach((wire) => {
-                        evaluateWire(wire);
-                    });
-                }
-*/
-                let activeOutputs = node.connectedToOutput(index).activeOutputsCount
+                let activeOutputs =
+                    node.connectedToOutput(index).activeOutputsCount;
                 // node.icto[index] = isConnectedToOutput;
                 node.icto[index] = activeOutputs == 0;
                 // console.log('mmmm')
@@ -145,7 +93,7 @@ class Module {
                             stack2.push([index, destinationNode]);
                         });
                     }
-                } else if (activeOutputs.length >= 2) {
+                } else if (activeOutputs >= 2) {
                     let allSameElements = activeOutputs.every(
                         (value, i, arr) => value === arr[0]
                     );

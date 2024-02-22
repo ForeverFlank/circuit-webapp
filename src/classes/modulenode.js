@@ -48,16 +48,19 @@ class ModuleNode {
         let activeOutputsCount = 0;
         while (stack.length > 0) {
             let [index, currentNode] = stack.pop();
+            index = parseInt(index);
             // console.log(";;", index, currentNode.name);
             if (!traversed.has(currentItemToString(index, currentNode.id))) {
                 traversed.add(currentItemToString(index, currentNode.id));
                 currentNode.connections.forEach((wire) => {
                     let destinationNode = wire.destination;
                     // console.log(":", destinationNode.name);
+                    // console.log(wire.source.name, wire.destination.name, wire.isSplitterConnection())
                     if (wire.isSplitterConnection()) {
                         let newIndex = destinationNode.indices.indexOf(
                             index + Math.min(...currentNode.indices)
                         );
+                        // console.log(newIndex, destinationNode.indices, index, currentNode.indices)
                         // console.log(newIndex);
                         if (newIndex != -1) {
                             stack.push([newIndex, destinationNode]);
@@ -80,8 +83,10 @@ class ModuleNode {
                 });
             }
         }
+        
         /*
         console.log(
+            '>>',
             this.name,
             initIndex,
             ">>",
