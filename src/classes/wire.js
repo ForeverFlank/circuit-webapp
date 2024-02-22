@@ -44,7 +44,9 @@ class Wire {
         return abs(sin(angle(ab, bc))) * mag(bc) <= radius / 2;
     }
     setDirection(from, to) {
-        if (!this.rendered) return;
+        if (this.isSplitterConnection()) return;
+        // console.log(from.id, to.id)
+        // if (!this.rendered) return;
         this.rendered = from.id == this.source.id;
         let hiddenWire = to.connections.find(
             (x) => x.destination.id == from.id

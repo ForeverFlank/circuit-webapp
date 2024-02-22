@@ -181,4 +181,59 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
         console.error("Error: Iteration limit exceeded! ");
         pushAlert("error", "Error: Iteration limit exceeded!");
     }
+    this.getNodes()
+        .filter((node) => node.nodeType == "output")
+        .forEach((node) => {
+            Object.entries(node.value).forEach((x) => {
+                let initIndex = 0;
+                if (node.isHighZ[initIndex]) return;
+                // console.log('a', node.id)
+                let stack = [];
+                let traversed = new Set();
+                let marked = new Set();
+                marked.add(
+                    currentItemToString(0, initIndex, node.id)
+                );
+                stack.push([initIndex, node]);
+                while (stack.length > 0) {
+                    let [index, currentNode] = stack.pop();
+                    index = parseInt(index);
+                    if (
+                        !traversed.has(
+                            currentItemToString(0, index, currentNode.id)
+                        )
+                    ) {
+                        traversed.add(
+                            currentItemToString(0, index, currentNode.id)
+                        );
+
+                        currentNode.connections.forEach((wire) => {
+                            let destinationNode = wire.destination;
+                            // console.log('a', marked)
+                            if (
+                                !marked.has(
+                                    currentItemToString(0, index, destinationNode.id)
+                                )
+                            ) {
+                                marked.add(
+                                    currentItemToString(0, index, destinationNode.id)
+                                );
+
+                                wire.setDirection(currentNode, destinationNode);
+                            }
+                            if (wire.isSplitterConnection()) {
+                                let newIndex = destinationNode.indices.indexOf(
+                                    index + Math.min(...currentNode.indices)
+                                );
+                                if (newIndex != -1) {
+                                    stack.push([newIndex, destinationNode]);
+                                }
+                                return;
+                            }
+                            stack.push([index, destinationNode]);
+                        });
+                    }
+                }
+            });
+        });
 };

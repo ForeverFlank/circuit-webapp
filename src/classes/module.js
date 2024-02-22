@@ -37,11 +37,19 @@ class Module {
         this.outputs.forEach((x) => {
             isHoveringNode ||= x.hovering();
         });
+        /*
         let hovering =
             mouseCanvasX > this.x + 10 &&
             mouseCanvasX < this.x + this.width * 20 - 10 &&
             mouseCanvasY > this.y + 10 &&
             mouseCanvasY < this.y + this.height * 20 - 10 &&
+            !isHoveringNode;
+            */
+            let hovering =
+            mouseCanvasX > this.x &&
+            mouseCanvasX < this.x + this.width * 20 &&
+            mouseCanvasY > this.y &&
+            mouseCanvasY < this.y + this.height * 20 &&
             !isHoveringNode;
         return hovering;
     }
@@ -106,56 +114,6 @@ class Module {
                 }
             });
         });
-
-        /*
-        this.outputs.forEach((node) => {
-            Object.entries(node.value).forEach((x) => {
-                let index = x[0];
-                if (node.isHighZ[index]) return;
-                let stack = [];
-                // console.log('a1')
-                let traversed = new Set();
-                let marked = new Set();
-                stack.push([index, node]);
-                while (stack.length > 0) {
-                    let [index, currentNode] = stack.pop();
-                    if (traversed.has(
-                        currentItemToString(index, currentNode.id))) {
-                        continue;
-                    }
-                    traversed.add(currentNode.id);
-                    marked.add(currentNode.id);
-                    currentNode.connections.forEach((wire) => {
-                        let destinationNode = wire.destination;
-                        stack.push([index, destinationNode]);
-                        if (!marked.has(destinationNode.id)) {
-                            console.log("direction", currentNode, destinationNode);
-                            wire.setDirection(currentNode, destinationNode);
-                        }
-                        if (wire.isSplitterConnection()) {
-                            let newIndex = destinationNode.indices.indexOf(
-                                index + Math.min(...currentNode.indices)
-                            );
-                            if (newIndex != -1) {
-                                index = newIndex;
-                            }
-                        }
-                        if (
-                            this.inputs.some((node) => node.id == destinationNode.id) &&
-                            !sequentialModuleList.some(
-                                (name) => name == destinationNode.owner.name
-                            )
-                        ) {
-                            this.isDragging = false;
-                            this.isHovering = false;
-                            throw new Error("Circular Loop!");
-                        }
-                        marked.add(destinationNode.id);
-                    });
-                }
-            });
-        });
-        */
     }
     remove() {
         currentCircuit.removeModule(this);
