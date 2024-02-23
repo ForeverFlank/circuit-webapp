@@ -84,3 +84,4 @@ function selectedObjectUI() {
         selectingDiv.style.display = "none";
     }
 }
+

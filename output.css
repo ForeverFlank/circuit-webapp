@@ -1125,7 +1125,6 @@ button {
 }
 
 .accordion-gate button {
-  touch-action: none;
   overflow: hidden;
   text-align: center;
   height: 3rem;

@@ -289,9 +289,9 @@ class Module {
     static addToCircuit(mod) {
         mouseUpdate();
         currentCircuit.addInputModule(mod);
-        mod.ignoreDiv = true;
-        mod.isHiddenOnAdd = true;
-        mod.pressed(true);
+        // mod.ignoreDiv = true;
+        // mod.isHiddenOnAdd = true;
+        // mod.pressed(true);
     }
 }
 
