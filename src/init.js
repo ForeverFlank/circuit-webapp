@@ -21,8 +21,6 @@ var placeY = 0;
 var cameraCenterX = 0;
 var cameraCenterY = 0;
 
-
-
 function mouseUpdate() {
     let x = mouseX;
     let y = mouseY;
@@ -37,11 +35,15 @@ function mouseUpdate() {
     }
     */
     mouseCanvasX =
-    (x - controls.view.x - containerWidth / 2) / controls.view.zoom;
+        (x - controls.view.x - containerWidth / 2) / controls.view.zoom;
     mouseCanvasY =
-    (y - controls.view.y - containerHeight / 2) / controls.view.zoom;
-    placeX = Math.round(mouseCanvasX / 20) * 20;
-    placeY = Math.round(mouseCanvasY / 20) * 20;
+        (y - controls.view.y - containerHeight / 2) / controls.view.zoom;
+    placeX = -controls.view.x / controls.view.zoom;
+    placeY = -controls.view.y / controls.view.zoom;
+    placeX = Math.round(placeX / 20) * 20;
+    placeY = Math.round(placeY / 20) * 20;
+    // placeX = Math.round(mouseCanvasX / 20) * 20;
+    // placeY = Math.round(mouseCanvasY / 20) * 20;
 }
 
 var isDrawingWire = false;
@@ -93,15 +95,13 @@ let spritesList = {
         "nand",
         "nor",
         "xnor",
-        "tristatebuffer"
+        "tristatebuffer",
     ],
 };
 function preload() {
     Object.keys(spritesList).forEach((key) => {
         spritesList[key].forEach((item) => {
-            sprites[`${key}/${item}`] = loadImage(
-                `sprites/${key}/${item}.png`
-            );
+            sprites[`${key}/${item}`] = loadImage(`sprites/${key}/${item}.png`);
         });
     });
 
@@ -115,8 +115,7 @@ function pushAlert(level, message) {
         element = document.getElementById("alert-error");
     } else if (level == "info") {
         element = document.getElementById("alert-info");
-    }
-    else {
+    } else {
         return false;
     }
     let clone = element.cloneNode(true);
@@ -139,17 +138,17 @@ let bg = document.getElementById("background-blur");
 let modalMenu = document.getElementById("modal-menu");
 let modalTitle = document.getElementById("modal-title");
 let modalContainer = document.getElementById("modal-container");
-let selectingDiv = document.getElementById("selecting-div")
+let selectingDiv = document.getElementById("selecting-div");
 
 function openModalMenu(title, html) {
     modalTitle.innerText = title;
     modalContainer.innerHTML = html;
-    modalMenu.style.display = "flex"
+    modalMenu.style.display = "flex";
     bg.style.display = "block";
 }
 
 function closeModalMenu() {
-    modalMenu.style.display = "none"
+    modalMenu.style.display = "none";
     bg.style.display = "none";
 }
 
