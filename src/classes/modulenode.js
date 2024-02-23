@@ -341,7 +341,9 @@ class ModuleNode {
                 node.getCanvasY() == this.getCanvasY()
         );
         if (targetNode != null) {
-            this.connect(targetNode);
+            this.connections.forEach((wire) => wire.destination.connect(targetNode));
+            // this.connect(targetNode);
+            this.remove();
         }
     }
     hovering() {
@@ -354,6 +356,7 @@ class ModuleNode {
         return result;
     }
     render() {
+        if (this.owner.isHiddenOnAdd) return;
         stroke(0);
         strokeWeight(2);
         let netX = this.getCanvasX();
@@ -404,6 +407,7 @@ class ModuleNode {
         }
     }
     renderPin() {
+        if (this.owner.isHiddenOnAdd) return;
         let netX = this.getCanvasX();
         let netY = this.getCanvasY();
         push();
@@ -415,7 +419,7 @@ class ModuleNode {
         if (this.pinDirection == 3) line(netX, netY, netX, netY + 10);
         pop();
     }
-    pressed() {
+    pressed(disableWireDragging = false) {
         this.isHovering = this.hovering();
         if (this.isHovering && pressedObject.id == 0) {
             pressedObject = this;
@@ -426,8 +430,10 @@ class ModuleNode {
                     mouseCanvasX,
                     mouseCanvasY
                 );
-                clickedNode = this;
-                this.isDragging = true;
+                if (!disableWireDragging) {
+                    clickedNode = this;
+                    this.isDragging = true;
+                }
                 return true;
             }
             if (mouseButton == RIGHT) {
@@ -449,6 +455,7 @@ class ModuleNode {
     }
     remove() {
         this.disconnectAll();
+        if (this.owner.name == "Node") this.owner.remove();
     }
     isGenericNode() {
         return this.nodeType == "node";

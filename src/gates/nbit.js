@@ -90,7 +90,8 @@ class Splitter extends Module {
         super.released();
     }
     static add(splitArray = [[0], [1]]) {
-        currentCircuit.addModule(new Splitter("Splitter", splitArray));
+        let mod = new Splitter("Splitter", splitArray);
+        currentCircuit.addModule(mod);
     }
 }
 
@@ -177,8 +178,7 @@ class NBitInput extends Module {
         setNBitInputValue(this.outputValue);
     }
     static add() {
-        let mod = new NBitInput("N-bit Input");
-        currentCircuit.addInputModule(mod);
+        Module.addToCircuit(new NBitInput("N-bit Input"));
     }
 }
 
@@ -219,7 +219,7 @@ class BitwiseNotGate extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new BitwiseNotGate("Bitwise NOT Gate"));
+        Module.addToCircuit(new BitwiseNotGate("Bitwise NOT Gate"));
     }
 }
 
@@ -274,9 +274,7 @@ class NBitTriStateBuffer extends Module {
         super.evaluate(time + this.outputs[0].delay);
     }
     static add() {
-        currentCircuit.addModule(
-            new NBitTriStateBuffer("N-bit Tri-State Buffer", placeX, placeY)
-        );
+        Module.addToCircuit(new NBitTriStateBuffer("N-bit Tri-State Buffer"));
     }
 }
 
@@ -317,7 +315,7 @@ class BitwiseAndGate extends Module {
         }
     }
     static add() {
-        currentCircuit.addModule(new BitwiseAndGate("Bitwise AND Gate"));
+        Module.addToCircuit(new BitwiseAndGate("Bitwise AND Gate"));
     }
 }
 
@@ -358,7 +356,7 @@ class BitwiseOrGate extends Module {
         }
     }
     static add() {
-        currentCircuit.addModule(new BitwiseOrGate("Bitwise OR Gate"));
+        Module.addToCircuit(new BitwiseOrGate("Bitwise OR Gate"))
     }
 }
 
@@ -372,7 +370,7 @@ class NBitAdder extends Module {
         ];
         this.outputs = [
             new OutputNode(this, "Result", 4, 1),
-            new OutputNode(this, "Carry Out", 4, 2)
+            new OutputNode(this, "Carry Out", 4, 2),
         ];
         this.inputs.forEach((node) => (node.pinDirection = 0));
         this.outputs.forEach((node) => (node.pinDirection = 2));
@@ -414,6 +412,6 @@ class NBitAdder extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new NBitAdder("N-bit Adder"));
+        Module.addToCircuit(new NBitAdder("N-bit Adder"));
     }
 }

@@ -16,11 +16,32 @@ var mod = (a, b) => ((a % b) + b) % b;
 
 var mouseCanvasX;
 var mouseCanvasY;
+var placeX = 0;
+var placeY = 0;
+var cameraCenterX = 0;
+var cameraCenterY = 0;
+
+
+
 function mouseUpdate() {
+    let x = mouseX;
+    let y = mouseY;
+
+    /*
+    if (touches.length > 0) {
+        if (touches[0].x != null && touches[0].y != null) {
+            x = touches[0].x;
+            y = touches[0].y;
+        }
+        // console.log(touches[0].x, touches[0].y)
+    }
+    */
     mouseCanvasX =
-        (mouseX - controls.view.x - containerWidth / 2) / controls.view.zoom;
+    (x - controls.view.x - containerWidth / 2) / controls.view.zoom;
     mouseCanvasY =
-        (mouseY - controls.view.y - containerHeight / 2) / controls.view.zoom;
+    (y - controls.view.y - containerHeight / 2) / controls.view.zoom;
+    placeX = Math.round(mouseCanvasX / 20) * 20;
+    placeY = Math.round(mouseCanvasY / 20) * 20;
 }
 
 var isDrawingWire = false;
@@ -33,9 +54,6 @@ var pressedObject = { id: 0 };
 var pressedWire = { id: 0 };
 var selectedObject = {};
 var hoveringNode = {};
-
-var placeX = 0;
-var placeY = 0;
 
 let sequentialModuleList = ["SR Latch", "D Latch"];
 

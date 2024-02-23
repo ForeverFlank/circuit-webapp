@@ -1,11 +1,11 @@
-function objectsPress() {
+function objectsPress(disableWireDragging = false) {
     mouseUpdate();
     let pressedOnObject = false;
     for (let i = currentCircuit.modules.length - 1; i >= 0; i--) {
         let mod = currentCircuit.modules[i];
         let nodes = mod.inputs.concat(mod.outputs);
         for (let j = nodes.length - 1; j >= 0; j--) {
-            if (nodes[j].pressed()) {
+            if (nodes[j].pressed(disableWireDragging)) {
                 pressedOnObject = true;
                 break;
             }
@@ -39,6 +39,8 @@ var released = false;
 var initialPinchDistance;
 let initialZoom;
 function touchStarted(e) {
+    mouseUpdate();
+    released = false;
     if (hoveringOnDiv(e)) return;
     if (touches.length >= 2) {
         const distance = (u, v) => sqrt((u.x - v.x) ** 2 + (u.y - v.y) ** 2);
@@ -46,7 +48,6 @@ function touchStarted(e) {
         initialZoom = controls.view.zoom;
         console.log(initialPinchDistance);
     }
-    released = false;
     if (controlMode == "edit") {
         let pressedOnObject = objectsPress();
         if (pressedObject.id != 0) {
@@ -62,23 +63,27 @@ function touchStarted(e) {
         }
         selectedObjectUI();
     }
+    
     if (controlMode == "pan" && mouseButton == LEFT) {
         Controls.move(controls).pressed(e);
     }
     if (controlMode == "delete" && mouseButton == LEFT) {
-        objectsPress();
+        objectsPress(true);
+        // console.log(pressedWire.source.owner.name, pressedWire.destination.owner.name)
         if (pressedObject.id != 0) {
             pressedObject.remove();
+            pressedObject = { id: 0 };
         }
         if (pressedWire.id != 0) {
             pressedWire.remove();
+            pressedWire = { id: 0 };
         }
     }
 }
 
 function touchMoved(e) {
-    if (hoveringOnDiv(e)) return;
-    // console.log(touches)
+    mouseUpdate();
+    // if (hoveringOnDiv(e)) return;
     if (touches.length >= 2) {
         const distance = (u, v) => sqrt((u.x - v.x) ** 2 + (u.y - v.y) ** 2);
         let currentPinchDistance = distance(touches[0], touches[1]);
@@ -133,8 +138,9 @@ function touchEnded(e) {
     // console.log(circuit)
 }
 
-function removePressedObject() {
+function removeSelectedObject() {
     selectedObject.remove();
+    selectedObject = { id: 0 };
     selectedObjectUI();
 }
 

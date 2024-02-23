@@ -153,11 +153,11 @@ class Wire {
     }
     pressed() {
         this.isHovering = this.hovering();
-        pressedWire = this;
         if (!this.rendered) {
             return false;
         }
         if (this.isHovering) {
+            pressedWire = this;
             if (mouseButton == RIGHT) {
                 return this.remove();
             }

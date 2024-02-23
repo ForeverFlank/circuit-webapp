@@ -52,7 +52,7 @@ class SRLatch extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new SRLatch("SR Latch"));
+        Module.addToCircuit(new SRLatch("SR Latch"));
     }
 }
 
@@ -107,7 +107,7 @@ class DLatch extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new DLatch("D Latch"));
+        Module.addToCircuit(new DLatch("D Latch"));
     }
 }
 
@@ -116,7 +116,7 @@ class TFlipFlop extends Module {
         super(name, 4, 4);
         this.inputs = [
             new InputNode(this, "T", 0, 1),
-            new InputNode(this, "CLK", 0, 2),
+            new InputNode(this, "Clock", 0, 2),
         ];
         this.outputs = [
             new OutputNode(this, "Q", 4, 1),
@@ -170,7 +170,7 @@ class TFlipFlop extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new TFlipFlop("T Flip Flop"));
+        Module.addToCircuit(new TFlipFlop("T Flip Flop"));
     }
 }
 
@@ -180,7 +180,7 @@ class JKFlipFlop extends Module {
         this.inputs = [
             new InputNode(this, "J", 0, 1),
             new InputNode(this, "K", 0, 3),
-            new InputNode(this, "CLK", 0, 2),
+            new InputNode(this, "Clock", 0, 2),
         ];
         this.outputs = [
             new OutputNode(this, "Q", 4, 1),
@@ -237,6 +237,6 @@ class JKFlipFlop extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new JKFlipFlop("JK Flip Flop"));
+        Module.addToCircuit(new JKFlipFlop("JK Flip Flop"));
     }
 }

@@ -46,8 +46,8 @@ function timingDiagram(xPos, yPos) {
 
 function draw() {
     mouseUpdate();
-    placeX = -Math.round(controls.view.x / 20 / controls.view.zoom) * 20;
-    placeY = -Math.round(controls.view.y / 20 / controls.view.zoom) * 20;
+    cameraCenterX = -Math.round(controls.view.x / 20 / controls.view.zoom) * 20;
+    cameraCenterY = -Math.round(controls.view.y / 20 / controls.view.zoom) * 20;
     hoveringNode = {};
 
     mainRender();

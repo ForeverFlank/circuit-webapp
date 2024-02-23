@@ -20,7 +20,7 @@ class NotGate extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new NotGate("NOT Gate"));
+        Module.addToCircuit(new NotGate("NOT Gate"));
     }
 }
 
@@ -35,7 +35,14 @@ class AndGate extends Module {
         this.displayName = "AND";
     }
     render() {
-        super.render([[this.displayName, 12, -5, 0]], "basic/and", 0, 0, 80, 80);
+        super.render(
+            [[this.displayName, 12, -5, 0]],
+            "basic/and",
+            0,
+            0,
+            80,
+            80
+        );
     }
     evaluate(time) {
         super.evaluate(time);
@@ -52,7 +59,7 @@ class AndGate extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new AndGate("AND Gate"));
+        Module.addToCircuit(new AndGate("AND Gate"));
     }
 }
 
@@ -84,7 +91,7 @@ class OrGate extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new OrGate("OR Gate"));
+        Module.addToCircuit(new OrGate("OR Gate"));
     }
 }
 
@@ -99,7 +106,14 @@ class NandGate extends Module {
         this.displayName = "NAND";
     }
     render() {
-        super.render([[this.displayName, 12, -5, 0]], "basic/nand", 0, 0, 80, 80);
+        super.render(
+            [[this.displayName, 12, -5, 0]],
+            "basic/nand",
+            0,
+            0,
+            80,
+            80
+        );
     }
     evaluate(time) {
         super.evaluate(time);
@@ -117,7 +131,7 @@ class NandGate extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new NandGate("NAND Gate", placeX, placeY));
+        Module.addToCircuit(new NandGate("NAND Gate"));
     }
 }
 
@@ -132,7 +146,14 @@ class NorGate extends Module {
         this.displayName = "NOR";
     }
     render() {
-        super.render([[this.displayName, 12, -5, 0]], "basic/nor", 0, 0, 80, 80);
+        super.render(
+            [[this.displayName, 12, -5, 0]],
+            "basic/nor",
+            0,
+            0,
+            80,
+            80
+        );
     }
     evaluate(time) {
         super.evaluate(time);
@@ -150,7 +171,7 @@ class NorGate extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new NorGate("NOR Gate", placeX, placeY));
+        Module.addToCircuit(new NorGate("NOR Gate"));
     }
 }
 
@@ -165,7 +186,14 @@ class XorGate extends Module {
         this.displayName = "XOR";
     }
     render() {
-        super.render([[this.displayName, 12, -5, 0]], "basic/xor", 0, 0, 80, 80);
+        super.render(
+            [[this.displayName, 12, -5, 0]],
+            "basic/xor",
+            0,
+            0,
+            80,
+            80
+        );
     }
     evaluate(time) {
         super.evaluate(time);
@@ -182,7 +210,7 @@ class XorGate extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new XorGate("XOR Gate", placeX, placeY));
+        Module.addToCircuit(new XorGate("XOR Gate"));
     }
 }
 
@@ -197,7 +225,14 @@ class XnorGate extends Module {
         this.displayName = "XNOR";
     }
     render() {
-        super.render([[this.displayName, 12, -5, 0]], "basic/xnor", 0, 0, 80, 80);
+        super.render(
+            [[this.displayName, 12, -5, 0]],
+            "basic/xnor",
+            0,
+            0,
+            80,
+            80
+        );
     }
     evaluate(time) {
         super.evaluate(time);
@@ -216,7 +251,7 @@ class XnorGate extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new XnorGate("XNOR Gate", placeX, placeY));
+        Module.addToCircuit(new XnorGate("XNOR Gate"));
     }
 }
 
@@ -269,9 +304,7 @@ class TriStateBuffer extends Module {
         super.evaluate(time + this.outputs[0].delay);
     }
     static add() {
-        currentCircuit.addModule(
-            new TriStateBuffer("Tri-State Buffer", placeX, placeY)
-        );
+        Module.addToCircuit(new TriStateBuffer("Tri-State Buffer"));
     }
 }
 
@@ -312,7 +345,7 @@ class HalfAdder extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new HalfAdder("Half Adder", placeX, placeY));
+        Module.addToCircuit(new HalfAdder("Half Adder"));
     }
 }
 
@@ -356,6 +389,6 @@ class FullAdder extends Module {
         );
     }
     static add() {
-        currentCircuit.addModule(new FullAdder("Full Adder", placeX, placeY));
+        Module.addToCircuit(new FullAdder("Full Adder"));
     }
 }

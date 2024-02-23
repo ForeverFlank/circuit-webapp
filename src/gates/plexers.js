@@ -1,9 +1,7 @@
 class Decoder1To2 extends Module {
     constructor(name) {
         super(name, 2, 3);
-        this.inputs = [
-            new InputNode(this, "A0", 0, 1),
-        ];
+        this.inputs = [new InputNode(this, "A0", 0, 1)];
         this.outputs = [
             new OutputNode(this, "D0", 2, 1),
             new OutputNode(this, "D1", 2, 2),
@@ -16,7 +14,7 @@ class Decoder1To2 extends Module {
         super.evaluate(time);
         let a0 = this.inputs[0].getValueAtTime(time)[0];
         for (let i = 0; i < 2; i++) {
-            let x0 = ((i >> 0) & 1) ? a0 : State.not(a0);
+            let x0 = (i >> 0) & 1 ? a0 : State.not(a0);
             this.outputs[i].setValue(
                 State.and([x0]),
                 0,
@@ -27,9 +25,7 @@ class Decoder1To2 extends Module {
         }
     }
     static add() {
-        currentCircuit.addModule(
-            new Decoder1To2("1-to-2 Decoder", placeX, placeY)
-        );
+        Module.addToCircuit(new Decoder1To2("1-to-2 Decoder"));
     }
 }
 
@@ -55,8 +51,8 @@ class Decoder2To4 extends Module {
         let a0 = this.inputs[0].getValueAtTime(time)[0];
         let a1 = this.inputs[1].getValueAtTime(time)[0];
         for (let i = 0; i < 4; i++) {
-            let x0 = ((i >> 0) & 1) ? a0 : State.not(a0);
-            let x1 = ((i >> 1) & 1) ? a1 : State.not(a1);
+            let x0 = (i >> 0) & 1 ? a0 : State.not(a0);
+            let x1 = (i >> 1) & 1 ? a1 : State.not(a1);
             this.outputs[i].setValue(
                 State.and([x0, x1]),
                 0,
@@ -67,9 +63,7 @@ class Decoder2To4 extends Module {
         }
     }
     static add() {
-        currentCircuit.addModule(
-            new Decoder2To4("2-to-4 Decoder", placeX, placeY)
-        );
+        Module.addToCircuit(new Decoder2To4("2-to-4 Decoder"));
     }
 }
 
@@ -101,9 +95,9 @@ class Decoder3To8 extends Module {
         let a1 = this.inputs[1].getValueAtTime(time)[0];
         let a2 = this.inputs[2].getValueAtTime(time)[0];
         for (let i = 0; i < 8; i++) {
-            let x0 = ((i >> 0) & 1) ? a0 : State.not(a0);
-            let x1 = ((i >> 1) & 1) ? a1 : State.not(a1);
-            let x2 = ((i >> 2) & 1) ? a2 : State.not(a2);
+            let x0 = (i >> 0) & 1 ? a0 : State.not(a0);
+            let x1 = (i >> 1) & 1 ? a1 : State.not(a1);
+            let x2 = (i >> 2) & 1 ? a2 : State.not(a2);
             this.outputs[i].setValue(
                 State.and([x0, x1, x2]),
                 0,
@@ -114,8 +108,6 @@ class Decoder3To8 extends Module {
         }
     }
     static add() {
-        currentCircuit.addModule(
-            new Decoder3To8("3-to-8 Decoder", placeX, placeY)
-        );
+        Module.addToCircuit(new Decoder3To8("3-to-8 Decoder"));
     }
 }

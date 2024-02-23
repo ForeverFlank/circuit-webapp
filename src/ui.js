@@ -65,6 +65,20 @@ function selectedObjectUI() {
         selectingDiv.style.display = "flex";
         document.getElementById("selecting-name").style.display = "flex";
         document.getElementById("selecting-name").innerText = name;
+        /*
+        if (selectedObject.type == "node") {
+            if (
+                !selectedObject.isInputNode() &&
+                !selectedObject.isOutputNode() &&
+                !selectedObject.isSplitterNode()
+            ) {
+                document.getElementById("selecting-remove").style.display =
+                    "flex";
+            }
+        } else {
+            document.getElementById("selecting-remove").style.display = "flex";
+        }
+        */
         selectedObject.selected();
     } else {
         selectingDiv.style.display = "none";

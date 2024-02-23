@@ -1,8 +1,8 @@
+// Drag to move by Daniel Shiffman <http://www.shiffman.net>
+// https://editor.p5js.org/icm/sketches/BkRHbimhm
+
 // TODO
-// multi bits wire
-// graph search >=2 outputs with non high Z and throws error
 // subcircuits
-// rotation
 // cleanup next googol years
 
 class Module {
@@ -26,10 +26,12 @@ class Module {
         this.offsetX = null;
         this.offsetY = null;
         this.objectType = "module";
+        this.ignoreDiv = false;
+        this.isHiddenOnAdd = false;
     }
     hovering() {
         if (controlMode == "pan") return false;
-        if (hoveringOnDiv()) return false;
+        if (hoveringOnDiv() && !this.ignoreDiv) return false;
         let isHoveringNode = false;
         this.inputs.forEach((x) => {
             isHoveringNode ||= x.hovering();
@@ -138,6 +140,7 @@ class Module {
         imageWidth = this.width * 20,
         imageHeight = this.height * 20
     ) {
+        if (this.isHiddenOnAdd) return;
         // let hovering = this.isHovering();
         push();
         if (this.isDragging) {
@@ -178,8 +181,8 @@ class Module {
             let labelSize = item[1];
             let labelOffsetX = item[2];
             let labelOffsetY = item[3];
-            let align = (item[4] == null) ? CENTER : item[4];
-            
+            let align = item[4] == null ? CENTER : item[4];
+
             textAlign(align, CENTER);
             textSize(labelSize);
             text(
@@ -202,8 +205,11 @@ class Module {
             pop();
         }
     }
-    pressed() {
-        this.isHovering = this.hovering();
+    pressed(override = false) {
+        this.isHovering = this.hovering() || override;
+        if (!hoveringOnDiv() && !(mouseX == pmouseX && mouseY == pmouseY)) {
+            this.isHiddenOnAdd = false;
+        }
         if (this.isHovering && pressedObject.id == 0) {
             if (mouseButton == LEFT) {
                 pressedObject = this;
@@ -232,11 +238,17 @@ class Module {
     }
     selected() {}
     released() {
+        this.isHiddenOnAdd = false;
+        if (this.ignoreDiv && hoveringOnDiv()) {
+            this.x = round(cameraCenterX / 20) * 20;
+            this.y = round(cameraCenterY / 20) * 20;
+        }
         this.isDragging = false;
         this.isHovering = false;
         this.inputs.concat(this.outputs).forEach((x) => {
             x.connectByGrid();
         });
+        this.ignoreDiv = false;
     }
     isInputModule() {
         return ["Input", "N-bit Input"].includes(this.name);
@@ -273,6 +285,13 @@ class Module {
         this.outputsId = data.outputsId;
         // this.inputs = inputs;
         // this.outputs = outputs;
+    }
+    static addToCircuit(mod) {
+        mouseUpdate();
+        currentCircuit.addInputModule(mod);
+        mod.ignoreDiv = true;
+        mod.isHiddenOnAdd = true;
+        mod.pressed(true);
     }
 }
 
@@ -335,8 +354,7 @@ class Input extends Module {
         setInputButtonColor(value);
     }
     static add() {
-        let mod = new Input("Input");
-        currentCircuit.addInputModule(mod);
+        Module.addToCircuit(new Input("Input"));
     }
 }
 
@@ -365,7 +383,6 @@ function setInputButtonColor(value) {
 class Output extends Module {
     constructor(name) {
         super(name, 2, 2);
-        this.inputValue = [State.highZ];
         this.inputs = [new InputNode(this, "Input", 0, 1, [State.highZ])];
     }
     evaluate(time) {
@@ -376,7 +393,6 @@ class Output extends Module {
         super.render([[char, 12, 0, 0]], "basic/output");
     }
     static add() {
-        let mod = new Output("Output");
-        currentCircuit.addOutputModule(mod);
+        Module.addToCircuit(new Output("Output"));
     }
 }

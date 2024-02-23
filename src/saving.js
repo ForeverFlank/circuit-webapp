@@ -141,7 +141,7 @@ function getNodeClassByObject(object) {
 function importCircuitPrompt() {
     let html = `
     <div class="flex flex-col gap-y-2">
-      <p class="text-zinc-600 text-sm">Please paste the exported string in the input box provided.</p>
+      <p class="text-zinc-600 text-sm">[EXPERIMENTAL] Please paste the exported string in the input box provided.</p>
       <input id="modal-circuit-import-string" class="border p-2 h-8 w-full rounded-sm focus-outline text-sm text-zinc-600"
         type="text" placeholder="" />
     </div>
@@ -162,7 +162,7 @@ function submitCircuitImportString() {
 function exportCircuitPrompt() {
     let html = `
     <div class="flex flex-col gap-y-2">
-      <p class="text-zinc-600 text-sm">Please copy the exported string below and save it somewhere safe:</p>
+      <p class="text-zinc-600 text-sm">Exported data saved on clipboard, or copy the exported string below and save it somewhere safe:</p>
       <input id="modal-circuit-export-string" class="border p-2 h-8 w-full rounded-sm focus-outline text-sm text-zinc-600"
         type="text" placeholder="" />
     </div>
