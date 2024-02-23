@@ -6,7 +6,7 @@ class NotGate extends Module {
         this.displayName = "NOT";
     }
     render() {
-        super.render(this.displayName, 10, -6, 0, "basic/not");
+        super.render([[this.displayName, 10, -6, 0]], "basic/not");
     }
     evaluate(time) {
         super.evaluate(time);
@@ -35,7 +35,7 @@ class AndGate extends Module {
         this.displayName = "AND";
     }
     render() {
-        super.render(this.displayName, 12, -5, 0, "basic/and", 0, 0, 80, 80);
+        super.render([[this.displayName, 12, -5, 0]], "basic/and", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -67,7 +67,7 @@ class OrGate extends Module {
         this.displayName = "OR";
     }
     render() {
-        super.render(this.displayName, 12, -5, 0, "basic/or", 0, 0, 80, 80);
+        super.render([[this.displayName, 12, -5, 0]], "basic/or", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -99,7 +99,7 @@ class NandGate extends Module {
         this.displayName = "NAND";
     }
     render() {
-        super.render(this.displayName, 12, -5, 0, "basic/nand", 0, 0, 80, 80);
+        super.render([[this.displayName, 12, -5, 0]], "basic/nand", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -132,7 +132,7 @@ class NorGate extends Module {
         this.displayName = "NOR";
     }
     render() {
-        super.render(this.displayName, 12, -5, 0, "basic/nor", 0, 0, 80, 80);
+        super.render([[this.displayName, 12, -5, 0]], "basic/nor", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -165,7 +165,7 @@ class XorGate extends Module {
         this.displayName = "XOR";
     }
     render() {
-        super.render(this.displayName, 12, -5, 0, "basic/xor", 0, 0, 80, 80);
+        super.render([[this.displayName, 12, -5, 0]], "basic/xor", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -197,7 +197,7 @@ class XnorGate extends Module {
         this.displayName = "XNOR";
     }
     render() {
-        super.render(this.displayName, 12, -5, 0, "basic/xnor", 0, 0, 80, 80);
+        super.render([[this.displayName, 12, -5, 0]], "basic/xnor", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -231,7 +231,7 @@ class TriStateBuffer extends Module {
         this.displayName = "";
     }
     render() {
-        super.render("", 12, -8, 0, "basic/tristatebuffer");
+        super.render([["", 12, -8, 0]], "basic/tristatebuffer");
     }
     evaluate(time) {
         // console.warn("EVAL", time);

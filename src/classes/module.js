@@ -45,7 +45,7 @@ class Module {
             mouseCanvasY < this.y + this.height * 20 - 5 &&
             !isHoveringNode;
             */
-            let hovering =
+        let hovering =
             mouseCanvasX > this.x &&
             mouseCanvasX < this.x + this.width * 20 &&
             mouseCanvasY > this.y &&
@@ -59,13 +59,14 @@ class Module {
             return `i${index}n${nodeId}`;
         }
         this.inputs.concat(this.outputs).forEach((node) => {
-            node.icto = [];
             if (!checkDisconnectedInput) return;
             let nodeValues = node.getValueAtTime(time);
             Object.entries(nodeValues).forEach((x) => {
                 let index = x[0];
-                let activeOutputs =
-                    node.connectedToOutput(index, time).activeOutputs;
+                let activeOutputs = node.connectedToOutput(
+                    index,
+                    time
+                ).activeOutputs;
 
                 if (activeOutputs.length == 0) {
                     index = x[0];
@@ -76,7 +77,11 @@ class Module {
                         let [index, currentNode] = stack.pop();
                         // console.log('setZ', currentNode.id)
                         index = parseInt(index);
-                        currentNode.setValueAtIndexAtTime(time, index, State.highZ);
+                        currentNode.setValueAtIndexAtTime(
+                            time,
+                            index,
+                            State.highZ
+                        );
                         currentNode.setHighZAtIndexAtTime(time, index, true);
                         if (
                             traversed.has(
@@ -103,7 +108,6 @@ class Module {
                         });
                     }
                 } else if (activeOutputs.length >= 2) {
-                    
                     let allSameElements = activeOutputs.every(
                         (value, i, arr) => value === arr[0]
                     );
@@ -113,10 +117,12 @@ class Module {
                         // this.isHovering = false;
                         // throw new Error("Shortage");
                     }
-                    
                 }
                 if (activeOutputs.length >= 1) {
-                    activeOutputs[0].setValues(activeOutputs[0].getValueAtTime(time), time)
+                    activeOutputs[0].setValues(
+                        activeOutputs[0].getValueAtTime(time),
+                        time
+                    );
                 }
             });
         });
@@ -125,10 +131,7 @@ class Module {
         currentCircuit.removeModule(this);
     }
     render(
-        label = this.displayName,
-        labelSize = 12,
-        labelOffsetX = 0,
-        labelOffsetY = 0,
+        labels = [[this.displayName, 12, 0, 0]],
         src,
         imageOffsetX = 0,
         imageOffsetY = 0,
@@ -165,29 +168,39 @@ class Module {
                 this.height * 20 - 20
             );
         }
+        pop();
+
+        push();
         noStroke();
         fill(0);
-        textAlign(CENTER, CENTER);
-        textSize(labelSize);
-        text(
-            label,
-            (this.width * 20) / 2 + this.x + labelOffsetX,
-            (this.height * 20) / 2 + this.y + labelOffsetY - textSize() * 0.2
-        );
+        labels.forEach((item) => {
+            let label = item[0];
+            let labelSize = item[1];
+            let labelOffsetX = item[2];
+            let labelOffsetY = item[3];
+            let align = (item[4] == null) ? CENTER : item[4];
+            
+            textAlign(align, CENTER);
+            textSize(labelSize);
+            text(
+                label,
+                (this.width * 20) / 2 + this.x + labelOffsetX,
+                (this.height * 20) / 2 +
+                    this.y +
+                    labelOffsetY -
+                    textSize() * 0.2
+            );
+        });
+        pop();
 
         if (selectedObject.id == this.id) {
-            push();
-
-            pop();
         }
-
         if (DEBUG) {
             push();
             // text(this.id.slice(0, 10), this.x, this.y + 40);
             // text(this.name, this.x + this.width * 10, this.y + 52);
             pop();
         }
-        pop();
     }
     pressed() {
         this.isHovering = this.hovering();
@@ -312,7 +325,7 @@ class Input extends Module {
     }
     render() {
         let char = State.char(this.outputValue);
-        super.render(char, 12, 0, 0, "basic/input");
+        super.render([[char, 12, 0, 0]], "basic/input");
     }
     selected() {
         super.selected();
@@ -360,7 +373,7 @@ class Output extends Module {
     }
     render() {
         let char = State.toString(this.inputs[0].getValueAtTime(Infinity));
-        super.render(char, 12, 0, 0, "basic/output");
+        super.render([[char, 12, 0, 0]], "basic/output");
     }
     static add() {
         let mod = new Output("Output");

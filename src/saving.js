@@ -13,12 +13,12 @@ function exportSerializedCircuit() {
         wires: serializedWires,
     };
     let exportJson = JSON.stringify(exportData);
-    // navigator.clipboard.writeText(exportJson);
     // pushAlert("info", "Copied export data to clipboard!")
+    navigator.clipboard.writeText(exportJson);
     console.log(exportJson);
     console.log("!!! Export !!!");
     exportCircuitPrompt();
-    document.getElementById('modal-circuit-export-string').value = exportJson;
+    document.getElementById("modal-circuit-export-string").value = exportJson;
 }
 
 function importSerializedCircuit(string) {
@@ -65,6 +65,8 @@ function importSerializedCircuit(string) {
 
     // console.log(newModules);
     currentCircuit = Circuit.fromModulesArray(newModules);
+    currentCircuit.evaluateAll();
+    pushAlert('info', 'Successfully loaded the circuit.')
     // currentCircuit = new Circuit();
     // console.log(importedModules);
 }
@@ -76,8 +78,45 @@ function getModuleClassByName(name) {
             return new Input();
         case "Output":
             return new Output();
+
         case "NOT Gate":
             return new NotGate();
+        case "Tri-State Buffer":
+            return new TriStateBuffer();
+        case "OR Gate":
+            return new OrGate();
+        case "NOR Gate":
+            return new NorGate();
+        case "AND Gate":
+            return new AndGate();
+        case "NAND Gate":
+            return new NandGate();
+        case "XOR Gate":
+            return new XorGate();
+        case "XNOR Gate":
+            return new XnorGate();
+
+        case "1-to-2 Decoder":
+            return new Decoder1To2();
+        case "2-to-4 Decoder":
+            return new Decoder2To4();
+        case "3-to-8 Decoder":
+            return new Decoder3To8();
+
+        case "Half Adder":
+            return new HalfAdder();
+        case "Full Adder":
+            return new FullAdder();
+
+        case "SR Latch":
+            return new SRLatch();
+        case "D Latch":
+            return new DLatch();
+        case "T Flip Flop":
+            return new TFlipFlop();
+        case "JK Flip Flop":
+            return new JKFlipFlop();
+
         default:
             break;
     }

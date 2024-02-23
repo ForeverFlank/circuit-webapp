@@ -482,11 +482,10 @@ class ModuleNode {
             name: this.name,
             id: this.id,
             objectType: this.objectType,
-            value: this.value,
             delay: this.delay,
-            isHighZ: this.isHighZ,
             connectionsId: this.connections.map((wire) => wire.id),
             nodeType: this.nodeType,
+            pinDirection: this.pinDirection,
             isSplitter: this.isSplitter,
             isSplitterInput: this.isSplitterInput,
             relativeX: this.relativeX,
@@ -497,10 +496,9 @@ class ModuleNode {
         this.name = data.name;
         this.id = data.id;
         this.objectType = data.objectType;
-        this.value = data.value;
         this.delay = data.delay;
-        this.isHighZ = data.isHighZ;
         this.nodeType = data.nodeType;
+        this.pinDirection = data.pinDirection;
         this.isSplitter = data.isSplitter;
         this.isSplitterInput = data.isSplitterInput;
         this.relativeX = data.relativeX;

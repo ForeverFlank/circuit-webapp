@@ -163,7 +163,10 @@ class NBitInput extends Module {
         super.evaluate(time);
     }
     render() {
-        super.render(State.toString(this.outputValue), 12, 0, 0, "basic/input");
+        super.render(
+            [[State.toString(this.outputValue), 12, 0, 0]],
+            "basic/input"
+        );
     }
     released() {
         super.released();
@@ -171,7 +174,7 @@ class NBitInput extends Module {
     selected() {
         super.selected();
         document.getElementById("selecting-nbitinput").style.display = "flex";
-        setNBitInputValue(this.outputValue)
+        setNBitInputValue(this.outputValue);
     }
     static add() {
         let mod = new NBitInput("N-bit Input");
@@ -186,7 +189,8 @@ function setNBitInput(time) {
 }
 
 function setNBitInputValue(value) {
-    document.getElementById("selecting-nbitinput-value").value = State.toString(value);
+    document.getElementById("selecting-nbitinput-value").value =
+        State.toString(value);
 }
 
 class BitwiseNotGate extends Module {
@@ -194,8 +198,8 @@ class BitwiseNotGate extends Module {
         super(name, 3, 2);
         this.inputs = [new InputNode(this, "Input", 0, 1)];
         this.outputs = [new OutputNode(this, "Output", 3, 1)];
-        this.inputs.forEach((node) => node.pinDirection = 0);
-        this.outputs.forEach((node) => node.pinDirection = 2);
+        this.inputs.forEach((node) => (node.pinDirection = 0));
+        this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "NOT";
     }
     render() {
@@ -204,7 +208,9 @@ class BitwiseNotGate extends Module {
     }
     evaluate(time) {
         super.evaluate(time);
-        let result = this.inputs[0].getValueAtTime(time).map((x) => State.not(x));
+        let result = this.inputs[0]
+            .getValueAtTime(time)
+            .map((x) => State.not(x));
         this.outputs[0].setValues(
             result,
             time + this.outputs[0].delay,
@@ -217,6 +223,63 @@ class BitwiseNotGate extends Module {
     }
 }
 
+class NBitTriStateBuffer extends Module {
+    constructor(name) {
+        super(name, 4, 2);
+        this.inputs = [
+            new InputNode(this, "Input", 0, 1),
+            new InputNode(this, "Control", 2, 0),
+        ];
+        this.outputs = [new OutputNode(this, "Output", 4, 1)];
+        this.displayName = "";
+    }
+    render() {
+        super.render([["", 12, -8, 0]], "basic/tristatebuffer");
+    }
+    evaluate(time) {
+        // console.warn("EVAL", time);
+        // super.evaluate(time);
+        let inputs = this.inputs[0].getValueAtTime(time);
+        let control = this.inputs[1].getValueAtTime(time)[0];
+        inputs.forEach((input, index) => {
+            if (control == State.high) {
+                this.outputs[0].setValue(
+                    input,
+                    index,
+                    time + this.outputs[0].delay,
+                    false,
+                    true
+                );
+            } else if (
+                control == State.low ||
+                (control == State.highZ && input == State.highZ)
+            ) {
+                this.outputs[0].setValue(
+                    State.highZ,
+                    index,
+                    time + this.outputs[0].delay,
+                    false,
+                    true
+                );
+            } else {
+                this.outputs[0].setValue(
+                    State.err,
+                    index,
+                    time + this.outputs[0].delay,
+                    false,
+                    true
+                );
+            }
+        });
+        super.evaluate(time + this.outputs[0].delay);
+    }
+    static add() {
+        currentCircuit.addModule(
+            new NBitTriStateBuffer("N-bit Tri-State Buffer", placeX, placeY)
+        );
+    }
+}
+
 class BitwiseAndGate extends Module {
     constructor(name) {
         super(name, 4, 4);
@@ -225,8 +288,8 @@ class BitwiseAndGate extends Module {
             new InputNode(this, "Input 2", 0, 3),
         ];
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
-        this.inputs.forEach((node) => node.pinDirection = 0);
-        this.outputs.forEach((node) => node.pinDirection = 2);
+        this.inputs.forEach((node) => (node.pinDirection = 0));
+        this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "AND";
     }
     render() {
@@ -266,8 +329,8 @@ class BitwiseOrGate extends Module {
             new InputNode(this, "Input 2", 0, 3),
         ];
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
-        this.inputs.forEach((node) => node.pinDirection = 0);
-        this.outputs.forEach((node) => node.pinDirection = 2);
+        this.inputs.forEach((node) => (node.pinDirection = 0));
+        this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "OR";
     }
     render() {
@@ -296,5 +359,61 @@ class BitwiseOrGate extends Module {
     }
     static add() {
         currentCircuit.addModule(new BitwiseOrGate("Bitwise OR Gate"));
+    }
+}
+
+class NBitAdder extends Module {
+    constructor(name) {
+        super(name, 4, 4);
+        this.inputs = [
+            new InputNode(this, "Addend 1", 0, 1),
+            new InputNode(this, "Addend 2", 0, 2),
+            new InputNode(this, "Carry In", 0, 3),
+        ];
+        this.outputs = [
+            new OutputNode(this, "Result", 4, 1),
+            new OutputNode(this, "Carry Out", 4, 2)
+        ];
+        this.inputs.forEach((node) => (node.pinDirection = 0));
+        this.outputs.forEach((node) => (node.pinDirection = 2));
+        this.displayName = "Add";
+    }
+    render() {
+        super.render();
+    }
+    evaluate(time) {
+        super.evaluate(time);
+        let input1 = this.inputs[0].getValueAtTime(time);
+        let input2 = this.inputs[1].getValueAtTime(time);
+        let c = this.inputs[2].getValueAtTime(time)[0];
+        let maxWidth = Math.max(input1.length, input2.length);
+        for (let i = 0; i < maxWidth; i++) {
+            let a = input1[i];
+            let b = input2[i];
+            if (a == null) a = -1;
+            if (b == null) b = -1;
+
+            let p = State.xor(a, b);
+            let sum = State.xor(p, c);
+            c = State.or([State.and([a, b]), State.and([p, c])]);
+
+            this.outputs[0].setValue(
+                sum,
+                i,
+                time + this.outputs[0].delay,
+                false,
+                true
+            );
+        }
+        this.outputs[1].setValue(
+            c,
+            0,
+            time + this.outputs[0].delay,
+            false,
+            true
+        );
+    }
+    static add() {
+        currentCircuit.addModule(new NBitAdder("N-bit Adder"));
     }
 }

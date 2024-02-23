@@ -1,5 +1,5 @@
 var controls = {
-    view: { x: 0, y: 0, zoom: 1.5 },
+    view: { x: 0, y: 0, zoom: 2 },
     viewPos: { prevX: null, prevY: null, isDragging: false },
 };
 const minZoom = 0.2;
