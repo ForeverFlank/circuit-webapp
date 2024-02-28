@@ -48,7 +48,7 @@ class State {
         if (b == State.err) return color("#990000");
         if (b == State.highZ) return color("#a0a0a0");
         if (b == State.low) return color("#ed2525");
-        if (b == State.high) return color("#4fe52d");
+        if (b == State.high) return color("#4ff02d");
         return color("#0000ff");
     }
     static char(b) {

@@ -11,7 +11,7 @@ class SRLatch extends Module {
         ];
         this.inputs.forEach((node) => (node.pinDirection = 0));
         this.outputs.forEach((node) => (node.pinDirection = 2));
-        this.displayName = "SR";
+        this.displayName = "S";
         this.latchValue = State.low;
     }
     render() {
@@ -69,7 +69,7 @@ class DLatch extends Module {
         ];
         this.inputs.forEach((node) => (node.pinDirection = 0));
         this.outputs.forEach((node) => (node.pinDirection = 2));
-        this.displayName = "D";
+        this.displayName = "";
         this.latchValue = State.low;
     }
     render() {
@@ -89,7 +89,11 @@ class DLatch extends Module {
         let d = this.inputs[0].getValueAtTime(time)[0];
         let e = this.inputs[1].getValueAtTime(time)[0];
         if (e == State.high) {
-            this.latchValue = d;
+            if (d == State.low || d == State.high) {
+                this.latchValue = d;
+            } else {
+                this.latchValue = State.err;
+            }
         }
         this.outputs[0].setValue(
             this.latchValue,
@@ -111,6 +115,69 @@ class DLatch extends Module {
     }
 }
 
+class DFlipFlop extends Module {
+    constructor(name) {
+        super(name, 4, 4);
+        this.inputs = [
+            new InputNode(this, "Data", 0, 1),
+            new InputNode(this, "Clock", 0, 2),
+        ];
+        this.outputs = [
+            new OutputNode(this, "Q", 4, 1),
+            new OutputNode(this, "Q'", 4, 3),
+        ];
+        this.inputs.forEach((node) => (node.pinDirection = 0));
+        this.outputs.forEach((node) => (node.pinDirection = 2));
+        this.displayName = "";
+        this.latchValue = State.low;
+        this.previousClk = State.low;
+    }
+    render() {
+        super.render([
+            ["D", 12, -25, -20, LEFT],
+            [">", 24, -24, 0],
+            ["Q", 12, 25, -20, RIGHT],
+            ["Q'", 12, 25, 20, RIGHT],
+        ]);
+    }
+    init() {
+        super.init();
+        this.latchValue = State.low;
+        this.previousClk = State.low;
+    }
+    evaluate(time) {
+        super.evaluate(time);
+        let d = this.inputs[0].getValueAtTime(time)[0];
+        let clk = this.previousClk;
+        this.previousClk = this.inputs[1].getValueAtTime(time)[0];
+        let rising = this.previousClk != clk && this.previousClk == State.high;
+        if (rising) {
+            if (d == State.low || d == State.high) {
+                this.latchValue = d;
+            } else {
+                this.latchValue = State.err;
+            }
+        }
+        this.outputs[0].setValue(
+            this.latchValue,
+            0,
+            time + this.outputs[0].delay,
+            false,
+            true
+        );
+        this.outputs[1].setValue(
+            State.not(this.latchValue),
+            0,
+            time + this.outputs[1].delay,
+            false,
+            true
+        );
+    }
+    static add() {
+        Module.addToCircuit(new DFlipFlop("D Flip Flop"));
+    }
+}
+
 class TFlipFlop extends Module {
     constructor(name) {
         super(name, 4, 4);
@@ -124,7 +191,7 @@ class TFlipFlop extends Module {
         ];
         this.inputs.forEach((node) => (node.pinDirection = 0));
         this.outputs.forEach((node) => (node.pinDirection = 2));
-        this.displayName = "T";
+        this.displayName = "";
         this.latchValue = State.low;
         this.previousClk = State.low;
     }
@@ -238,5 +305,60 @@ class JKFlipFlop extends Module {
     }
     static add() {
         Module.addToCircuit(new JKFlipFlop("JK Flip Flop"));
+    }
+}
+
+class Register extends Module {
+    constructor(name) {
+        super(name, 4, 4);
+        this.inputs = [
+            new InputNode(this, "Data", 0, 1),
+            new InputNode(this, "Clock", 0, 2),
+        ];
+        this.outputs = [
+            new OutputNode(this, "Q", 4, 1),
+        ];
+        this.inputs.forEach((node) => (node.pinDirection = 0));
+        this.outputs.forEach((node) => (node.pinDirection = 2));
+        this.displayName = "T";
+        this.latchValue = State.low;
+        this.previousClk = State.low;
+    }
+    render() {
+        super.render([
+            ["D", 12, -25, -20, LEFT],
+            [">", 24, -24, 0],
+            ["Q", 12, 25, -20, RIGHT]
+        ]);
+    }
+    init() {
+        super.init();
+        this.latchValue = [State.low];
+        this.previousClk = State.low;
+    }
+    evaluate(time) {
+        super.evaluate(time);
+        let d = this.inputs[0].getValueAtTime(time);
+        let clk = this.previousClk;
+        this.previousClk = this.inputs[1].getValueAtTime(time)[0];
+        let rising = this.previousClk != clk && this.previousClk == State.high;
+        if (rising) {
+            for (let i in d) {
+                if (d[i] == State.low || d[i] == State.high) {
+                    this.latchValue[i] = d[i];
+                } else {
+                    this.latchValue[i] = State.err;
+                }
+            }
+        }
+        this.outputs[0].setValues(
+            this.latchValue,
+            time + this.outputs[0].delay,
+            false,
+            true
+        );
+    }
+    static add() {
+        Module.addToCircuit(new Register("Register"));
     }
 }

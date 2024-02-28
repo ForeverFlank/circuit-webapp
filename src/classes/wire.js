@@ -79,7 +79,11 @@ class Wire {
         if (this.source.getValueAtTime(Infinity).length == 1) {
             fill(State.color(this.source.getValueAtTime(Infinity)[0]));
         } else {
-            if (this.source.getValueAtTime(Infinity).every((x) => x == State.highZ)) {
+            if (
+                this.source
+                    .getValueAtTime(Infinity)
+                    .every((x) => x == State.highZ)
+            ) {
                 fill(State.color(State.highZ));
             } else {
                 fill(64);
@@ -97,30 +101,31 @@ class Wire {
         textSize(8);
         textAlign(CENTER, CENTER);
 
-        if (
-            !(
-                (this.source.getValueAtTime(Infinity) == State.highZ ||
-                    this.source.getValueAtTime(Infinity) == State.err) &&
-                (this.destination.getValueAtTime(Infinity) == State.highZ ||
-                    this.destination.getValueAtTime(Infinity) == State.err)
-            )
-        ) {
+        let isStateHigh =
+            this.source.getValueAtTime(Infinity) == State.high ||
+            this.destination.getValueAtTime(Infinity) == State.high;
+        let isNBit =
+            this.source.getValueAtTime(Infinity).length > 1 ||
+            this.destination.getValueAtTime(Infinity).length > 1;
+        if (isStateHigh || isNBit) {
             push();
             noStroke();
             let value = this.source.getValueAtTime(Infinity);
             let dotDistance = 0;
+            let speed = 0;
             if (value.length == 1) {
                 dotDistance = 20;
+                speed = 100;
                 fill(color(255, 255, 0));
             } else {
                 dotDistance = 60;
+                speed = 50;
                 fill(0);
             }
-            const speed = 2;
             let dotCount = Math.round(length / dotDistance);
             for (let i = 0; i < dotCount; i++) {
                 let t =
-                    ((speed * Date.now()) / (length * dotDistance) +
+                    ((speed * Date.now()) / (length * 1000) +
                         i / dotCount) %
                     1;
                 let deltaX = destinationX - sourceX;

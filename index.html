@@ -11,7 +11,7 @@
 </head>
 
 <body oncontextmenu="return false" style="touch-action: pan-x pan-y;">
-  <p class="fixed left-3 bottom-2 text-sm text-zinc-600">v1.12 alpha <a class="mx-2 underline"
+  <p class="fixed left-3 bottom-2 text-sm text-zinc-600">v1.13 alpha <a class="mx-2 underline"
       href="https://github.com/ForeverFlank/circuit-webapp" target="_blank">Source Code</a></p>
   <div id="top-tab" class="flex sticky top-0 h-14 z-20 bg-white border-b border-zinc-200">
     <div>
@@ -96,8 +96,10 @@
       <div class="accordion-gate" id="gate-latches" style="display: none">
         <button onclick="SRLatch.add()">SR Latch</button>
         <button onclick="DLatch.add()">D Latch</button>
+        <button onclick="DFlipFlop.add()">D Flip Flop</button>
         <button onclick="TFlipFlop.add()">T Flip Flop</button>
         <button onclick="JKFlipFlop.add()">JK Flip Flop</button>
+        <button onclick="Register.add()">Register</button>
       </div>
 
       <button class="flex flex-row justify-between h-10 py-2 bg-transparent text-left px-2"
@@ -123,6 +125,7 @@
         <button onclick="NBitTriStateBuffer.add()">N-bit Tri-State Buffer</button>
         <button onclick="BitwiseAndGate.add()">Bitwise AND</button>
         <button onclick="BitwiseOrGate.add()">Bitwise OR</button>
+        <button onclick="NBitMultiplexer.add()">N-bit Multiplexer</button>
         <button onclick="NBitAdder.add()">N-bit Adder</button>
       </div>
 

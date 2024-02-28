@@ -184,7 +184,8 @@ class NBitInput extends Module {
 
 function setNBitInput(time) {
     let value = document.getElementById("selecting-nbitinput-value").value;
-    selectedObject.setInput(State.fromString(value), time);
+    value = State.fromString(value);
+    selectedObject.setInput(value, time);
     currentCircuit.evaluateAll(false);
 }
 
@@ -356,7 +357,51 @@ class BitwiseOrGate extends Module {
         }
     }
     static add() {
-        Module.addToCircuit(new BitwiseOrGate("Bitwise OR Gate"))
+        Module.addToCircuit(new BitwiseOrGate("Bitwise OR Gate"));
+    }
+}
+
+class NBitMultiplexer extends Module {
+    constructor(name) {
+        super(name, 2, 3);
+        this.inputs = [
+            new InputNode(this, "Input 1", 0, 1),
+            new InputNode(this, "Input 2", 0, 2),
+            new InputNode(this, "Select", 1, 3),
+        ];
+        this.outputs = [new OutputNode(this, "Output", 2, 1)];
+        this.inputs.forEach((node) => (node.pinDirection = 0));
+        this.inputs[2].pinDirection = 1;
+        this.outputs.forEach((node) => (node.pinDirection = 2));
+        this.displayName = "";
+    }
+    render() {
+        super.render();
+    }
+    evaluate(time) {
+        super.evaluate(time);
+        let input1 = this.inputs[0].getValueAtTime(time);
+        let input2 = this.inputs[1].getValueAtTime(time);
+        let select = this.inputs[2].getValueAtTime(time)[0];
+        let maxWidth = Math.max(input1.length, input2.length);
+
+        let result;
+        if (select == State.low) {
+            result = input1;
+        } else if (select == State.high) {
+            result = input2;
+        } else {
+            result = Array(maxWidth).fill(State.err);
+        }
+        this.outputs[0].setValues(
+            result,
+            time + this.outputs[0].delay,
+            false,
+            true
+        );
+    }
+    static add() {
+        Module.addToCircuit(new NBitMultiplexer("N-bit Multiplexer"));
     }
 }
 
