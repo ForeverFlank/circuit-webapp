@@ -52,6 +52,8 @@ function touchStarted(e) {
         let pressedOnObject = objectsPress();
         if (pressedObject.id != 0) {
             selectedObject = pressedObject;
+        } else if (pressedWire.id != 0) {
+            selectedObject = pressedWire;
         } else {
             Controls.move(controls).pressed(e);
         }
@@ -97,7 +99,10 @@ function touchMoved(e) {
         if (pressedObject.id != 0) {
             selectedObject = pressedObject;
         } else {
-            if (mouseButton == LEFT || mouseButton == 0) {
+            if (pressedWire.id != 0) {
+                selectedObject = pressedWire;
+            }
+            else if (mouseButton == LEFT || mouseButton == 0) {
                 Controls.move(controls).dragged(e);
             }
         }

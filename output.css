@@ -864,9 +864,9 @@ video {
   background-color: transparent;
 }
 
-.bg-white {
+.bg-zinc-100 {
   --tw-bg-opacity: 1;
-  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+  background-color: rgb(244 244 245 / var(--tw-bg-opacity));
 }
 
 .p-1 {
@@ -945,11 +945,6 @@ video {
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
-}
-
-.text-xs {
-  font-size: 0.75rem;
-  line-height: 1rem;
 }
 
 .font-bold {
@@ -1128,7 +1123,7 @@ button {
   overflow: hidden;
   text-align: center;
   height: 3rem;
-  background-color: white;
+  background-color: rgb(250, 250, 251);
   border: 1px solid rgb(228, 228, 231);
   border-radius: 5px;
   font-size: 0.75rem/* 12px */;

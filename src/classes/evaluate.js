@@ -1,7 +1,9 @@
 Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
     if (reset) {
         this.getNodes().forEach((node) => {
-            node.valueAtTime = { 0: [...node.getValueAtTime(0).fill(State.highZ)] };
+            node.valueAtTime = {
+                0: [...node.getValueAtTime(0).fill(State.highZ)],
+            };
             node.isHighZAtTime = { 0: [...node.getHighZAtTime(0).fill(true)] };
         });
         this.getModules().forEach((mod) => mod.init());
@@ -33,9 +35,11 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
                     if (!node.connectedToOutput(index, 0).isConnectedToOutput) {
                         startingNodes.push([0, index, node]);
                     }
-                    if (node.connectedToOutput(index, 0).activeOutputsCount == 0) {
-                        node.setValueAtIndexAtTime(0, index, State.highZ)
-                        node.setHighZAtIndexAtTime(0, index, true)
+                    if (
+                        node.connectedToOutput(index, 0).activeOutputsCount == 0
+                    ) {
+                        node.setValueAtIndexAtTime(0, index, State.highZ);
+                        node.setHighZAtIndexAtTime(0, index, true);
                     }
                 });
             });
@@ -49,7 +53,7 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
             Object.entries(node.getValueAtTime(0)).forEach((x) => {
                 let index = x[0];
                 if (node.connectedToOutput(index, 0).activeOutputsCount == 0) {
-                    node.setValueAtIndexAtTime(0, index, State.highZ)
+                    node.setValueAtIndexAtTime(0, index, State.highZ);
                     node.setHighZAtIndexAtTime(0, index, true);
                 }
             });
@@ -88,7 +92,7 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
             continue;
         }
         traversed.add(itemString);
-        
+
         /*
         console.log(
             currentTime,
@@ -158,9 +162,7 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
                 let stack = [];
                 let traversed = new Set();
                 let marked = new Set();
-                marked.add(
-                    currentItemToString(0, initIndex, node.id)
-                );
+                marked.add(currentItemToString(0, initIndex, node.id));
                 stack.push([initIndex, node]);
                 while (stack.length > 0) {
                     let [index, currentNode] = stack.pop();
@@ -178,11 +180,19 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
                             let destinationNode = wire.destination;
                             if (
                                 !marked.has(
-                                    currentItemToString(0, index, destinationNode.id)
+                                    currentItemToString(
+                                        0,
+                                        index,
+                                        destinationNode.id
+                                    )
                                 )
                             ) {
                                 marked.add(
-                                    currentItemToString(0, index, destinationNode.id)
+                                    currentItemToString(
+                                        0,
+                                        index,
+                                        destinationNode.id
+                                    )
                                 );
                                 // console.log(currentNode.id, destinationNode.id)
                                 wire.setDirection(currentNode, destinationNode);

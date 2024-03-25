@@ -55,6 +55,7 @@ function setClickedNode(node) {
 var pressedObject = { id: 0 };
 var pressedWire = { id: 0 };
 var selectedObject = {};
+var selectedWire = {};
 var hoveringNode = {};
 
 let sequentialModuleList = ["SR Latch", "D Latch"];

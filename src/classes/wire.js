@@ -1,5 +1,6 @@
 class Wire {
     constructor(source, destination, rendered = true, name = "") {
+        this.name = "Wire";
         this.source = source;
         this.destination = destination;
         this.rendered = rendered;
@@ -125,9 +126,7 @@ class Wire {
             let dotCount = Math.round(length / dotDistance);
             for (let i = 0; i < dotCount; i++) {
                 let t =
-                    ((speed * Date.now()) / (length * 1000) +
-                        i / dotCount) %
-                    1;
+                    ((speed * Date.now()) / (length * 1000) + i / dotCount) % 1;
                 let deltaX = destinationX - sourceX;
                 let deltaY = destinationY - sourceY;
                 if (value.length == 1) {

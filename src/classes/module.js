@@ -196,8 +196,6 @@ class Module {
         });
         pop();
 
-        if (selectedObject.id == this.id) {
-        }
         if (DEBUG) {
             push();
             // text(this.id.slice(0, 10), this.x, this.y + 40);
@@ -370,11 +368,11 @@ function setInputButtonColor(value) {
         return document.getElementById(`selecting-input-${s}`);
     }
     element("z").style.backgroundColor =
-        value == State.highZ ? "#71717a" : "white";
+        value == State.highZ ? "#71717a" : "#f4f4f5";
     element("0").style.backgroundColor =
-        value == State.low ? "#ef4444" : "white";
+        value == State.low ? "#ef4444" : "#f4f4f5";
     element("1").style.backgroundColor =
-        value == State.high ? "#22c55e" : "white";
+        value == State.high ? "#22c55e" : "#f4f4f5";
     element("z").style.color = value == State.highZ ? "white" : "black";
     element("0").style.color = value == State.low ? "white" : "black";
     element("1").style.color = value == State.high ? "white" : "black";
