@@ -1,3 +1,7 @@
+import { Module, WireNode } from "../classes/module.js";
+import { ModuleNode, InputNode, OutputNode, SplitterNode } from "../classes/modulenode.js";
+import { State } from "../classes/state.js";
+
 class LED extends Module {
     constructor(name) {
         super(name, 2, 2);
@@ -8,7 +12,7 @@ class LED extends Module {
     evaluate(time) {
         super.evaluate(time);
     }
-    render() {
+    render(graphics) {
         if (this.isHiddenOnAdd) return;
         push();
         stroke(0);
@@ -19,7 +23,7 @@ class LED extends Module {
         circle(this.x + 20, this.y + 20, 28);
         pop();
         // let char = State.toString(this.inputs[0].getValueAtTime(Infinity));
-        // super.render([[char, 12, 0, 0]], "basic/output");
+        // super.render(graphics, [[char, 12, 0, 0]], "basic/output");
     }
     static add() {
         Module.addToCircuit(new LED("LED"));
@@ -35,9 +39,9 @@ class Display7Segment extends Module {
     evaluate(time) {
         super.evaluate(time);
     }
-    render() {
+    render(graphics) {
         // let char = State.toString(this.inputs[0].getValueAtTime(Infinity));
-        // super.render([[char, 12, 0, 0]], "basic/output");
+        // super.render(graphics, [[char, 12, 0, 0]], "basic/output");
     }
     static add() {
         let mod = new Display7Segment("7 Segment Display");
@@ -46,3 +50,5 @@ class Display7Segment extends Module {
         mod.pressed(true);
     }
 }
+
+export { LED, Display7Segment }

@@ -14,8 +14,8 @@ class SRLatch extends Module {
         this.displayName = "S";
         this.latchValue = State.low;
     }
-    render() {
-        super.render([
+    render(graphics) {
+        super.render(graphics, [
             ["S", 12, -25, -20, LEFT],
             ["R", 12, -25, 20, LEFT],
             ["Q", 12, 25, -20, RIGHT],
@@ -72,8 +72,8 @@ class DLatch extends Module {
         this.displayName = "";
         this.latchValue = State.low;
     }
-    render() {
-        super.render([
+    render(graphics) {
+        super.render(graphics, [
             ["D", 12, -25, -20, LEFT],
             ["EN", 12, -25, 20, LEFT],
             ["Q", 12, 25, -20, RIGHT],
@@ -132,8 +132,8 @@ class DFlipFlop extends Module {
         this.latchValue = State.low;
         this.previousClk = State.low;
     }
-    render() {
-        super.render([
+    render(graphics) {
+        super.render(graphics, [
             ["D", 12, -25, -20, LEFT],
             [">", 24, -24, 0],
             ["Q", 12, 25, -20, RIGHT],
@@ -195,8 +195,8 @@ class TFlipFlop extends Module {
         this.latchValue = State.low;
         this.previousClk = State.low;
     }
-    render() {
-        super.render([
+    render(graphics) {
+        super.render(graphics, [
             ["T", 12, -25, -20, LEFT],
             [">", 24, -24, 0],
             ["Q", 12, 25, -20, RIGHT],
@@ -259,8 +259,8 @@ class JKFlipFlop extends Module {
         this.latchValue = State.low;
         this.previousClk = State.low;
     }
-    render() {
-        super.render([
+    render(graphics) {
+        super.render(graphics, [
             ["J", 12, -25, -20, LEFT],
             ["K", 12, -25, 20, LEFT],
             [">", 24, -24, 0],
@@ -324,8 +324,8 @@ class Register extends Module {
         this.latchValue = State.low;
         this.previousClk = State.low;
     }
-    render() {
-        super.render([
+    render(graphics) {
+        super.render(graphics, [
             ["D", 12, -25, -20, LEFT],
             [">", 24, -24, 0],
             ["Q", 12, 25, -20, RIGHT]
@@ -362,3 +362,5 @@ class Register extends Module {
         Module.addToCircuit(new Register("Register"));
     }
 }
+
+export { SRLatch, DLatch, DFlipFlop, TFlipFlop, JKFlipFlop, Register }

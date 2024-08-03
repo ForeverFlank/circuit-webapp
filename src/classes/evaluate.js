@@ -1,4 +1,6 @@
-Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
+import { State } from "./state.js";
+
+export function evaluateAll(reset = true, initTime = 0) {
     if (reset) {
         this.getNodes().forEach((node) => {
             node.valueAtTime = {

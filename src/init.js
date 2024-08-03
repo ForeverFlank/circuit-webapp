@@ -1,8 +1,35 @@
-function getContainerWidth() {
-    return document.getElementById("canvas-container").clientWidth;
+let textures = {};
+
+let texturesList = {
+    basic: [
+        "input",
+        "output",
+        "not",
+        "and",
+        "or",
+        "xor",
+        "nand",
+        "nor",
+        "xnor",
+        "tristatebuffer",
+    ],
+};
+
+function preloadTextures() {
+    Object.keys(texturesList).forEach((key) => {
+        texturesList[key].forEach((item) => {
+            textures[`${key}/${item}`] = PIXI.Assets.load(`sprites/${key}/${item}.png`);
+        });
+    });
 }
-function getContainerHeight() {
-    return document.getElementById("canvas-container").clientHeight;
+
+export { textures, preloadTextures }
+/*
+function getContainerWidth(id = "canvas-container") {
+    return document.getElementById(id).clientWidth;
+}
+function getContainerHeight(id = "canvas-container") {
+    return document.getElementById(id).clientHeight;
 }
 
 var containerWidth = getContainerWidth();
@@ -25,7 +52,7 @@ function mouseUpdate() {
     let x = mouseX;
     let y = mouseY;
 
-    /*
+    
     if (touches.length > 0) {
         if (touches[0].x != null && touches[0].y != null) {
             x = touches[0].x;
@@ -33,7 +60,7 @@ function mouseUpdate() {
         }
         // console.log(touches[0].x, touches[0].y)
     }
-    */
+    
     mouseCanvasX =
         (x - controls.view.x - containerWidth / 2) / controls.view.zoom;
     mouseCanvasY =
@@ -174,3 +201,4 @@ function hoveringOnDiv(e) {
     if (bg.style.display != "none") return true;
     return false;
 }
+*/

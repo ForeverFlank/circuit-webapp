@@ -1,6 +1,12 @@
+import { Module, WireNode } from "../classes/module.js";
+import { ModuleNode, InputNode, OutputNode, SplitterNode } from "../classes/modulenode.js";
+import { State } from "../classes/state.js";
+
 class Decoder1To2 extends Module {
-    constructor(name) {
-        super(name, 2, 3);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 2;
+        if (obj.height == null) obj.height = 3;
+        super(obj);
         this.inputs = [new InputNode(this, "A0", 0, 1)];
         this.outputs = [
             new OutputNode(this, "D0", 2, 1),
@@ -25,13 +31,15 @@ class Decoder1To2 extends Module {
         }
     }
     static add() {
-        Module.addToCircuit(new Decoder1To2("1-to-2 Decoder"));
+        Module.addToCircuit(new Decoder1To2({ name: "1-to-2 Decoder" }));
     }
 }
 
 class Decoder2To4 extends Module {
-    constructor(name) {
-        super(name, 2, 5);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 2;
+        if (obj.height == null) obj.height = 5;
+        super(obj);
         this.inputs = [
             new InputNode(this, "A0", 0, 1),
             new InputNode(this, "A1", 0, 2),
@@ -63,13 +71,15 @@ class Decoder2To4 extends Module {
         }
     }
     static add() {
-        Module.addToCircuit(new Decoder2To4("2-to-4 Decoder"));
+        Module.addToCircuit(new Decoder2To4({ name: "2-to-4 Decoder" }));
     }
 }
 
 class Decoder3To8 extends Module {
-    constructor(name) {
-        super(name, 2, 9);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 2;
+        if (obj.height == null) obj.height = 9;
+        super(obj);
         this.inputs = [
             new InputNode(this, "A0", 0, 1),
             new InputNode(this, "A1", 0, 2),
@@ -108,6 +118,8 @@ class Decoder3To8 extends Module {
         }
     }
     static add() {
-        Module.addToCircuit(new Decoder3To8("3-to-8 Decoder"));
+        Module.addToCircuit(new Decoder3To8({ name: "3-to-8 Decoder" }));
     }
 }
+
+export { Decoder1To2, Decoder2To4, Decoder3To8 }

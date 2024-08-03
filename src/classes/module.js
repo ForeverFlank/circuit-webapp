@@ -1,3 +1,11 @@
+import { Editor } from "../editor/editor.js";
+import { State } from "./state.js";
+import { unique } from "../custom-uuid.js";
+import { ModuleNode, InputNode, OutputNode } from "./modulenode.js";
+import { EventHandler } from "../event/event-handler.js";
+import { currentCircuit } from "../main.js";
+import * as Constants from "../constants.js";
+
 // Drag to move by Daniel Shiffman <http://www.shiffman.net>
 // https://editor.p5js.org/icm/sketches/BkRHbimhm
 
@@ -6,13 +14,26 @@
 // cleanup next googol years
 
 class Module {
-    constructor(name, width = 2, height = 2, x = placeX, y = placeY) {
-        this.name = name;
-        this.id = unique(name);
-        this.width = width;
-        this.height = height;
-        this.x = x;
-        this.y = y;
+    constructor(
+        obj = {
+            name: '',
+            width: 2,
+            height: 2
+        }
+    ) {
+        for (let key in obj) {
+            this[key] = obj[key];
+        }
+        console.log(obj)
+        if (obj.x == undefined) obj.x = Editor.centerPosition.x;
+        if (obj.y == undefined) obj.y = Editor.centerPosition.y;
+        console.log(Editor.position.x)
+        this.name = obj.name;
+        this.id = unique(obj.name);
+        this.width = obj.width;
+        this.height = obj.height;
+        this.x = obj.x;
+        this.y = obj.y;
         this.displayName = "";
         this.inputs = [];
         this.outputs = [];
@@ -29,33 +50,35 @@ class Module {
         this.ignoreDiv = false;
         this.isHiddenOnAdd = false;
     }
-    hovering() {
-        if (controlMode == "pan") return false;
-        if (hoveringOnDiv() && !this.ignoreDiv) return false;
+    hovering(e) {
+        if (Editor.mode == "pan") return false;
+        if (Editor.isPointerHoveringOnDiv(e) && !this.ignoreDiv) return false;
         let isHoveringNode = false;
         this.inputs.forEach((x) => {
-            isHoveringNode ||= x.hovering();
+            isHoveringNode ||= x.hovering(e);
         });
         this.outputs.forEach((x) => {
-            isHoveringNode ||= x.hovering();
+            isHoveringNode ||= x.hovering(e);
         });
         /*
         let hovering =
-            mouseCanvasX > this.x + 5 &&
-            mouseCanvasX < this.x + this.width * 20 - 5 &&
-            mouseCanvasY > this.y + 5 &&
-            mouseCanvasY < this.y + this.height * 20 - 5 &&
-            !isHoveringNode;
-            */
+        Editor.pointerPosition.x > this.x + 5 &&
+        Editor.pointerPosition.x < this.x + this.width * 20 - 5 &&
+        Editor.pointerPosition.y > this.y + 5 &&
+        Editor.pointerPosition.y < this.y + this.height * 20 - 5 &&
+        !isHoveringNode;
+        */
         let hovering =
-            mouseCanvasX > this.x &&
-            mouseCanvasX < this.x + this.width * 20 &&
-            mouseCanvasY > this.y &&
-            mouseCanvasY < this.y + this.height * 20 &&
+            Editor.pointerPosition.x > this.x &&
+            Editor.pointerPosition.x < this.x + this.width * 20 &&
+            Editor.pointerPosition.y > this.y &&
+            Editor.pointerPosition.y < this.y + this.height * 20 &&
             !isHoveringNode;
+        console.log('x', this.x, Editor.pointerPosition.x, this.x + this.width * 20);
+        console.log('y', this.y, Editor.pointerPosition.y, this.y + this.height * 20);
         return hovering;
     }
-    init() {}
+    init() { }
     evaluate(time, checkDisconnectedInput = true, evaluated = new Set()) {
         function currentItemToString(index, nodeId) {
             return `i${index}n${nodeId}`;
@@ -133,13 +156,34 @@ class Module {
         currentCircuit.removeModule(this);
     }
     render(
-        labels = [[this.displayName, 12, 0, 0]],
-        src,
-        imageOffsetX = 0,
-        imageOffsetY = 0,
-        imageWidth = this.width * 20,
-        imageHeight = this.height * 20
+        obj = {
+            container: undefined,
+            graphics: undefined,
+            labels: [[this.displayName, 12, 0, 0]],
+            src: undefined,
+            imageOffsetX: 0,
+            imageOffsetY: 0,
+            imageWidth: this.width * 20,
+            imageHeight: this.height * 20
+        }
     ) {
+        if (this.sprite == null) {
+            this.sprite = PIXI.Sprite.from('sprites/' + obj.src + '.png');
+            obj.container.addChild(this.sprite)
+            this.sprite.x = this.x;
+            this.sprite.y = this.y;
+            this.sprite.scale.x = Constants.TEXTURE_RESCALE;
+            this.sprite.scale.y = Constants.TEXTURE_RESCALE;
+            console.log(this.x, this.y)
+        }
+        if (this.isDragging) {
+
+        } else if (this.isHovering) {
+
+        } else {
+
+        }
+        /*
         if (this.isHiddenOnAdd) return;
         // let hovering = this.isHovering();
         push();
@@ -202,15 +246,23 @@ class Module {
             // text(this.name, this.x + this.width * 10, this.y + 52);
             pop();
         }
+            */
     }
-    pressed(override = false) {
-        this.isHovering = this.hovering() || override;
-        if (!hoveringOnDiv() && !(mouseX == pmouseX && mouseY == pmouseY)) {
+    pressed(e, override = false) {
+        this.isHovering = this.hovering(e) || override;
+        console.log(this.isHovering)
+        if (!Editor.isPointerHoveringOnDiv(e) &&
+            !(
+                EventHandler.pointerPosition.x ==
+                EventHandler.previousPointerPosition.x &&
+                EventHandler.pointerPosition.y ==
+                EventHandler.previousPointerPosition.y)) {
             this.isHiddenOnAdd = false;
         }
-        if (this.isHovering && pressedObject.id == 0) {
-            if (mouseButton == LEFT) {
-                pressedObject = this;
+        if (this.isHovering && Editor.pressedCircuitObject.id == 0) {
+            console.log(e.button)
+            if (e.button == 0) {
+                Editor.pressedCircuitObject = this;
                 // this.selected();
                 this.mouseDown = true && !this.isDragging;
                 this.isDragging = true;
@@ -218,26 +270,40 @@ class Module {
                     this.rawX = this.x;
                     this.rawY = this.y;
                 }
-                this.offsetX = this.rawX - mouseCanvasX;
-                this.offsetY = this.rawY - mouseCanvasY;
+                this.offsetX = this.rawX - Editor.pointerPosition.x;
+                this.offsetY = this.rawY - Editor.pointerPosition.y;
                 return this;
             }
-            if (mouseButton == RIGHT) {
+            if (e.button == 2) {
                 this.remove();
             }
         }
+        /*
         if (this.isDragging) {
-            this.rawX = mouseCanvasX + this.offsetX;
-            this.rawY = mouseCanvasY + this.offsetY;
-            this.x = round(this.rawX / 20) * 20;
-            this.y = round(this.rawY / 20) * 20;
+            this.rawX = Editor.pointerPosition.x + this.offsetX;
+            this.rawY = Editor.pointerPosition.y + this.offsetY;
+            this.x = Math.round(this.rawX / 20) * 20;
+            this.y = Math.round(this.rawY / 20) * 20;
+            this.sprite.x = this.x;
+            this.sprite.y = this.y;
         }
+        */
         return false;
     }
-    selected() {}
-    released() {
+    onPointerMove(e) {
+        if (this.isDragging) {
+            this.rawX = Editor.pointerPosition.x + this.offsetX;
+            this.rawY = Editor.pointerPosition.y + this.offsetY;
+            this.x = Math.round(this.rawX / 20) * 20;
+            this.y = Math.round(this.rawY / 20) * 20;
+            this.sprite.x = this.x;
+            this.sprite.y = this.y;
+        }
+    }
+    selected() { }
+    released(e) {
         this.isHiddenOnAdd = false;
-        if (this.ignoreDiv && hoveringOnDiv()) {
+        if (this.ignoreDiv && Editor.isPointerHoveringOnDiv(e)) {
             this.x = round(cameraCenterX / 20) * 20;
             this.y = round(cameraCenterY / 20) * 20;
         }
@@ -285,7 +351,7 @@ class Module {
         // this.outputs = outputs;
     }
     static addToCircuit(mod) {
-        mouseUpdate();
+        //// mouseUpdate();
         currentCircuit.addInputModule(mod);
         // mod.ignoreDiv = true;
         // mod.isHiddenOnAdd = true;
@@ -305,8 +371,8 @@ class WireNode extends Module {
         super.evaluate(time, connectedToOutput, evaluated);
     }
     pressed() {
-        if (this.hovering() && pressedObject.id == 0) {
-            pressedObject = this;
+        if (this.hovering() && Editor.pressedCircuitObject.id == 0) {
+            Editor.pressedCircuitObject = this;
             if (mouseButton == LEFT) {
                 return this;
             }
@@ -327,8 +393,10 @@ class WireNode extends Module {
 }
 
 class Input extends Module {
-    constructor(name) {
-        super(name, 2, 2);
+    constructor(obj) {
+        obj.width = 2;
+        obj.height = 2;
+        super(obj);
         this.outputValue = [State.low];
         this.outputs = [new OutputNode(this, "Output", 2, 1, [State.low], 0)];
         this.isSubmoduleIO = false;
@@ -340,9 +408,14 @@ class Input extends Module {
     evaluate(time) {
         super.evaluate(time);
     }
-    render() {
+    render(obj = {
+        container: undefined,
+        graphics: undefined,
+    }) {
         let char = State.char(this.outputValue);
-        super.render([[char, 12, 0, 0]], "basic/input");
+        obj.labels = [[char, 12, 0, 0]];
+        obj.src = "basic/input";
+        super.render(obj);
     }
     selected() {
         super.selected();
@@ -352,7 +425,7 @@ class Input extends Module {
         setInputButtonColor(value);
     }
     static add() {
-        Module.addToCircuit(new Input("Input"));
+        Module.addToCircuit(new Input({ name: "Input" }));
     }
 }
 
@@ -379,18 +452,27 @@ function setInputButtonColor(value) {
 }
 
 class Output extends Module {
-    constructor(name) {
-        super(name, 2, 2);
+    constructor(obj) {
+        obj.width = 2;
+        obj.height = 2;
+        super(obj);
         this.inputs = [new InputNode(this, "Input", 0, 1, [State.highZ])];
     }
     evaluate(time) {
         super.evaluate(time);
     }
-    render() {
+    render(obj = {
+        container: undefined,
+        graphics: undefined,
+    }) {
         let char = State.toString(this.inputs[0].getValueAtTime(Infinity));
-        super.render([[char, 12, 0, 0]], "basic/output");
+        obj.labels = [[char, 12, 0, 0]];
+        obj.src = "basic/output";
+        super.render(obj);
     }
     static add() {
-        Module.addToCircuit(new Output("Output"));
+        Module.addToCircuit(new Output({ name: "Output" }));
     }
 }
+
+export { Module, WireNode, Input, Output }

@@ -1,6 +1,9 @@
+import { Module, WireNode, Input, Output } from "./module.js";
+import { evaluateAll } from "./evaluate.js";
+
 class Circuit extends Module {
-    constructor(name) {
-        super(name);
+    constructor(obj) {
+        super(obj);
         this.modules = [];
         this.inputModules = [];
         this.outputModules = [];
@@ -59,7 +62,9 @@ class Circuit extends Module {
     evaluate() {
         // this.evaluateAll(false);
     }
-
+    evaluateAll() {
+        evaluateAll.call(this);
+    }
     serialize() {
         let moduleData = super.serialize();
         moduleData.modulesId = this.modules.map((m) => m.id);
@@ -133,7 +138,6 @@ class Circuit extends Module {
 }
 
 let nameId = 0;
-var currentCircuit = new Circuit("Circuit");
 var customModules = {};
 
 function toSubModule() {
@@ -163,3 +167,5 @@ function toSubModule() {
 
     nameId++;
 }
+
+export { Circuit };

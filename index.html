@@ -8,9 +8,10 @@
   <title>Circuit Simulator</title>
   <link rel="stylesheet" href="./output.css" />
   <meta name="viewport" content="width=device-width, user-scalable=no" />
+  <script src="src/pixi.js"></script>
 </head>
 
-<body oncontextmenu="return false" style="touch-action: pan-x pan-y;">
+<body">
   <p class="fixed left-3 bottom-2 text-sm text-zinc-600">v1.13 alpha <a class="mx-2 underline"
       href="https://github.com/ForeverFlank/circuit-webapp" target="_blank">Source Code</a></p>
   <div id="top-tab" class="flex sticky top-0 h-14 z-20 bg-zinc-100 border-b border-zinc-200">
@@ -185,7 +186,7 @@
 
   <p id="fps-counter" class="fixed bottom-6 left-3">0</p>
 
-  <script src="src/p5.min.js"></script>
+  <!--script src="src/p5.min.js"></script>
   <script src="src/init.js"></script>
   <script src="src/camera.js"></script>
 
@@ -202,15 +203,17 @@
   <script src="src/gates/latches.js"></script>
   <script src="src/gates/nbit.js"></script>
   
-  <script src="src/ui/accordion.js"></script>
-  <script src="src/ui/selected-object.js"></script>
-  <script src="src/ui/ui.js"></script>
+  
 
   <script src="src/gate-menu-buttons.js"></script>
   <script src="src/saving.js"></script>
   <script src="src/renderer.js"></script>
-  <script src="src/input-handler.js"></script>
-  <script src="src/index.js"></script>
+  <script src="src/input-handler.js"></script-->
+  <script src="src/ui/accordion.js"></script>
+  <script src="src/ui/selected-object.js"></script>
+  <script src="src/ui/ui.js"></script>
+  
+  <script type="module" src="src/main.js"></script>
 </body>
 
 </html>

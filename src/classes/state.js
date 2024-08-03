@@ -88,3 +88,5 @@ class State {
             .join("");
     }
 }
+
+export { State }

@@ -1,8 +1,11 @@
+/*
 var canvas;
+
 function setup() {
     canvas = createCanvas(containerWidth, containerHeight);
     canvas.parent("canvas-container");
     textFont(fontRegular);
+    
 }
 
 function grid() {
@@ -71,6 +74,7 @@ function nodeHint() {
 
 function mainRender() {
     background("#f4f4f5");
+    
     push();
     translate(width / 2, height / 2);
     translate(controls.view.x, controls.view.y);
@@ -94,9 +98,12 @@ function mainRender() {
     wires.forEach((x) => x.render());
     nodes.forEach((x) => x.render());
 
+    
+
     if (Object.keys(hoveringNode).length != 0) {
         nodeHint();
     }
 
     pop();
 }
+*/

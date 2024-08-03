@@ -1,12 +1,25 @@
+import { Module, WireNode } from "../classes/module.js";
+import { ModuleNode, InputNode, OutputNode, SplitterNode } from "../classes/modulenode.js";
+import { State } from "../classes/state.js";
+
 class NotGate extends Module {
-    constructor(name) {
-        super(name, 4, 2);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 4;
+        if (obj.height == null) obj.height = 2;
+        super(obj);
         this.inputs = [new InputNode(this, "Input", 0, 1)];
         this.outputs = [new OutputNode(this, "Output", 4, 1)];
         this.displayName = "NOT";
     }
-    render() {
-        super.render([[this.displayName, 10, -6, 0]], "basic/not");
+    render(obj = {
+        container: undefined,
+        graphics: undefined,
+        labels: [[this.displayName, 10, -6, 0]],
+        src: "basic/not"
+    }) {
+        obj.labels = [[this.displayName, 10, -6, 0]];
+        obj.src = "basic/not";
+        super.render(obj);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -20,13 +33,15 @@ class NotGate extends Module {
         );
     }
     static add() {
-        Module.addToCircuit(new NotGate("NOT Gate"));
+        Module.addToCircuit(new NotGate({ name: "NOT Gate" }));
     }
 }
 
 class AndGate extends Module {
-    constructor(name) {
-        super(name, 4, 4);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 4;
+        if (obj.height == null) obj.height = 4;
+        super(obj);
         this.inputs = [
             new InputNode(this, "Input 1", 0, 1),
             new InputNode(this, "Input 2", 0, 3),
@@ -34,8 +49,8 @@ class AndGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "AND";
     }
-    render() {
-        super.render(
+    render(graphics) {
+        super.render(graphics,
             [[this.displayName, 12, -5, 0]],
             "basic/and",
             0,
@@ -64,8 +79,10 @@ class AndGate extends Module {
 }
 
 class OrGate extends Module {
-    constructor(name) {
-        super(name, 4, 4);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 4;
+        if (obj.height == null) obj.height = 4;
+        super(obj);
         this.inputs = [
             new InputNode(this, "Input 1", 0, 1),
             new InputNode(this, "Input 2", 0, 3),
@@ -73,8 +90,8 @@ class OrGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "OR";
     }
-    render() {
-        super.render([[this.displayName, 12, -5, 0]], "basic/or", 0, 0, 80, 80);
+    render(graphics) {
+        super.render(graphics, [[this.displayName, 12, -5, 0]], "basic/or", 0, 0, 80, 80);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -96,8 +113,10 @@ class OrGate extends Module {
 }
 
 class NandGate extends Module {
-    constructor(name) {
-        super(name, 4, 4);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 4;
+        if (obj.height == null) obj.height = 4;
+        super(obj);
         this.inputs = [
             new InputNode(this, "Input 1", 0, 1),
             new InputNode(this, "Input 2", 0, 3),
@@ -105,8 +124,8 @@ class NandGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "NAND";
     }
-    render() {
-        super.render(
+    render(graphics) {
+        super.render(graphics,
             [[this.displayName, 12, -5, 0]],
             "basic/nand",
             0,
@@ -136,8 +155,10 @@ class NandGate extends Module {
 }
 
 class NorGate extends Module {
-    constructor(name) {
-        super(name, 4, 4);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 4;
+        if (obj.height == null) obj.height = 4;
+        super(obj);
         this.inputs = [
             new InputNode(this, "Input 1", 0, 1),
             new InputNode(this, "Input 2", 0, 3),
@@ -145,8 +166,8 @@ class NorGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "NOR";
     }
-    render() {
-        super.render(
+    render(graphics) {
+        super.render(graphics,
             [[this.displayName, 12, -5, 0]],
             "basic/nor",
             0,
@@ -176,8 +197,10 @@ class NorGate extends Module {
 }
 
 class XorGate extends Module {
-    constructor(name) {
-        super(name, 4, 4);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 4;
+        if (obj.height == null) obj.height = 4;
+        super(obj);
         this.inputs = [
             new InputNode(this, "Input 1", 0, 1),
             new InputNode(this, "Input 2", 0, 3),
@@ -185,8 +208,8 @@ class XorGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "XOR";
     }
-    render() {
-        super.render(
+    render(graphics) {
+        super.render(graphics,
             [[this.displayName, 12, -5, 0]],
             "basic/xor",
             0,
@@ -215,8 +238,10 @@ class XorGate extends Module {
 }
 
 class XnorGate extends Module {
-    constructor(name) {
-        super(name, 4, 4);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 4;
+        if (obj.height == null) obj.height = 4;
+        super(obj);
         this.inputs = [
             new InputNode(this, "Input 1", 0, 1),
             new InputNode(this, "Input 2", 0, 3),
@@ -224,8 +249,8 @@ class XnorGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "XNOR";
     }
-    render() {
-        super.render(
+    render(graphics) {
+        super.render(graphics,
             [[this.displayName, 12, -5, 0]],
             "basic/xnor",
             0,
@@ -265,8 +290,8 @@ class TriStateBuffer extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 1)];
         this.displayName = "";
     }
-    render() {
-        super.render([["", 12, -8, 0]], "basic/tristatebuffer");
+    render(graphics) {
+        super.render(graphics, [["", 12, -8, 0]], "basic/tristatebuffer");
     }
     evaluate(time) {
         // console.warn("EVAL", time);
@@ -350,8 +375,10 @@ class HalfAdder extends Module {
 }
 
 class FullAdder extends Module {
-    constructor(name) {
-        super(name, 4, 4);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 4;
+        if (obj.height == null) obj.height = 4;
+        super(obj);
         this.inputs = [
             new InputNode(this, "Input 1", 0, 1),
             new InputNode(this, "Input 2", 0, 2),
@@ -392,3 +419,5 @@ class FullAdder extends Module {
         Module.addToCircuit(new FullAdder("Full Adder"));
     }
 }
+
+export { NotGate, AndGate, OrGate, NandGate, NorGate, XnorGate, XorGate, TriStateBuffer, HalfAdder, FullAdder }

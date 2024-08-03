@@ -1,3 +1,9 @@
+import { State } from "../classes/state.js";
+import { unique } from "../custom-uuid.js";
+import { Editor } from "../editor/editor.js";
+import { currentCircuit } from "../main.js";
+import * as Constants from "../constants.js"
+
 class ModuleNode {
     constructor(
         owner,
@@ -346,17 +352,29 @@ class ModuleNode {
             this.remove();
         }
     }
-    hovering() {
-        if (controlMode == "pan") return false;
-        if (hoveringOnDiv()) return false;
+    hovering(e) {
+        if (Editor.mode == "pan") return false;
+        if (Editor.isPointerHoveringOnDiv(e)) return false;
         let result =
-            (mouseCanvasX - this.getCanvasX()) ** 2 +
-                (mouseCanvasY - this.getCanvasY()) ** 2 <=
-            NODE_HOVERING_RADIUS ** 2;
+            (Editor.pointerPosition.x - this.getCanvasX()) ** 2 +
+            (Editor.pointerPosition.y - this.getCanvasY()) ** 2 <=
+            Constants.NODE_HOVERING_RADIUS ** 2;
         return result;
     }
-    render() {
+    render(obj) {
         if (this.owner.isHiddenOnAdd) return;
+        if (this.graphics == null) {
+            this.graphics = new PIXI.Graphics()
+            this.graphics.eventMode = "static";
+            this.graphics.circle(0, 0, 5);
+            this.graphics.fill(0x000000);
+            obj.container.addChild(this.graphics);
+        }
+        const netX = this.getCanvasX();
+        const netY = this.getCanvasY();
+        this.graphics.x = netX;
+        this.graphics.y = netY;
+        /*
         stroke(0);
         strokeWeight(2);
         let netX = this.getCanvasX();
@@ -394,17 +412,18 @@ class ModuleNode {
             text(str + value, netX, netY - 13);
             // text(this.isHighZ, netX, netY - 18);
             // text("; " + this.valueAtTime, netX, netY - 23);
-            /*
+            
             text(
                 this.connections.map((x) => x.destination.name),
                 netX + 16,
                 netY - 16
             );
-            */
+            
             // text(this.delay, netX + 5, netY - 15);
             if (this.isSplitterNode()) text(this.indices, netX + 16, netY - 26);
             pop();
         }
+        */
     }
     renderPin() {
         if (this.owner.isHiddenOnAdd) return;
@@ -419,9 +438,9 @@ class ModuleNode {
         if (this.pinDirection == 3) line(netX, netY, netX, netY + 10);
         pop();
     }
-    pressed(disableWireDragging = false) {
-        this.isHovering = this.hovering();
-        if (this.isHovering && pressedObject.id == 0) {
+    pressed(e, disableWireDragging = false) {
+        this.isHovering = this.hovering(e);
+        if (this.isHovering && Editor.pressedObject.id == 0) {
             pressedObject = this;
             if (mouseButton == LEFT) {
                 line(
@@ -442,7 +461,7 @@ class ModuleNode {
         }
         return false;
     }
-    released() {
+    released(e, ) {
         this.isDragging = false;
         if (this.isHovering) {
             if (clickedNode != null) {
@@ -482,7 +501,7 @@ class ModuleNode {
         this.linkedModule = mod;
         mod.linkedNode = this;
     }
-    selected() {}
+    selected() { }
     serialize() {
         return {
             ownerId: this.owner.id,
@@ -563,3 +582,5 @@ class SplitterNode extends ModuleNode {
         this.indices = [];
     }
 }
+
+export { ModuleNode, InputNode, OutputNode, SplitterNode }

@@ -1,56 +1,60 @@
+import * as Gates from "./gates/gates.js"
+
 let buttons = {
     "gate-io": [
-        ["Input", () => Input.add()],
-        ["Output", () => Output.add()],
-        ["N-bit Input", () => NBitInput.add()],
-        ["LED", () => LED.add()],
+        ["Input", () => Gates.Input.add()],
+        ["Output", () => Gates.Output.add()],
+        ["N-bit Input", () => Gates.NBitInput.add()],
+        ["LED", () => Gates.LED.add()],
     ],
     "gate-basic": [
-        ["NOT", () => NotGate.add()],
-        ["Tri-State Buffer", () => TriStateBuffer.add()],
-        ["AND", () => AndGate.add()],
-        ["NAND", () => NandGate.add()],
-        ["OR", () => OrGate.add()],
-        ["NOR", () => NorGate.add()],
-        ["XOR", () => XorGate.add()],
-        ["XNOR", () => XnorGate.add()],
+        ["NOT", () => Gates.Basic.NotGate.add()],
+        ["Tri-State Buffer", () => Gates.Basic.TriStateBuffer.add()],
+        ["AND", () => Gates.Basic.AndGate.add()],
+        ["NAND", () => Gates.Basic.NandGate.add()],
+        ["OR", () => Gates.Basic.OrGate.add()],
+        ["NOR", () => Gates.Basic.NorGate.add()],
+        ["XOR", () => Gates.Basic.XorGate.add()],
+        ["XNOR", () => Gates.Basic.XnorGate.add()],
     ],
     "gate-plexers": [
-        ["1-to-2 Decoder", () => Decoder1To2.add()],
-        ["2-to-4 Decoder", () => Decoder2To4.add()],
-        ["3-to-8 Decoder", () => Decoder3To8.add()],
+        ["1-to-2 Decoder", () => Gates.Decoder1To2.add()],
+        ["2-to-4 Decoder", () => Gates.Decoder2To4.add()],
+        ["3-to-8 Decoder", () => Gates.Decoder3To8.add()],
     ],
     "gate-latches": [
-        ["SR Latch", () => SRLatch.add()],
-        ["D Latch", () => DLatch.add()],
-        ["D Flip Flop", () => DFlipFlop.add()],
-        ["T Flip Flop", () => TFlipFlop.add()],
-        ["JK Flip Flop", () => JKFlipFlop.add()],
-        ["Register", () => Register.add()],
+        ["SR Latch", () => Gates.SRLatch.add()],
+        ["D Latch", () => Gates.DLatch.add()],
+        ["D Flip Flop", () => Gates.DFlipFlop.add()],
+        ["T Flip Flop", () => Gates.TFlipFlop.add()],
+        ["JK Flip Flop", () => Gates.JKFlipFlop.add()],
+        ["Register", () => Gates.Register.add()],
     ],
     "gate-arithmetic": [
-        ["Half Adder", () => HalfAdder.add()],
-        ["Full Adder", () => FullAdder.add()],
-        ["N-bit Adder", () => NBitAdder.add()],
+        ["Half Adder", () => Gates.HalfAdder.add()],
+        ["Full Adder", () => Gates.FullAdder.add()],
+        ["N-bit Adder", () => Gates.NBitAdder.add()],
     ],
     "gate-nbit": [
-        ["N-bit Input", () => NBitInput.add()],
+        ["N-bit Input", () => Gates.NBitInput.add()],
         ["Splitter", () => openSplitterMenu()],
-        ["Bitwise NOT", () => BitwiseNotGate.add()],
-        ["N-bit Tri-State Buffer", () => NBitTriStateBuffer.add()],
-        ["Bitwise AND", () => BitwiseAndGate.add()],
-        ["Bitwise OR", () => BitwiseOrGate.add()],
-        ["N-bit Multiplexer", () => NBitMultiplexer.add()],
-        ["N-bit Adder", () => NBitAdder.add()],
+        ["Bitwise NOT", () => Gates.BitwiseNotGate.add()],
+        ["N-bit Tri-State Buffer", () => Gates.NBitTriStateBuffer.add()],
+        ["Bitwise AND", () => Gates.BitwiseAndGate.add()],
+        ["Bitwise OR", () => Gates.BitwiseOrGate.add()],
+        ["N-bit Multiplexer", () => Gates.NBitMultiplexer.add()],
+        ["N-bit Adder", () => Gates.NBitAdder.add()],
     ],
 };
 
-for (let container in buttons) {
-    let div = document.getElementById(container);
-    buttons[container].forEach(([title, onClick]) => {
-        const button = document.createElement("button");
-        button.textContent = title;
-        button.onclick = onClick;
-        div.appendChild(button);
-    });
+export function createGateMenuButtons() {
+    for (let container in buttons) {
+        let div = document.getElementById(container);
+        buttons[container].forEach(([title, onClick]) => {
+            const button = document.createElement("button");
+            button.textContent = title;
+            button.onclick = onClick;
+            div.appendChild(button);
+        });
+    }
 }

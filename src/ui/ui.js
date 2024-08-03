@@ -1,3 +1,4 @@
+/*
 bg.addEventListener("click", () => {
     closeMenu();
     closeModalMenu();
@@ -35,6 +36,5 @@ function setControlMode(mode) {
     });
 }
 setControlMode("edit");
-
-
+*/
 

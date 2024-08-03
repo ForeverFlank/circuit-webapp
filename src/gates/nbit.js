@@ -71,7 +71,7 @@ class Splitter extends Module {
     evaluate(time) {
         super.evaluate(time);
     }
-    render() {
+    render(graphics) {
         push();
         noFill();
         stroke(0);
@@ -84,7 +84,7 @@ class Splitter extends Module {
             this.y + this.splitArray.length * 20 - 20
         );
         pop();
-        // super.render();
+        // super.render(graphics, );
     }
     released() {
         super.released();
@@ -163,8 +163,8 @@ class NBitInput extends Module {
     evaluate(time) {
         super.evaluate(time);
     }
-    render() {
-        super.render(
+    render(graphics) {
+        super.render(graphics, 
             [[State.toString(this.outputValue), 12, 0, 0]],
             "basic/input"
         );
@@ -203,9 +203,9 @@ class BitwiseNotGate extends Module {
         this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "NOT";
     }
-    render() {
-        super.render();
-        // super.render(this.displayName, 8, -8, 0, "basic/not");
+    render(graphics) {
+        super.render(graphics, );
+        // super.render(graphics, this.displayName, 8, -8, 0, "basic/not");
     }
     evaluate(time) {
         super.evaluate(time);
@@ -234,8 +234,8 @@ class NBitTriStateBuffer extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 1)];
         this.displayName = "";
     }
-    render() {
-        super.render([["", 12, -8, 0]], "basic/tristatebuffer");
+    render(graphics) {
+        super.render(graphics, [["", 12, -8, 0]], "basic/tristatebuffer");
     }
     evaluate(time) {
         // console.warn("EVAL", time);
@@ -291,8 +291,8 @@ class BitwiseAndGate extends Module {
         this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "AND";
     }
-    render() {
-        super.render();
+    render(graphics) {
+        super.render(graphics, );
     }
     evaluate(time) {
         super.evaluate(time);
@@ -332,8 +332,8 @@ class BitwiseOrGate extends Module {
         this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "OR";
     }
-    render() {
-        super.render();
+    render(graphics) {
+        super.render(graphics, );
     }
     evaluate(time) {
         super.evaluate(time);
@@ -375,8 +375,8 @@ class NBitMultiplexer extends Module {
         this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "";
     }
-    render() {
-        super.render();
+    render(graphics) {
+        super.render(graphics, );
     }
     evaluate(time) {
         super.evaluate(time);
@@ -421,8 +421,8 @@ class NBitAdder extends Module {
         this.outputs.forEach((node) => (node.pinDirection = 2));
         this.displayName = "Add";
     }
-    render() {
-        super.render();
+    render(graphics) {
+        super.render(graphics, );
     }
     evaluate(time) {
         super.evaluate(time);
@@ -460,3 +460,5 @@ class NBitAdder extends Module {
         Module.addToCircuit(new NBitAdder("N-bit Adder"));
     }
 }
+
+export { NBitInput, BitwiseNotGate, NBitTriStateBuffer, BitwiseAndGate, BitwiseOrGate, NBitMultiplexer, NBitAdder }
