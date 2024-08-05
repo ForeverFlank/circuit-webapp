@@ -45,11 +45,11 @@ class State {
         return State.or([p, q]);
     }
     static color(b) {
-        if (b == State.err) return color("#990000");
-        if (b == State.highZ) return color("#a0a0a0");
-        if (b == State.low) return color("#ed2525");
-        if (b == State.high) return color("#4ff02d");
-        return color("#0000ff");
+        if (b == State.err) return 0x990000;
+        if (b == State.highZ) return 0xa0a0a0;
+        if (b == State.low) return 0xed2525;
+        if (b == State.high) return 0x4ff02d;
+        return 0x0000ff;
     }
     static char(b) {
         let char;

@@ -1,7 +1,7 @@
 import { EventHandler } from "../event/event-handler.js";
 import * as Constants from "../constants.js"
 import { CanvasContainer } from "../classes/canvas.js";
-import { currentCircuit, mainCanvasContainer } from "../main.js";
+import { currentCircuit, mainCanvasContainer, mainContainer } from "../main.js";
 
 
 class Editor {
@@ -13,12 +13,15 @@ class Editor {
     static blurDiv = document.getElementById("background-blur");
 
     static container = null;
-    static position = { x: 0, y: 0}
     static zoom = 1;
+    static position = { x: 0, y: 0}
     static pointerPosition = { x: 0, y: 0 };
     static centerPosition = { x: 0, y: 0 };
     static panEnabled = false;
+
     static pressedCircuitObject = { id: 0 };
+    static pressedNode = { id: 0 };
+    static wireDrawingGraphics = null;
 
     static circuitPointerDown(e) {
         let isPressedOnCircuit = false;
@@ -51,7 +54,7 @@ class Editor {
             let nodes = mod.inputs.concat(mod.outputs);
             mod.onPointerMove(e);
             for (let j = nodes.length - 1; j >= 0; j--) {
-                // nodes[j].released(e, false)
+                // nodes[j].onPointerMove(e);
                 let wires = nodes[j].connections;
                 for (let k = wires.length - 1; k >= 0; k--) {
                     // wires[k].released(e)
@@ -68,11 +71,12 @@ class Editor {
                 nodes[j].released(e, false)
                 let wires = nodes[j].connections;
                 for (let k = wires.length - 1; k >= 0; k--) {
-                    wires[k].released(e)
+                    // wires[k].released(e)
                 }
             }
         }
         Editor.pressedCircuitObject = { id: 0 };
+        Editor.pressedNode = null;
     }
     static isPointerHoveringOnDiv(e) {
         for (let i in this.divIds) {
@@ -82,7 +86,6 @@ class Editor {
             const left = offsets.left;
             const height = div.clientHeight;
             const width = div.clientWidth;
-            
             if (
                 e.y > top &&
                 e.y < top + height &&
@@ -140,6 +143,20 @@ EventHandler.add("pointermove",
             Editor.position.y += EventHandler.deltaPointerPosition.y;
             Editor.updateViewport();
         }
+
+        for (let i = currentCircuit.modules.length - 1; i >= 0; i--) {
+            let mod = currentCircuit.modules[i];
+            let nodes = mod.inputs.concat(mod.outputs);
+            mod.hovering(e);
+            for (let j = nodes.length - 1; j >= 0; j--) {
+                nodes[j].hovering(e);
+                let wires = nodes[j].connections;
+                for (let k = wires.length - 1; k >= 0; k--) {
+                    // wires[k].released(e)
+                }
+            }
+        }
+
     }
 );
 

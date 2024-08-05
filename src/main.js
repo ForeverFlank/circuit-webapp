@@ -28,9 +28,10 @@ const canvasStyle = {
 };
 
 const app = new PIXI.Application();
-const container = new PIXI.Container({
+const mainContainer = new PIXI.Container({
     isRenderGroup: true,
 });
+export { mainContainer };
 
 await app.init({
     width: mainCanvasContainer.getContainerWidth(),
@@ -40,20 +41,23 @@ await app.init({
 });
 document.getElementById("canvas-container").appendChild(app.canvas);
 
-container.x = mainCanvasContainer.getContainerWidth() / 2;
-container.y = mainCanvasContainer.getContainerHeight() / 2;
-app.stage.addChild(container);
-Editor.container = container;
-Editor.position.x = container.x;
-Editor.position.y = container.y;
+mainContainer.x = mainCanvasContainer.getContainerWidth() / 2;
+mainContainer.y = mainCanvasContainer.getContainerHeight() / 2;
+app.stage.addChild(mainContainer);
+Editor.container = mainContainer;
+Editor.position.x = mainContainer.x;
+Editor.position.y = mainContainer.y;
+Editor.wireDrawingGraphics = new PIXI.Graphics();
+Editor.wireDrawingGraphics.eventMode = "static";
+mainContainer.addChild(Editor.wireDrawingGraphics);
 
 await PIXI.Assets.load("./src/sample.png");
 let sprite = PIXI.Sprite.from("./src/sample.png");
-container.addChild(sprite);
+mainContainer.addChild(sprite);
 
 const graphics = new PIXI.Graphics();
 graphics.eventMode = "static";
-container.addChild(graphics);
+mainContainer.addChild(graphics);
 
 let elapsed = 0.0;
 let i = 0;
@@ -69,14 +73,27 @@ app.ticker.add((ticker) => {
     for (let i = currentCircuit.modules.length - 1; i >= 0; --i) {
         let mod = currentCircuit.modules[i];
         mod.render({
-            container: container,
             graphics: graphics
         });
         let inputs = mod.inputs;
         let outputs = mod.outputs;
+
+        function renderWire(node) {
+            let wires = node.connections;
+            for (let k = wires.length - 1; k >= 0; --k) {
+                wires[k].render();
+                wires[k].parallelWire.render();
+            }
+        }
         for (let j = inputs.length - 1; j >= 0; --j) {
             let node = inputs[j];
-            node.render({ container: container });
+            renderWire(node);
+            node.render();
+        }
+        for (let j = outputs.length - 1; j >= 0; --j) {
+            let node = outputs[j];
+            renderWire(node);
+            node.render();
         }
     }
 

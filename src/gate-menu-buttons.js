@@ -4,8 +4,8 @@ let buttons = {
     "gate-io": [
         ["Input", () => Gates.Input.add()],
         ["Output", () => Gates.Output.add()],
-        ["N-bit Input", () => Gates.NBitInput.add()],
-        ["LED", () => Gates.LED.add()],
+        // ["N-bit Input", () => Gates.NBit.NBitInput.add()],
+        ["LED", () => Gates.IO.LED.add()],
     ],
     "gate-basic": [
         ["NOT", () => Gates.Basic.NotGate.add()],

@@ -1,7 +1,8 @@
-import { State } from "../classes/state.js";
 import { unique } from "../custom-uuid.js";
+import { State } from "../classes/state.js";
+import { Wire } from "./wire.js";
 import { Editor } from "../editor/editor.js";
-import { currentCircuit } from "../main.js";
+import { currentCircuit, mainContainer } from "../main.js";
 import * as Constants from "../constants.js"
 
 class ModuleNode {
@@ -282,6 +283,8 @@ class ModuleNode {
             return;
         let outgoingWire = new Wire(this, node);
         let incomingWire = new Wire(node, this, false);
+        outgoingWire.parallelWire = incomingWire;
+        incomingWire.parallelWire = outgoingWire;
         this.connections.push(outgoingWire);
         node.connections.push(incomingWire);
 
@@ -356,9 +359,10 @@ class ModuleNode {
         if (Editor.mode == "pan") return false;
         if (Editor.isPointerHoveringOnDiv(e)) return false;
         let result =
-            (Editor.pointerPosition.x - this.getCanvasX()) ** 2 +
-            (Editor.pointerPosition.y - this.getCanvasY()) ** 2 <=
-            Constants.NODE_HOVERING_RADIUS ** 2;
+        (Editor.pointerPosition.x - this.getCanvasX()) ** 2 +
+        (Editor.pointerPosition.y - this.getCanvasY()) ** 2 <=
+        Constants.NODE_HOVERING_RADIUS ** 2;
+        this.isHovering = result;
         return result;
     }
     render(obj) {
@@ -366,14 +370,36 @@ class ModuleNode {
         if (this.graphics == null) {
             this.graphics = new PIXI.Graphics()
             this.graphics.eventMode = "static";
-            this.graphics.circle(0, 0, 5);
-            this.graphics.fill(0x000000);
-            obj.container.addChild(this.graphics);
+            this.graphics.circle(0, 0, 4);
+            this.graphics.fill(0xffffff);
+            mainContainer.addChild(this.graphics);
         }
         const netX = this.getCanvasX();
         const netY = this.getCanvasY();
         this.graphics.x = netX;
         this.graphics.y = netY;
+        if (this.isDragging) {
+            this.graphics.scale.x = 1.2;
+            this.graphics.scale.y = 1.2;
+        } else if (this.isHovering) {
+            this.graphics.scale.x = 1.2;
+            this.graphics.scale.y = 1.2;
+        } else {
+            this.graphics.scale.x = 1;
+            this.graphics.scale.y = 1;
+        }
+        const value =
+            this.valueAtTime[Math.max(...Object.keys(this.valueAtTime))];
+        if (value.length == 1) {
+            this.graphics.tint = State.color(value[0]);
+        } else {
+            if (value.every((x) => x == State.highZ)) {
+                this.graphics.tint = State.color(State.highZ);
+            } else {
+                this.graphics.tint = 0x404040;
+            }
+        }
+        // this.graphics.tint = 0xffffff;
         /*
         stroke(0);
         strokeWeight(2);
@@ -382,18 +408,9 @@ class ModuleNode {
         if (this.isDragging) {
             line(netX, netY, mouseCanvasX, mouseCanvasY);
         }
-        let value =
-            this.valueAtTime[Math.max(...Object.keys(this.valueAtTime))];
+        
         noStroke();
-        if (value.length == 1) {
-            fill(State.color(value[0]));
-        } else {
-            if (value.every((x) => x == State.highZ)) {
-                fill(State.color(State.highZ));
-            } else {
-                fill(64);
-            }
-        }
+        
         circle(netX, netY, this.hovering() ? 9 : 6);
 
         if (this.hovering()) {
@@ -440,33 +457,35 @@ class ModuleNode {
     }
     pressed(e, disableWireDragging = false) {
         this.isHovering = this.hovering(e);
-        if (this.isHovering && Editor.pressedObject.id == 0) {
-            pressedObject = this;
-            if (mouseButton == LEFT) {
+        if (this.isHovering && Editor.pressedCircuitObject.id == 0) {
+            Editor.pressedCircuitObject = this;
+            if (e.button == 0) {
+                /*
                 line(
                     this.getCanvasX(),
                     this.getCanvasY(),
-                    mouseCanvasX,
-                    mouseCanvasY
+                    Editor.pointerPosition.x,
+                    Editor.pointerPosition.y,
                 );
+                */
                 if (!disableWireDragging) {
-                    clickedNode = this;
+                    Editor.pressedNode = this;
                     this.isDragging = true;
                 }
                 return true;
             }
-            if (mouseButton == RIGHT) {
+            if (e.button == 2) {
                 this.remove();
             }
         }
         return false;
     }
-    released(e, ) {
+    released(e) {
         this.isDragging = false;
         if (this.isHovering) {
-            if (clickedNode != null) {
-                clickedNode.connect(this);
-                clickedNode = null;
+            if (Editor.pressedNode != null) {
+                Editor.pressedNode.connect(this);
+                Editor.pressedNode = null;
                 return true;
             }
         }
@@ -493,8 +512,8 @@ class ModuleNode {
         let y = Math.round(mouseCanvasY / 20) * 20;
         let value = [...this.getValueAtTime(0)].fill(State.highZ);
         let destinationNode = WireNode.add(x, y, value, false);
-        clickedNode.connect(destinationNode.inputs[0]);
-        clickedNode = null;
+        Editor.pressedNode.connect(destinationNode.inputs[0]);
+        Editor.pressedNode = null;
         return destinationNode;
     }
     linkModule(mod) {

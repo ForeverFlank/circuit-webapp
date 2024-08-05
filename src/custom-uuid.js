@@ -1,5 +1,5 @@
 let uniqueNumber = 0;
-export function unique(str = "") {
+function unique(str = "") {
     uniqueNumber++;
     return (
         str +
@@ -10,3 +10,4 @@ export function unique(str = "") {
         Date.now().toString(16)
     );
 }
+export { unique }

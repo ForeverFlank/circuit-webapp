@@ -3,7 +3,7 @@ import { State } from "./state.js";
 import { unique } from "../custom-uuid.js";
 import { ModuleNode, InputNode, OutputNode } from "./modulenode.js";
 import { EventHandler } from "../event/event-handler.js";
-import { currentCircuit } from "../main.js";
+import { currentCircuit, mainContainer } from "../main.js";
 import * as Constants from "../constants.js";
 
 // Drag to move by Daniel Shiffman <http://www.shiffman.net>
@@ -74,8 +74,9 @@ class Module {
             Editor.pointerPosition.y > this.y &&
             Editor.pointerPosition.y < this.y + this.height * 20 &&
             !isHoveringNode;
-        console.log('x', this.x, Editor.pointerPosition.x, this.x + this.width * 20);
-        console.log('y', this.y, Editor.pointerPosition.y, this.y + this.height * 20);
+        // console.log('x', this.x, Editor.pointerPosition.x, this.x + this.width * 20);
+        // console.log('y', this.y, Editor.pointerPosition.y, this.y + this.height * 20);
+        this.isHovering = hovering;
         return hovering;
     }
     init() { }
@@ -168,20 +169,23 @@ class Module {
         }
     ) {
         if (this.sprite == null) {
+            this.container = obj.container;
             this.sprite = PIXI.Sprite.from('sprites/' + obj.src + '.png');
-            obj.container.addChild(this.sprite)
+            mainContainer.addChild(this.sprite)
             this.sprite.x = this.x;
             this.sprite.y = this.y;
             this.sprite.scale.x = Constants.TEXTURE_RESCALE;
             this.sprite.scale.y = Constants.TEXTURE_RESCALE;
             console.log(this.x, this.y)
+            const colorMatrix = new PIXI.ColorMatrixFilter();
+            this.sprite.filters = [colorMatrix];
         }
         if (this.isDragging) {
-
+            this.sprite.filters[0].brightness(0.6);
         } else if (this.isHovering) {
-
+            this.sprite.filters[0].brightness(0.8);
         } else {
-
+            this.sprite.filters[0].brightness(1);
         }
         /*
         if (this.isHiddenOnAdd) return;
@@ -250,7 +254,7 @@ class Module {
     }
     pressed(e, override = false) {
         this.isHovering = this.hovering(e) || override;
-        console.log(this.isHovering)
+        // console.log(this.isHovering)
         if (!Editor.isPointerHoveringOnDiv(e) &&
             !(
                 EventHandler.pointerPosition.x ==
@@ -260,7 +264,7 @@ class Module {
             this.isHiddenOnAdd = false;
         }
         if (this.isHovering && Editor.pressedCircuitObject.id == 0) {
-            console.log(e.button)
+            // console.log(e.button)
             if (e.button == 0) {
                 Editor.pressedCircuitObject = this;
                 // this.selected();
@@ -298,6 +302,31 @@ class Module {
             this.y = Math.round(this.rawY / 20) * 20;
             this.sprite.x = this.x;
             this.sprite.y = this.y;
+            let inputs = this.inputs;
+            let outputs = this.outputs;
+            let container = this.container;
+            function renderWire(node) {
+                let wires = node.connections;
+                for (let k = wires.length - 1; k >= 0; --k) {
+                    wires[k].render({
+                        container: container,
+                        rerender: true
+                    });
+                    wires[k].parallelWire.render({
+                        container: container,
+                        rerender: true
+                    });
+                }
+            }
+    
+            for (let j = inputs.length - 1; j >= 0; --j) {
+                let node = inputs[j];
+                renderWire(node);
+            }
+            for (let j = outputs.length - 1; j >= 0; --j) {
+                let node = outputs[j];
+                renderWire(node);
+            }
         }
     }
     selected() { }

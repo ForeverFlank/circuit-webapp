@@ -1,3 +1,9 @@
+import { unique } from "../custom-uuid.js";
+import { State } from "./state.js";
+import { Editor } from "../editor/editor.js";
+import { mainContainer } from "../main.js";
+import * as Constants from "../constants.js";
+
 class Wire {
     constructor(source, destination, rendered = true, name = "") {
         this.name = "Wire";
@@ -9,28 +15,31 @@ class Wire {
         this.isHovering = false;
         this.objectType = "wire";
     }
-    hovering() {
-        if (controlMode == "pan") return false;
-        if (hoveringOnDiv()) return false;
+    hovering(e) {
+        if (Editor.controlMode == "pan") return false;
+        if (Editor.isPointerHoveringOnDiv(e)) return false;
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();
         let destinationX = this.destination.getCanvasX();
         let destinationY = this.destination.getCanvasY();
 
-        const distance = (u, v) => sqrt((u.x - v.x) ** 2 + (u.y - v.y) ** 2);
+        const distance = (u, v) => Math.sqrt((u.x - v.x) ** 2 + (u.y - v.y) ** 2);
         const sub = (u, v) => {
             return { x: u.x - v.x, y: u.y - v.y };
         };
         const mag = (v) => distance(v, { x: 0, y: 0 });
         const angle = (u, v) =>
-            acos((u.x * v.x + u.y * v.y) / (mag(u) * mag(v)));
+            Math.acos((u.x * v.x + u.y * v.y) / (mag(u) * mag(v)));
 
         const a = { x: sourceX, y: sourceY };
         const b = { x: destinationX, y: destinationY };
-        const c = { x: mouseCanvasX, y: mouseCanvasY };
+        const c = {
+            x: Editor.pointerPosition.x,
+            y: Editor.pointerPosition.y
+        };
 
         const l = mag(sub(a, b));
-        const radius = NODE_HOVERING_RADIUS;
+        const radius = Constants.NODE_HOVERING_RADIUS;
 
         if (
             distance(a, c) > l + radius / 2 ||
@@ -42,7 +51,7 @@ class Wire {
         const ab = sub(a, b);
         const bc = sub(b, c);
 
-        return abs(sin(angle(ab, bc))) * mag(bc) <= radius / 2;
+        return Math.abs(Math.sin(angle(ab, bc))) * mag(bc) <= radius / 2;
     }
     setDirection(from, to) {
         if (this.isSplitterConnection()) return;
@@ -60,10 +69,57 @@ class Wire {
             return false;
         return true;
     }
-    render() {
+    render(obj = {}) {
         if (!this.rendered) return;
         if (this.isSubModuleWire && !DEBUG_2) return;
+        if (this.graphics == null) {
+            this.graphics = new PIXI.Graphics()
+            this.graphics.eventMode = "static";
+            const sourceX = this.source.getCanvasX();
+            const sourceY = this.source.getCanvasY();
+            const destinationX = this.destination.getCanvasX();
+            const destinationY = this.destination.getCanvasY();
+            console.log(sourceX, sourceY, destinationX, destinationY)
+            this.graphics.moveTo(sourceX, sourceY);
+            this.graphics.lineTo(destinationX, destinationY);
+            this.graphics.stroke({
+                color: 0xffffff,
+                width: 4
+            });
+            mainContainer.addChild(this.graphics);
+        }
+        if (obj.rerender) {
+            this.graphics.clear();
+            const sourceX = this.source.getCanvasX();
+            const sourceY = this.source.getCanvasY();
+            const destinationX = this.destination.getCanvasX();
+            const destinationY = this.destination.getCanvasY();
+            console.log(sourceX, sourceY, destinationX, destinationY)
+            this.graphics.moveTo(sourceX, sourceY);
+            this.graphics.lineTo(destinationX, destinationY);
+            this.graphics.stroke({
+                color: 0xffffff,
+                width: 4
+            });
+        }
 
+        let color;
+        if (this.source.getValueAtTime(Infinity).length == 1) {
+            color = State.color(this.source.getValueAtTime(Infinity)[0]);
+        } else {
+            if (
+                this.source
+                    .getValueAtTime(Infinity)
+                    .every((x) => x == State.highZ)
+            ) {
+                color = State.color(State.highZ);
+            } else {
+                color = 0x404040;
+            }
+        }
+        this.graphics.tint = color;
+
+        /*
         let sourceX = this.source.getCanvasX();
         let sourceY = this.source.getCanvasY();
         let destinationX = this.destination.getCanvasX();
@@ -154,9 +210,10 @@ class Wire {
             pop();
         }
         pop();
+        */
     }
-    pressed() {
-        this.isHovering = this.hovering();
+    pressed(e) {
+        this.isHovering = this.hovering(e);
         if (!this.rendered) {
             return false;
         }
@@ -201,3 +258,5 @@ class Wire {
         return newWire;
     }
 }
+
+export { Wire }
