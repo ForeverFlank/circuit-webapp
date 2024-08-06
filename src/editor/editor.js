@@ -135,7 +135,7 @@ EventHandler.add("pointerdown", editorPointerDown);
 EventHandler.add("touchstart", editorPointerDown);
 
 function editorPointerMove(e) {
-    console.log(e)
+    // console.log(e)
 
     const width = document.body.clientWidth;
     const height = document.body.clientHeight;
