@@ -56,31 +56,31 @@ for (let item of EventHandler.events) {
 // window.addEventListener("pointerup", onpointerUp);
 
 // EventHandler.add("pointerdown", () => console.log(EventHandler.pointerPosition))
+function updatePointerPosition(e) {
+    EventHandler.pointerPosition.x = e.clientX;
+    EventHandler.pointerPosition.y = e.clientY;
 
-EventHandler.add("pointermove",
-    function updatePointerPosition(e) {
-        EventHandler.pointerPosition.x = e.clientX;
-        EventHandler.pointerPosition.y = e.clientY;
-
-        if (EventHandler.previousPointerPosition.x == 0 &&
-            EventHandler.previousPointerPosition.y == 0
-        ) {
-            // prevent referencing
-            EventHandler.previousPointerPosition.x = EventHandler.pointerPosition.x;
-            EventHandler.previousPointerPosition.y = EventHandler.pointerPosition.y;
-        }
-        
-        EventHandler.deltaPointerPosition.x = EventHandler.pointerPosition.x - EventHandler.previousPointerPosition.x;
-        EventHandler.deltaPointerPosition.y = EventHandler.pointerPosition.y - EventHandler.previousPointerPosition.y;
-
+    if (EventHandler.previousPointerPosition.x == 0 &&
+        EventHandler.previousPointerPosition.y == 0
+    ) {
+        // prevent referencing
         EventHandler.previousPointerPosition.x = EventHandler.pointerPosition.x;
         EventHandler.previousPointerPosition.y = EventHandler.pointerPosition.y;
     }
-)
+
+    EventHandler.deltaPointerPosition.x = EventHandler.pointerPosition.x - EventHandler.previousPointerPosition.x;
+    EventHandler.deltaPointerPosition.y = EventHandler.pointerPosition.y - EventHandler.previousPointerPosition.y;
+
+    EventHandler.previousPointerPosition.x = EventHandler.pointerPosition.x;
+    EventHandler.previousPointerPosition.y = EventHandler.pointerPosition.y;
+}
+
+EventHandler.add("pointermove", updatePointerPosition)
+EventHandler.add("touchmove", updatePointerPosition)
 
 EventHandler.addLate("pointerup",
     function latePointerUp(e) {
-        console.log(e)
+        EventHandler.previousPointerPosition = { x: 0, y: 0 };
     }
 )
 

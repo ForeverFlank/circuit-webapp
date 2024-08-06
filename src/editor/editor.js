@@ -114,65 +114,66 @@ class Editor {
         Editor.container.scale.y = Editor.zoom;
     }
 }
-
-EventHandler.add("pointerdown",
-    function editorPointerDown(e) {
-        // console.log(e)
-        // console.log(Editor.mode)
-        if (Editor.mode == "edit") {
-            if (Editor.isPointerHoveringOnDiv(e)) return;
-            let isPressedOnCircuit = Editor.circuitPointerDown(e);
-            if (!isPressedOnCircuit) {
-                Editor.panEnabled = true;
-            }
-        } else if (Editor.mode == "pan") {
-
+function editorPointerDown(e) {
+    // console.log(e)
+    // console.log(Editor.mode)
+    if (Editor.mode == "edit") {
+        if (Editor.isPointerHoveringOnDiv(e)) return;
+        let isPressedOnCircuit = Editor.circuitPointerDown(e);
+        if (!isPressedOnCircuit) {
             Editor.panEnabled = true;
-        } else if (Editor.mode == "delete") {
-
         }
+    } else if (Editor.mode == "pan") {
+
+        Editor.panEnabled = true;
+    } else if (Editor.mode == "delete") {
+
     }
-);
+}
 
-EventHandler.add("pointermove",
-    function editorPointerMove(e) {
-        // console.log(e)
+EventHandler.add("pointerdown", editorPointerDown);
+EventHandler.add("touchstart", editorPointerDown);
 
-        const width = document.body.clientWidth;
-        const height = document.body.clientHeight;
-        Editor.pointerPosition.x = (EventHandler.pointerPosition.x - Editor.position.x) / Editor.zoom;
-        Editor.pointerPosition.y = (EventHandler.pointerPosition.y - Editor.position.y) / Editor.zoom;
-        Editor.centerPosition.x = (width / 2 - Editor.position.x) / Editor.zoom;
-        Editor.centerPosition.y = (height / 2 - Editor.position.y) / Editor.zoom;
-        /*
-        placeX = -controls.view.x / controls.view.zoom;
-        placeY = -controls.view.y / controls.view.zoom;
-        placeX = Math.round(placeX / 20) * 20;
-        placeY = Math.round(placeY / 20) * 20;
-        */
-        Editor.circuitPointerMove(e)
-        if (Editor.panEnabled) {
-            // console.log(EventHandler.deltaPointerPosition)
-            Editor.position.x += EventHandler.deltaPointerPosition.x;
-            Editor.position.y += EventHandler.deltaPointerPosition.y;
-            Editor.updateViewport();
-        }
+function editorPointerMove(e) {
+    console.log(e)
 
-        for (let i = currentCircuit.modules.length - 1; i >= 0; i--) {
-            let mod = currentCircuit.modules[i];
-            let nodes = mod.inputs.concat(mod.outputs);
-            mod.hovering(e);
-            for (let j = nodes.length - 1; j >= 0; j--) {
-                nodes[j].hovering(e);
-                let wires = nodes[j].connections;
-                for (let k = wires.length - 1; k >= 0; k--) {
-                    // wires[k].released(e)
-                }
+    const width = document.body.clientWidth;
+    const height = document.body.clientHeight;
+    Editor.pointerPosition.x = (EventHandler.pointerPosition.x - Editor.position.x) / Editor.zoom;
+    Editor.pointerPosition.y = (EventHandler.pointerPosition.y - Editor.position.y) / Editor.zoom;
+    Editor.centerPosition.x = (width / 2 - Editor.position.x) / Editor.zoom;
+    Editor.centerPosition.y = (height / 2 - Editor.position.y) / Editor.zoom;
+    /*
+    placeX = -controls.view.x / controls.view.zoom;
+    placeY = -controls.view.y / controls.view.zoom;
+    placeX = Math.round(placeX / 20) * 20;
+    placeY = Math.round(placeY / 20) * 20;
+    */
+    Editor.circuitPointerMove(e)
+    if (Editor.panEnabled) {
+        // console.log(EventHandler.deltaPointerPosition)
+        Editor.position.x += EventHandler.deltaPointerPosition.x;
+        Editor.position.y += EventHandler.deltaPointerPosition.y;
+        Editor.updateViewport();
+    }
+
+    for (let i = currentCircuit.modules.length - 1; i >= 0; i--) {
+        let mod = currentCircuit.modules[i];
+        let nodes = mod.inputs.concat(mod.outputs);
+        mod.hovering(e);
+        for (let j = nodes.length - 1; j >= 0; j--) {
+            nodes[j].hovering(e);
+            let wires = nodes[j].connections;
+            for (let k = wires.length - 1; k >= 0; k--) {
+                // wires[k].released(e)
             }
         }
-
     }
-);
+
+}
+
+EventHandler.add("pointermove", editorPointerMove);
+// EventHandler.add("touchdrag", editorPointerMove);
 
 EventHandler.add("pointerup",
     function editorPointerUp(e) {
@@ -193,11 +194,13 @@ EventHandler.add("wheel",
         let dy = e.y - Editor.position.y;
         dx *= zoomAmount;
         dy *= zoomAmount;
-        Editor.position.x = e.x - dx;
-        Editor.position.y = e.y - dy;
         Editor.zoom += zoom;
         if (Editor.zoom < 0.2) Editor.zoom = 0.2;
-        if (Editor.zoom > 5) Editor.zoom = 5;
+        else if (Editor.zoom > 5) Editor.zoom = 5;
+        else {
+            Editor.position.x = e.x - dx;
+            Editor.position.y = e.y - dy;
+        }
         Editor.updateViewport();
     }
 );
