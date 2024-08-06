@@ -1,5 +1,6 @@
 import { unique } from "../custom-uuid.js";
 import { State } from "../classes/state.js";
+import { WireNode } from "./module.js";
 import { Wire } from "./wire.js";
 import { Editor } from "../editor/editor.js";
 import { currentCircuit, mainContainer } from "../main.js";
@@ -490,6 +491,7 @@ class ModuleNode {
             }
         }
         this.isHovering = false;
+        return false;
     }
     remove() {
         this.disconnectAll();
@@ -508,8 +510,8 @@ class ModuleNode {
         return this.isSplitter;
     }
     addWireNode() {
-        let x = Math.round(mouseCanvasX / 20) * 20;
-        let y = Math.round(mouseCanvasY / 20) * 20;
+        let x = Math.round(Editor.pointerPosition.x / 20) * 20;
+        let y = Math.round(Editor.pointerPosition.y / 20) * 20;
         let value = [...this.getValueAtTime(0)].fill(State.highZ);
         let destinationNode = WireNode.add(x, y, value, false);
         Editor.pressedNode.connect(destinationNode.inputs[0]);

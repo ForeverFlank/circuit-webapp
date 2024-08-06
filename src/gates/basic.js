@@ -13,9 +13,7 @@ class NotGate extends Module {
     }
     render(obj = {
         container: undefined,
-        graphics: undefined,
-        labels: [[this.displayName, 10, -6, 0]],
-        src: "basic/not"
+        graphics: undefined
     }) {
         obj.labels = [[this.displayName, 10, -6, 0]];
         obj.src = "basic/not";
@@ -49,15 +47,13 @@ class AndGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "AND";
     }
-    render(graphics) {
-        super.render(graphics,
-            [[this.displayName, 12, -5, 0]],
-            "basic/and",
-            0,
-            0,
-            80,
-            80
-        );
+    render(obj = {
+        container: undefined,
+        graphics: undefined
+    }) {
+        obj.labels = [[this.displayName, 12, -5, 0]];
+        obj.src = "basic/and";
+        super.render(obj);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -74,7 +70,7 @@ class AndGate extends Module {
         );
     }
     static add() {
-        Module.addToCircuit(new AndGate("AND Gate"));
+        Module.addToCircuit(new AndGate({ name: "AND Gate" }));
     }
 }
 
@@ -90,8 +86,13 @@ class OrGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "OR";
     }
-    render(graphics) {
-        super.render(graphics, [[this.displayName, 12, -5, 0]], "basic/or", 0, 0, 80, 80);
+    render(obj = {
+        container: undefined,
+        graphics: undefined
+    }) {
+        obj.labels = [[this.displayName, 12, -5, 0]];
+        obj.src = "basic/or";
+        super.render(obj);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -108,7 +109,7 @@ class OrGate extends Module {
         );
     }
     static add() {
-        Module.addToCircuit(new OrGate("OR Gate"));
+        Module.addToCircuit(new OrGate({ name: "OR Gate" }));
     }
 }
 
@@ -123,6 +124,14 @@ class NandGate extends Module {
         ];
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "NAND";
+    }
+    render(obj = {
+        container: undefined,
+        graphics: undefined
+    }) {
+        obj.labels = [[this.displayName, 12, -5, 0]];
+        obj.src = "basic/nand";
+        super.render(obj);
     }
     render(graphics) {
         super.render(graphics,
@@ -150,7 +159,7 @@ class NandGate extends Module {
         );
     }
     static add() {
-        Module.addToCircuit(new NandGate("NAND Gate"));
+        Module.addToCircuit(new NandGate({ name: "NAND Gate" }));
     }
 }
 
@@ -166,15 +175,13 @@ class NorGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "NOR";
     }
-    render(graphics) {
-        super.render(graphics,
-            [[this.displayName, 12, -5, 0]],
-            "basic/nor",
-            0,
-            0,
-            80,
-            80
-        );
+    render(obj = {
+        container: undefined,
+        graphics: undefined
+    }) {
+        obj.labels = [[this.displayName, 12, -5, 0]];
+        obj.src = "basic/nor";
+        super.render(obj);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -192,7 +199,7 @@ class NorGate extends Module {
         );
     }
     static add() {
-        Module.addToCircuit(new NorGate("NOR Gate"));
+        Module.addToCircuit(new NorGate({ name: "NOR Gate" }));
     }
 }
 
@@ -208,15 +215,13 @@ class XorGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "XOR";
     }
-    render(graphics) {
-        super.render(graphics,
-            [[this.displayName, 12, -5, 0]],
-            "basic/xor",
-            0,
-            0,
-            80,
-            80
-        );
+    render(obj = {
+        container: undefined,
+        graphics: undefined
+    }) {
+        obj.labels = [[this.displayName, 12, -5, 0]];
+        obj.src = "basic/xor";
+        super.render(obj);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -233,7 +238,7 @@ class XorGate extends Module {
         );
     }
     static add() {
-        Module.addToCircuit(new XorGate("XOR Gate"));
+        Module.addToCircuit(new XorGate({ name: "XOR Gate" }));
     }
 }
 
@@ -249,15 +254,13 @@ class XnorGate extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 2)];
         this.displayName = "XNOR";
     }
-    render(graphics) {
-        super.render(graphics,
-            [[this.displayName, 12, -5, 0]],
-            "basic/xnor",
-            0,
-            0,
-            80,
-            80
-        );
+    render(obj = {
+        container: undefined,
+        graphics: undefined
+    }) {
+        obj.labels = [[this.displayName, 12, -5, 0]];
+        obj.src = "basic/xnor";
+        super.render(obj);
     }
     evaluate(time) {
         super.evaluate(time);
@@ -276,7 +279,7 @@ class XnorGate extends Module {
         );
     }
     static add() {
-        Module.addToCircuit(new XnorGate("XNOR Gate"));
+        Module.addToCircuit(new XnorGate({ name: "XNOR Gate" }));
     }
 }
 
@@ -290,8 +293,13 @@ class TriStateBuffer extends Module {
         this.outputs = [new OutputNode(this, "Output", 4, 1)];
         this.displayName = "";
     }
-    render(graphics) {
-        super.render(graphics, [["", 12, -8, 0]], "basic/tristatebuffer");
+    render(obj = {
+        container: undefined,
+        graphics: undefined
+    }) {
+        obj.labels = [];
+        obj.src = "basic/tristatebuffer";
+        super.render(obj);
     }
     evaluate(time) {
         // console.warn("EVAL", time);
@@ -329,7 +337,7 @@ class TriStateBuffer extends Module {
         super.evaluate(time + this.outputs[0].delay);
     }
     static add() {
-        Module.addToCircuit(new TriStateBuffer("Tri-State Buffer"));
+        Module.addToCircuit(new TriStateBuffer({ name: "Tri-State Buffer" }));
     }
 }
 
@@ -370,7 +378,7 @@ class HalfAdder extends Module {
         );
     }
     static add() {
-        Module.addToCircuit(new HalfAdder("Half Adder"));
+        Module.addToCircuit(new HalfAdder({ name: "Half Adder" }));
     }
 }
 
@@ -416,7 +424,7 @@ class FullAdder extends Module {
         );
     }
     static add() {
-        Module.addToCircuit(new FullAdder("Full Adder"));
+        Module.addToCircuit(new FullAdder({ name: "Full Adder" }));
     }
 }
 

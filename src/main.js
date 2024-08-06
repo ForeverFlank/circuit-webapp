@@ -6,6 +6,8 @@ import { Circuit } from "./classes/circuit.js"
 import { createGateMenuButtons } from "./gate-menu-buttons.js";
 import { Input } from "./classes/module.js";
 import { NotGate } from "./gates/basic.js";
+import { gridGraphics, drawGrid } from "./renderer/grid.js";
+// import { renderGrid } from "./renderer/grid.js";
 
 preloadTextures();
 createGateMenuButtons();
@@ -53,15 +55,19 @@ mainContainer.addChild(Editor.wireDrawingGraphics);
 
 await PIXI.Assets.load("./src/sample.png");
 let sprite = PIXI.Sprite.from("./src/sample.png");
-mainContainer.addChild(sprite);
+// mainContainer.addChild(sprite);
+mainContainer.addChild(gridGraphics);
 
 const graphics = new PIXI.Graphics();
 graphics.eventMode = "static";
-mainContainer.addChild(graphics);
+// mainContainer.addChild(graphics);
 
 let elapsed = 0.0;
 let i = 0;
+
 app.ticker.add((ticker) => {
+    drawGrid();
+/*
     graphics.clear();
     graphics.star(0, 0, 4, 10);
     graphics.fill(0x888888);
@@ -69,7 +75,7 @@ app.ticker.add((ticker) => {
     graphics.fill(0x00ff00);
     graphics.star(20, 0, 4, 10);
     graphics.fill(0xff0000);
-
+*/
     for (let i = currentCircuit.modules.length - 1; i >= 0; --i) {
         let mod = currentCircuit.modules[i];
         mod.render({

@@ -24,10 +24,10 @@ class Module {
         for (let key in obj) {
             this[key] = obj[key];
         }
-        console.log(obj)
+        // console.log(obj)
         if (obj.x == undefined) obj.x = Editor.centerPosition.x;
         if (obj.y == undefined) obj.y = Editor.centerPosition.y;
-        console.log(Editor.position.x)
+        // console.log(Editor.position.x)
         this.name = obj.name;
         this.id = unique(obj.name);
         this.width = obj.width;
@@ -49,6 +49,7 @@ class Module {
         this.objectType = "module";
         this.ignoreDiv = false;
         this.isHiddenOnAdd = false;
+        console.log(this)
     }
     hovering(e) {
         if (Editor.mode == "pan") return false;
@@ -389,18 +390,18 @@ class Module {
 }
 
 class WireNode extends Module {
-    constructor(name, x, y, value = [State.highZ]) {
-        super(name, 0, 0, x, y);
-        this.inputs = [new ModuleNode(this, "Node", 0, 0, value)];
+    constructor(obj) {
+        super(obj);
+        this.inputs = [new ModuleNode(this, "Node", 0, 0, obj.value)];
     }
-    hovering() {
-        return this.inputs[0].hovering();
+    hovering(e) {
+        return this.inputs[0].hovering(e);
     }
     evaluate(time, connectedToOutput = false, evaluated = new Set()) {
         super.evaluate(time, connectedToOutput, evaluated);
     }
-    pressed() {
-        if (this.hovering() && Editor.pressedCircuitObject.id == 0) {
+    pressed(e) {
+        if (this.hovering(e) && Editor.pressedCircuitObject.id == 0) {
             Editor.pressedCircuitObject = this;
             if (mouseButton == LEFT) {
                 return this;
@@ -415,7 +416,13 @@ class WireNode extends Module {
         return;
     }
     static add(x, y, value, evaluate) {
-        let mod = new WireNode("Node", x, y, value);
+        console.log('we')
+        let mod = new WireNode({
+            name: "Node", 
+            x: x, 
+            y: y, 
+            value: value
+        });
         currentCircuit.addModule(mod, evaluate);
         return mod;
     }

@@ -166,7 +166,7 @@ let bg = document.getElementById("background-blur");
 let modalMenu = document.getElementById("modal-menu");
 let modalTitle = document.getElementById("modal-title");
 let modalContainer = document.getElementById("modal-container");
-let selectingDiv = document.getElementById("selecting-div");
+let selectingDiv = document.getElementById("selecting-circuit-object-container");
 
 function openModalMenu(title, html) {
     modalTitle.innerText = title;
@@ -181,7 +181,7 @@ function closeModalMenu() {
 }
 
 function hoveringOnDiv(e) {
-    let divIds = ["top-tab", "gate-menu", "selecting-div", "control-tab"];
+    let divIds = ["top-tab", "gate-menu", "selecting-circuit-object-container", "control-tab"];
     for (let i in divIds) {
         let div = document.getElementById(divIds[i]);
         let offsets = div.getBoundingClientRect();

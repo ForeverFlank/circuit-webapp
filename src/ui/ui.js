@@ -17,11 +17,14 @@ function closeMenu() {
     saveDiv.style.display = "none";
     bg.style.display = "none";
 }
+*/
+// var controlMode;
 
-var controlMode;
+import { Editor } from "../editor/editor.js";
+
 const controlModes = ["edit", "pan", "delete"];
 function setControlMode(mode) {
-    controlMode = mode;
+    Editor.mode = mode;
     controlModes.forEach((item) => {
         if (item == mode) {
             let color = item == "delete" ? "#ef4444" : "#3b82f6";
@@ -35,6 +38,10 @@ function setControlMode(mode) {
         }
     });
 }
+document.getElementById("control-edit")
+        .addEventListener("click", () => setControlMode("edit"));
+document.getElementById("control-pan")
+        .addEventListener("click", () => setControlMode("pan"));
+document.getElementById("control-delete")
+        .addEventListener("click", () => setControlMode("delete"));
 setControlMode("edit");
-*/
-

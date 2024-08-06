@@ -2,6 +2,7 @@ import { EventHandler } from "../event/event-handler.js";
 import * as Constants from "../constants.js"
 import { CanvasContainer } from "../classes/canvas.js";
 import { currentCircuit, mainCanvasContainer, mainContainer } from "../main.js";
+import { updateSelectedCircuitObjectUI } from "../ui/selected-object.js";
 
 
 class Editor {
@@ -9,18 +10,18 @@ class Editor {
 
     static mode = "edit";
     static wireDraggingEnabled = false;
-    static divIds = ["top-tab", "gate-menu", "selecting-div", "control-tab"];
+    static divIds = ["top-tab", "gate-menu", "selecting-circuit-object-container", "control-tab"];
     static blurDiv = document.getElementById("background-blur");
 
     static container = null;
     static zoom = 1;
-    static position = { x: 0, y: 0}
+    static position = { x: 0, y: 0 }
     static pointerPosition = { x: 0, y: 0 };
     static centerPosition = { x: 0, y: 0 };
     static panEnabled = false;
 
     static pressedCircuitObject = { id: 0 };
-    static pressedNode = { id: 0 };
+    static pressedNode = null;
     static wireDrawingGraphics = null;
 
     static circuitPointerDown(e) {
@@ -46,6 +47,7 @@ class Editor {
                 break;
             }
         }
+        // updateSelectedCircuitObjectUI();
         return isPressedOnCircuit;
     }
     static circuitPointerMove(e) {
@@ -63,16 +65,23 @@ class Editor {
         }
     }
     static circuitPointerUp(e) {
+        let releasedOnNode = false;
         for (let i = currentCircuit.modules.length - 1; i >= 0; i--) {
             let mod = currentCircuit.modules[i];
             let nodes = mod.inputs.concat(mod.outputs);
             mod.released(e);
             for (let j = nodes.length - 1; j >= 0; j--) {
-                nodes[j].released(e, false)
+                releasedOnNode |= nodes[j].released(e, false)
                 let wires = nodes[j].connections;
                 for (let k = wires.length - 1; k >= 0; k--) {
                     // wires[k].released(e)
                 }
+            }
+        }
+        if (!releasedOnNode) {
+            if (Editor.pressedNode) {
+                console.log('asd')
+                Editor.pressedNode.addWireNode();
             }
         }
         Editor.pressedCircuitObject = { id: 0 };
@@ -108,8 +117,10 @@ class Editor {
 
 EventHandler.add("pointerdown",
     function editorPointerDown(e) {
-        if (Editor.isPointerHoveringOnDiv(e)) return;
+        // console.log(e)
+        // console.log(Editor.mode)
         if (Editor.mode == "edit") {
+            if (Editor.isPointerHoveringOnDiv(e)) return;
             let isPressedOnCircuit = Editor.circuitPointerDown(e);
             if (!isPressedOnCircuit) {
                 Editor.panEnabled = true;
@@ -125,6 +136,8 @@ EventHandler.add("pointerdown",
 
 EventHandler.add("pointermove",
     function editorPointerMove(e) {
+        // console.log(e)
+
         const width = document.body.clientWidth;
         const height = document.body.clientHeight;
         Editor.pointerPosition.x = (EventHandler.pointerPosition.x - Editor.position.x) / Editor.zoom;
@@ -139,6 +152,7 @@ EventHandler.add("pointermove",
         */
         Editor.circuitPointerMove(e)
         if (Editor.panEnabled) {
+            // console.log(EventHandler.deltaPointerPosition)
             Editor.position.x += EventHandler.deltaPointerPosition.x;
             Editor.position.y += EventHandler.deltaPointerPosition.y;
             Editor.updateViewport();
@@ -182,6 +196,8 @@ EventHandler.add("wheel",
         Editor.position.x = e.x - dx;
         Editor.position.y = e.y - dy;
         Editor.zoom += zoom;
+        if (Editor.zoom < 0.2) Editor.zoom = 0.2;
+        if (Editor.zoom > 5) Editor.zoom = 5;
         Editor.updateViewport();
     }
 );

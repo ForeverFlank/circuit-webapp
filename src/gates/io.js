@@ -3,8 +3,10 @@ import { ModuleNode, InputNode, OutputNode, SplitterNode } from "../classes/modu
 import { State } from "../classes/state.js";
 
 class LED extends Module {
-    constructor(name) {
-        super(name, 2, 2);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 2;
+        if (obj.height == null) obj.height = 2;
+        super(obj);
         this.inputValue = [State.highZ];
         this.inputs = [new InputNode(this, "Input", 0, 1, [State.highZ])];
         this.inputs.forEach((node) => (node.pinDirection = 0));
@@ -12,8 +14,10 @@ class LED extends Module {
     evaluate(time) {
         super.evaluate(time);
     }
-    render(graphics) {
+    render(obj) {
         if (this.isHiddenOnAdd) return;
+        super.render(obj);
+        /*
         push();
         stroke(0);
         strokeWeight(2);
@@ -22,17 +26,20 @@ class LED extends Module {
         fill(color);
         circle(this.x + 20, this.y + 20, 28);
         pop();
+        */
         // let char = State.toString(this.inputs[0].getValueAtTime(Infinity));
         // super.render(graphics, [[char, 12, 0, 0]], "basic/output");
     }
     static add() {
-        Module.addToCircuit(new LED("LED"));
+        Module.addToCircuit(new LED({ name: "LED" }));
     }
 }
 
 class Display7Segment extends Module {
-    constructor(name) {
-        super(name, 2, 2);
+    constructor(obj) {
+        if (obj.width == null) obj.width = 2;
+        if (obj.height == null) obj.height = 2;
+        super(obj);
         this.inputValue = [State.highZ];
         this.inputs = [new InputNode(this, "Input", 0, 1, [State.highZ])];
     }
@@ -44,7 +51,7 @@ class Display7Segment extends Module {
         // super.render(graphics, [[char, 12, 0, 0]], "basic/output");
     }
     static add() {
-        let mod = new Display7Segment("7 Segment Display");
+        let mod = new Display7Segment({ name: "7 Segment Display" });
         currentCircuit.addOutputModule(mod);
         mod.ignoreDiv = true;
         mod.pressed(true);

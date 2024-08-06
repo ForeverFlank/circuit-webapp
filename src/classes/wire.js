@@ -79,7 +79,7 @@ class Wire {
             const sourceY = this.source.getCanvasY();
             const destinationX = this.destination.getCanvasX();
             const destinationY = this.destination.getCanvasY();
-            console.log(sourceX, sourceY, destinationX, destinationY)
+            // console.log(sourceX, sourceY, destinationX, destinationY)
             this.graphics.moveTo(sourceX, sourceY);
             this.graphics.lineTo(destinationX, destinationY);
             this.graphics.stroke({
@@ -94,7 +94,7 @@ class Wire {
             const sourceY = this.source.getCanvasY();
             const destinationX = this.destination.getCanvasX();
             const destinationY = this.destination.getCanvasY();
-            console.log(sourceX, sourceY, destinationX, destinationY)
+            // console.log(sourceX, sourceY, destinationX, destinationY)
             this.graphics.moveTo(sourceX, sourceY);
             this.graphics.lineTo(destinationX, destinationY);
             this.graphics.stroke({

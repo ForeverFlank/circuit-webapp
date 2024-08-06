@@ -19,6 +19,9 @@
       <button class="h-full left-3 mx-3 my-0 px-4 py-0 top-button" onclick="openAccordionMenu('menu-circuits', 'grid')">
         File
       </button>
+      <button class="h-full left-3 mx-3 my-0 px-4 py-0 top-button" onclick="openAccordionMenu('menu-learn', 'grid')">
+        Learn
+      </button>
       <div id="menu-circuits" class="top-accordion top-14 left-3 shadow z-20" style="display: none">
         <!--button onclick="openSaveMenu()">
           <span> Save </span>
@@ -106,16 +109,13 @@
     <div class="grow">
       <div id="control-tab" class="flex items-center h-11 p-1.5 gap-x-1 grow bg-zinc-100 border-b border-zinc-200">
         <div class="flex items-center h-11 gap-x-0 ml-auto">
-          <button id="control-edit" class="bg-zinc-100 px-3 h-8 text-sm border border-zinc-200 rounded-l-md"
-            onclick="setControlMode('edit')">
+          <button id="control-edit" class="bg-zinc-100 px-3 h-8 text-sm border border-zinc-200 rounded-l-md">
             Edit
           </button>
-          <button id="control-pan" class="bg-zinc-100 px-3 h-8 text-sm border-y border-zinc-200"
-            onclick="setControlMode('pan')">
+          <button id="control-pan" class="bg-zinc-100 px-3 h-8 text-sm border-y border-zinc-200">
             Pan
           </button>
-          <button id="control-delete" class="bg-zinc-100 px-3 h-8 text-sm border border-zinc-200 rounded-r-md"
-            onclick="setControlMode('delete')">
+          <button id="control-delete" class="bg-zinc-100 px-3 h-8 text-sm border border-zinc-200 rounded-r-md">
             Delete
           </button>
         </div>
@@ -134,7 +134,7 @@
 
   </div>
 
-  <div id="selecting-div"
+  <div id="selecting-circuit-object-container"
     class="fixed flex flex-col gap-y-2 right-8 top-32 min-w-60 w-1/5 p-4 rounded-lg bg-zinc-100 shadow-md"
     style="display: none">
     <h2 id="selecting-name" class="font-bold text-base mb-2">
@@ -208,12 +208,12 @@
   <script src="src/gate-menu-buttons.js"></script>
   <script src="src/saving.js"></script>
   <script src="src/renderer.js"></script>
+  <script src="src/ui/selected-object.js"></script>
   <script src="src/input-handler.js"></script-->
   <script src="src/ui/accordion.js"></script>
-  <script src="src/ui/selected-object.js"></script>
-  <script src="src/ui/ui.js"></script>
   
   <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/ui/ui.js"></script>
 </body>
 
 </html>
