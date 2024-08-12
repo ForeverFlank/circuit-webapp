@@ -130,7 +130,11 @@ class Wire {
                 let deltaX = destinationX - sourceX;
                 let deltaY = destinationY - sourceY;
                 if (value.length == 1) {
-                    circle(sourceX + deltaX * t, sourceY + deltaY * t, 4);
+                    rect(
+                        sourceX + deltaX * t - 2,
+                        sourceY + deltaY * t - 2,
+                        4, 4
+                    );
                 } else {
                     push();
                     let str = State.toString(value);

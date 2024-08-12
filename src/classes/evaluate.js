@@ -72,7 +72,7 @@ Circuit.prototype.evaluateAll = function (reset = true, initTime = 0) {
         return `t${time}i${index}n${nodeId}`;
     }
     let iteration = 0;
-    let maxIteration = 10000;
+    let maxIteration = 1000;
     let currentTime = 0;
     let lastTime = 0;
     while (iteration < maxIteration && evalQueue.length > 0) {

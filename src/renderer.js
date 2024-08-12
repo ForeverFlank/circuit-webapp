@@ -3,6 +3,8 @@ function setup() {
     canvas = createCanvas(containerWidth, containerHeight);
     canvas.parent("canvas-container");
     textFont(fontRegular);
+    for (let i = 0; i < 0; ++i)
+        currentCircuit.addModule(new NotGate())
 }
 
 function grid() {

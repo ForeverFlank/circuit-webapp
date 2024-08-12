@@ -376,7 +376,8 @@ class ModuleNode {
                 fill(64);
             }
         }
-        circle(netX, netY, this.hovering() ? 9 : 6);
+        let size = this.hovering() ? 5 : 3;
+        rect(netX - size, netY - size, size * 2, size * 2);
 
         if (this.hovering()) {
             hoveringNode = this;
